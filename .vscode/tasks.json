@@ -1,0 +1,73 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "test: current project (console)",
+            "type": "shell",
+            "command": "$d='${fileDirname}'; while(!(Get-ChildItem -Path $d -Filter '*.csproj' -EA 0)){$d=Split-Path $d}; dotnet test $d -v minimal --logger 'console;verbosity=detailed'",
+            "options": {
+                "shell": {
+                    "executable": "powershell.exe",
+                    "args": ["-NoProfile", "-Command"]
+                }
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test: current project (html report)",
+            "type": "shell",
+            "command": "$d='${fileDirname}'; while(!(Get-ChildItem -Path $d -Filter '*.csproj' -EA 0)){$d=Split-Path $d}; dotnet test $d -v minimal --logger 'html;LogFileName=results.html' --results-directory \"$d\\TestResults\"",
+            "options": {
+                "shell": {
+                    "executable": "powershell.exe",
+                    "args": ["-NoProfile", "-Command"]
+                }
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test: current project (html report + open)",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "test: current project (html report)",
+                "open: html report (current project)"
+            ],
+            "group": "test",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "open: html report (current project)",
+            "type": "shell",
+            "command": "$d='${fileDirname}'; while(!(Get-ChildItem -Path $d -Filter '*.csproj' -EA 0)){$d=Split-Path $d}; code --reuse-window \"$d\\TestResults\\results.html\"",
+            "options": {
+                "shell": {
+                    "executable": "powershell.exe",
+                    "args": ["-NoProfile", "-Command"]
+                }
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

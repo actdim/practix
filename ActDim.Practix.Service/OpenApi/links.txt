@@ -1,0 +1,15 @@
+﻿// https://stackoverflow.com/questions/36452468/swagger-ui-web-api-documentation-present-enums-as-strings
+// https://github.com/unchase/Unchase.Swashbuckle.AspNetCore.Extensions/tree/master
+// https://www.dotnetnakama.com/blog/enriched-web-api-documentation-using-swagger-openapi-in-asp-dotnet-core
+// https://github.com/Redocly/redoc
+// https://github.com/domaindrivendev/Swashbuckle.WebApi
+// https://blog.magnusmontin.net/2020/04/03/custom-data-types-in-asp-net-core-web-apis/
+// https://stackoverflow.com/questions/29701573/how-to-omit-methods-from-swagger-documentation-on-webapi-using-swashbuckle
+// https://johnnyreilly.com/swashbuckle-inheritance-multiple-return-types
+// https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references
+// https://github.com/Alegrowin/Swashbuckle.AutoRestExtensions/tree/master/Swashbuckle.AutoRestExtensions
+// https://redocly.com/docs/api-reference-docs/spec-extensions
+// https://github.com/Azure/AutoRest
+// enums:
+// https://habr.com/ru/articles/552624/
+// https://stackoverflow.com/questions/49006079/using-swashbuckle-for-asp-net-core-how-can-i-add-a-model-to-the-generated-model

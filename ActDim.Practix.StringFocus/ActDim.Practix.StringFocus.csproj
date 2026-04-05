@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<OutputType>Library</OutputType>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<SignAssembly>True</SignAssembly>
+		<AssemblyOriginatorKeyFile>..\..\..\CanarySystems.snk</AssemblyOriginatorKeyFile>
+		<!--CS8002:	Referenced assembly 'Conditions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' does not have a strong name-->
+		<NoWarn>$(NoWarn);CS8002</NoWarn>
+		<Platforms>x64</Platforms>
+		<PlatformTarget>x64</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DefineConstants>TRACE;DEBUG</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<DefineConstants>TRACE</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\SalientBits.InterCode\src\SalientBits.InterCode\SalientBits.InterCode.csproj" />
+	</ItemGroup>
+</Project>
