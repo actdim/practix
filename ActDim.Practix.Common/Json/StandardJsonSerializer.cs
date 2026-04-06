@@ -1,14 +1,19 @@
 using ActDim.Practix.Abstractions.Json;
 using ActDim.Practix.Extensions;
 using ActDim.Practix.Memory;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace ActDim.Practix.Service.Json
+namespace ActDim.Practix.Common.Json
 {
     // TODO: check [EnumeratorCancellation], JsonExtensionData, JsonSerializerContext
     internal class StandardJsonSerializer : IJsonSerializer

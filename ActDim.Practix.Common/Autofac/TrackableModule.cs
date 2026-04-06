@@ -1,5 +1,8 @@
 ﻿using Autofac;
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace ActDim.Practix.Autofac
 {
@@ -14,7 +17,7 @@ namespace ActDim.Practix.Autofac
             HashSet<Type> moduleSet;
             if (builder.Properties.TryGetValue(LoadedModulesKey, out object obj))
             {
-                moduleSet = new HashSet<Type>((ImmutableHashSet<Type>)obj);
+                moduleSet = [.. (ImmutableHashSet<Type>)obj];
             }
             else
             {

@@ -1,28 +1,29 @@
-﻿using NUnit.Framework;
-using OrthoBits.InterCode.Linq.Dynamic;
-using OrthoBits.InterCode.Reflection;
+﻿using Xunit;
 using System.Diagnostics;
 using System.Dynamic;
-using Assert = NUnit.Framework.Legacy.ClassicAssert;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using ActDim.Practix.TypeAccess.Linq.Dynamic;
+using ActDim.Practix.TypeAccess.Reflection;
 
-namespace OrthoBits.InterCode.Tests // Linq.Dynamic
-{   
-    [TestFixture]
+namespace OrthoBits.InterCode.Tests
+{
     public class DynamicExpressionTests
     {
-        [Test]
+        [Fact]
         public void CanCreateAnonymousTypeFromPropertyInfos()
         {
-            Assert.IsNotNull(DynamicTypeFactory.Instance.CreateType(typeof(TestClass).GetProperties()));
+            Assert.NotNull(DynamicTypeFactory.Instance.CreateType(typeof(TestClass).GetProperties()));
         }
 
-        [Test]
+        [Fact]
         public void CanCreateAnonymousTypeFromPropertyTypes()
         {
-            Assert.IsNotNull(DynamicTypeFactory.Instance.CreateType(typeof(TestClass).GetProperties().ToDictionary(p => p.Name, p => p.PropertyType)));
+            Assert.NotNull(DynamicTypeFactory.Instance.CreateType(typeof(TestClass).GetProperties().ToDictionary(p => p.Name, p => p.PropertyType)));
         }
 
-        [Test]
+        [Fact]
         public void CanHandleAggregationMethods()
         {
             var testObj = new
@@ -30,32 +31,29 @@ namespace OrthoBits.InterCode.Tests // Linq.Dynamic
                 q = new TestClass[] { new TestClass() { IntProperty = 1 }, new TestClass() { IntProperty = 2 }, new TestClass() { IntProperty = 3 } },
                 l = new List<object>()
             };
-            // DynamicHelper.EvalGet(testObj, "q.Max(IntProperty)");
-            var lambda1 = DynamicExpression.ParseLambda(new[] { System.Linq.Expressions.Expression.Parameter(testObj.GetType(), ""), System.Linq.Expressions.Expression.Parameter(testObj.GetType(), "this") }, null, "l.Add(this.q[1]) ").Compile();
+            var lambda1 = DynamicExpression.ParseLambda([System.Linq.Expressions.Expression.Parameter(testObj.GetType(), ""), System.Linq.Expressions.Expression.Parameter(testObj.GetType(), "this")], null, "l.Add(this.q[1]) ").Compile();
             lambda1.DynamicInvoke(testObj, testObj);
-            Assert.AreEqual(1, testObj.l.Count);
-            Assert.AreEqual(testObj.q[1], testObj.l[0]);
-            var lambda2 = DynamicExpression.ParseLambda(new[] { System.Linq.Expressions.Expression.Parameter(testObj.GetType(), "") }, null, "q.Max(IntProperty)").Compile();
+            Assert.Equal(1, testObj.l.Count);
+            Assert.Equal(testObj.q[1], testObj.l[0]);
+            var lambda2 = DynamicExpression.ParseLambda([System.Linq.Expressions.Expression.Parameter(testObj.GetType(), "")], null, "q.Max(IntProperty)").Compile();
             var result = lambda2.DynamicInvoke(testObj);
-            Assert.AreEqual(testObj.q.Max(item => item.IntProperty), result);
-
+            Assert.Equal(testObj.q.Max(item => item.IntProperty), result);
         }
 
-        [Test]
+        [Fact]
         public void CanInvokMethodsWithParams()
         {
             var testObj = new TestClass();
 
             var stringArray = new[] { "test1", "test2", "test3" };
             var lambda = DynamicExpression.ParseLambda(new[] { System.Linq.Expressions.Expression.Parameter(testObj.GetType(), "") }, null, string.Format("MethodWithStringParams(\"{0}\", \"{1}\")", stringArray[0], stringArray[1])).Compile();
-            Assert.AreEqual(testObj.MethodWithStringParams(stringArray[0], stringArray[1]), lambda.DynamicInvoke(testObj));
+            Assert.Equal(testObj.MethodWithStringParams(stringArray[0], stringArray[1]), lambda.DynamicInvoke(testObj));
 
             lambda = DynamicExpression.ParseLambda(new[] { System.Linq.Expressions.Expression.Parameter(testObj.GetType(), "") }, null, string.Format("MethodWithStringParams(\"{0}\", \"{1}\", \"{2}\")", stringArray[0], stringArray[1], stringArray[2])).Compile();
-            Assert.AreEqual(testObj.MethodWithStringParams2(stringArray[0], stringArray[1], stringArray[2]), lambda.DynamicInvoke(testObj));
+            Assert.Equal(testObj.MethodWithStringParams2(stringArray[0], stringArray[1], stringArray[2]), lambda.DynamicInvoke(testObj));
         }
-        
-        // CreateAnonymousTypeObject
-        [Test]
+
+        [Fact]
         public void CanCreateAnonymousTypeInstanceFromNamedValuesDictionary()
         {
             var dict = new Dictionary<string, object>
@@ -66,57 +64,46 @@ namespace OrthoBits.InterCode.Tests // Linq.Dynamic
                 {"refValue2", new BaseTestClass()}
             };
 
-            object instance;
-            //var propertyTypes = dict.ToDictionary(pair => pair.Key, pair => pair.Value == null ? typeof(object) : pair.Value.GetType());
-            //var type = DynamicTypeFactory.Instance.CreateType(propertyTypes);
-            //instance = DynamicTypeFactory.Instance.CreateObject(dict, type);			
-            instance = DynamicTypeFactory.Instance.CreateObject(dict);
+            object instance = DynamicTypeFactory.Instance.CreateObject(dict);
 
-            Assert.IsNotNull(instance);
+            Assert.NotNull(instance);
             dynamic d = instance;
-            Assert.AreEqual(dict["stringProperty"], d.stringProperty);
-            Assert.AreEqual(dict["intProperty"], d.intProperty);
-            Assert.AreEqual(dict["refValue1"], d.refValue1);
-            Assert.AreEqual(dict["refValue2"], d.refValue2);
+            Assert.Equal(dict["stringProperty"], d.stringProperty);
+            Assert.Equal(dict["intProperty"], d.intProperty);
+            Assert.Equal(dict["refValue1"], d.refValue1);
+            Assert.Equal(dict["refValue2"], d.refValue2);
         }
 
-        [Test]
-        [Description("")]
-        public void CanAssignProperty() //Generic
+        [Fact]
+        public void CanAssignProperty()
         {
             var obj = new TestClass();
             var otherObj = new TestClass();
-            string res = (string)DynamicHelper.EvalGet(obj, "RefProperty.StringPropertyAuto=StringProperty", (Type)null); // typeof(void)??
-                                                                                                                          
-            Assert.AreEqual(obj.StringProperty, res);
-            Assert.AreEqual(obj.StringProperty, obj.RefProperty.StringPropertyAuto);
-            res = (string)DynamicHelper.EvalGet(otherObj, string.Format("StringProperty=\"{0}\"", otherObj.RefProperty.StringPropertyAuto), (Type)null); //typeof(void)??
-                                                                                                                                                         //Assert.AreEqual(otherObj.RefProperty.StringPropertyAuto, res);
-            Assert.AreEqual(otherObj.RefProperty.StringPropertyAuto, otherObj.StringProperty);
+            string res = (string)DynamicHelper.EvalGet(obj, "RefProperty.StringPropertyAuto=StringProperty", (Type)null);
+
+            Assert.Equal(obj.StringProperty, res);
+            Assert.Equal(obj.StringProperty, obj.RefProperty.StringPropertyAuto);
+            res = (string)DynamicHelper.EvalGet(otherObj, string.Format("StringProperty=\"{0}\"", otherObj.RefProperty.StringPropertyAuto), (Type)null);
+            Assert.Equal(otherObj.RefProperty.StringPropertyAuto, otherObj.StringProperty);
             var baseObj = (BaseTestClass)DynamicHelper.EvalGet(obj, "RefProperty = null", (Type)null);
-            // Assert.AreEqual(null, baseObj);
-            Assert.AreEqual(null, obj.RefProperty);
+            Assert.Null(obj.RefProperty);
         }
 
-        [Test]
-        [Description("")]
-        public void CanAssignField() //Generic
+        [Fact]
+        public void CanAssignField()
         {
             var obj = new TestClass();
             int value = new Random().Next();
-            DynamicHelper.EvalGet(obj, "IntField=" + value.ToString(), (Type)null); //typeof(void)??                                    
-            Assert.AreEqual(value, obj.IntField);
+            DynamicHelper.EvalGet(obj, "IntField=" + value.ToString(), (Type)null);
+            Assert.Equal(value, obj.IntField);
         }
 
-        [Test]
+        [Fact]
         public void CanBeUsedForDynamicObjectGeneration()
         {
-            // var data = GenericGeneratorMethod<dynamic>(c, new { _.Id<int>(), _.Name, _.CreatedAt });
-
             var c = 1000000;
             var sw1 = new Stopwatch();
             sw1.Start();
-            // NOTE: sample has no property setters
             var sample = new
             {
                 Id = default(int),
@@ -147,19 +134,14 @@ namespace OrthoBits.InterCode.Tests // Linq.Dynamic
                 _ => (_.Id, _.Name, _.CreatedAt, _.Number1, _.Number2)).ToList();
             sw3.Stop();
 
-            Assert.AreEqual(data1.ToList().Count, c);
-            Assert.AreEqual(data2.ToList().Count, c);
-            Assert.IsTrue(sw1.ElapsedTicks == new[] { sw1.ElapsedTicks, sw2.ElapsedTicks, sw3.ElapsedTicks }.Min());
+            Assert.Equal(c, data1.ToList().Count);
+            Assert.Equal(c, data2.ToList().Count);
+            Assert.True(sw1.ElapsedTicks == new[] { sw1.ElapsedTicks, sw2.ElapsedTicks, sw3.ElapsedTicks }.Min());
         }
 
         private IEnumerable<T> GenericGeneratorMethod<T>(int count, T sample)
         {
-            // var type = typeof(T);
-            // var isDynamic = type.IsDefined(typeof(DynamicAttribute));
             var type = sample.GetType();
-            // tuple constructor to create object from property set
-            // constructor calling should be smart (pass default values),
-            // to support partial property set (if properties are comming from DB query columns etc.)			
             var ctorInfo = type.GetConstructors().First(ci => ci.GetParameters().Length > 0);
             var ctor = TypeAccessor.GetConstructorEx(ctorInfo);
             for (var i = 0; i < count; i++)
@@ -181,14 +163,9 @@ namespace OrthoBits.InterCode.Tests // Linq.Dynamic
                 obj.Number2 = float.MinValue;
                 T element = default(T);
                 if (project != null)
-                {
                     element = project(obj);
-                }
                 else
-                {
                     element = obj;
-                }
-
                 yield return element;
             }
         }

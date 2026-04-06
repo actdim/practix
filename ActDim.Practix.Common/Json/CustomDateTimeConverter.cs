@@ -1,9 +1,11 @@
 using ActDim.Practix.Common.DataFormat;
+using System;
 using System.Globalization;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ActDim.Practix.Service.Json
+namespace ActDim.Practix.Common.Json
 {
     /// <summary>
     /// WallClockDateTimeConverter

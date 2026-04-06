@@ -1,4 +1,6 @@
-﻿namespace ActDim.Practix.Abstractions.Logging
+﻿using System.Collections.Generic;
+
+namespace ActDim.Practix.Abstractions.Logging
 {
     // ILogContextPropertyBag
     public interface IContextPropertyBag

@@ -1,4 +1,4 @@
-using ActDim.Practix.Service.Json;
+using ActDim.Practix.Common.Json;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;

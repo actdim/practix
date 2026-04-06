@@ -1,7 +1,8 @@
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ActDim.Practix.Service.Json
+namespace ActDim.Practix.Common.Json
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Property)]
     public class JsonNamingAttribute : Attribute

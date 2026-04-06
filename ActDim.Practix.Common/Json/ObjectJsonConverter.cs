@@ -1,8 +1,10 @@
+using System;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ActDim.Practix.Service.Json
+namespace ActDim.Practix.Common.Json
 {
     /// <summary>
     /// Deserializes object-typed properties to CLR primitives, mimicking Newtonsoft behavior:
@@ -65,7 +67,7 @@ namespace ActDim.Practix.Service.Json
         /*
         private static DynamicArray ReadArray(ref Utf8JsonReader reader, JsonSerializerOptions options)
         {
-            var list = new List<object?>();
+            var list = new List<object>();
             while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
                 list.Add(ReadValue(ref reader, options));
             return new DynamicArray(list);

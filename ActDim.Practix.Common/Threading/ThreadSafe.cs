@@ -1,4 +1,7 @@
-﻿namespace ActDim.Practix.Threading
+﻿using System;
+using System.Threading;
+
+namespace ActDim.Practix.Threading
 {
     public class ThreadSafe<T, TContext> : ThreadLocal<T>
     {

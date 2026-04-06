@@ -1,5 +1,6 @@
 ﻿using ActDim.Practix.Abstractions.Json;
 using ActDim.Practix.Abstractions.Messaging;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace ActDim.Practix.Abstractions.Logging

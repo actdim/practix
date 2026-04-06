@@ -1,27 +1,22 @@
-﻿using ActDim.Practix.Abstractions.Introspection;
 using ActDim.Practix.Abstractions.Patterns;
 using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace ActDim.Practix.Introspection
 {
-    // IIntrospectionInfoProvider
-    public class InMemoryIntrospectionStorage : IProvider<IIntrospectionInfo, IntrospectionMemberId>
+    public class InMemoryIntrospectionStorage : IProvider<IntrospectionInfo, IntrospectionMemberId>
     {
-        private readonly ConcurrentDictionary<IntrospectionMemberId, IIntrospectionInfo> _dictionary = [];
+        private readonly ConcurrentDictionary<IntrospectionMemberId, IntrospectionInfo> _dictionary = [];
 
-        public IIntrospectionInfo Get(IntrospectionMemberId memberId)
+        public IntrospectionInfo Get(IntrospectionMemberId memberId)
         {
             return _dictionary[memberId];
         }
 
-        public IIntrospectionInfo GetOrAdd(MemberInfo m)
+        public IntrospectionInfo GetOrAdd(MemberInfo m)
         {
             var memberId = m.GetIntrospectionMemberId();
-            return _dictionary.GetOrAdd(memberId, memberId =>
-            {
-                return m.GetIntrospectionInfo(false);
-            });
+            return _dictionary.GetOrAdd(memberId, memberId => m.GetIntrospectionInfo(false));
         }
     }
 }

@@ -1,6 +1,9 @@
 ﻿using ActDim.Practix.Abstractions.Json;
 using ActDim.Practix.Abstractions.Mapping;
+using System.Collections.Generic;
 using System.Data.Common;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ActDim.Practix.Abstractions.DataAccess.Generic
 {

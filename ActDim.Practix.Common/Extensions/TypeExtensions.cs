@@ -1,5 +1,8 @@
 ﻿using Autofac;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace ActDim.Practix.Extensions // ActDim.Practix.Linq

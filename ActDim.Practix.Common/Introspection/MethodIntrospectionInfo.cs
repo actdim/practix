@@ -1,49 +1,34 @@
-﻿using ActDim.Practix.Abstractions.Introspection;
+using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace ActDim.Practix.Introspection
 {
-    [Serializable]
-    public class MethodIntrospectionInfo : IntrospectionInfo, IMethodIntrospectionInfo
+    public class MethodIntrospectionInfo : IntrospectionInfo
     {
         internal static new readonly ConditionalWeakTable<MethodBase, MethodIntrospectionInfo> Cache = [];
 
-        public bool IsConstructor { get; }
+        public bool IsConstructor { get; set; }
+        public bool IsAbstract { get; set; }
+        public bool IsVirtual { get; set; }
+        public bool IsStatic { get; set; }
+        public bool IsPublic { get; set; }
+        public bool IsPrivate { get; set; }
+        public bool IsProtected { get; set; }
+        public bool IsInternal { get; set; }
+        public bool IsProtectedInternal { get; set; }
+        public bool IsPrivateProtected { get; set; }
+        public bool IsGeneric { get; set; }
+        public bool IsGenericDefinition { get; set; }
+        public TypeBaseIntrospectionInfo[] GenericParameters { get; set; }
+        public TypeBaseIntrospectionInfo[] GenericArguments { get; set; }
+        public TypeBaseIntrospectionInfo ReturnType { get; set; }
+        public ParameterBaseIntrospectionInfo[] Parameters { get; set; }
 
-        public bool IsAbstract { get; }
+        private static readonly TypeBaseIntrospectionInfo VoidTypeIntrospectionInfo = new TypeBaseIntrospectionInfo(typeof(void));
 
-        public bool IsVirtual { get; }
-
-        public bool IsStatic { get; }
-
-        public bool IsPublic { get; }
-
-        public bool IsPrivate { get; }
-
-        public bool IsProtected { get; }
-
-        public bool IsInternal { get; }
-
-        public bool IsProtectedInternal { get; }
-
-        public bool IsPrivateProtected { get; }
-
-        public bool IsGeneric { get; }
-
-        public bool IsGenericDefinition { get; }
-
-        public ITypeBaseIntrospectionInfo[] GenericParameters { get; }
-
-        public ITypeBaseIntrospectionInfo[] GenericArguments { get; }
-
-        public ITypeBaseIntrospectionInfo ReturnType { get; }
-
-        public IParameterBaseIntrospectionInfo[] Parameters { get; }
-
-        private static Type VoidType = typeof(void);
-
-        private static ITypeBaseIntrospectionInfo VoidTypeIntrospectionInfo = new TypeBaseIntrospectionInfo(VoidType);
+        public MethodIntrospectionInfo() { }
 
         public MethodIntrospectionInfo(MethodBase m) : base(m)
         {
@@ -51,34 +36,28 @@ namespace ActDim.Practix.Introspection
             IsAbstract = m.IsAbstract;
             IsVirtual = m.IsVirtual;
             IsStatic = m.IsStatic;
-
-            // Access levels
             IsPublic = m.IsPublic;
             IsPrivate = m.IsPrivate;
             IsProtected = m.IsFamily;
             IsInternal = m.IsAssembly;
             IsProtectedInternal = m.IsFamilyOrAssembly;
             IsPrivateProtected = m.IsFamilyAndAssembly;
-
-            // Generic
             IsGeneric = m.IsGenericMethod;
             IsGenericDefinition = m.IsGenericMethodDefinition;
 
-            if (m is MethodInfo mi)
-            {
-                ReturnType = (ITypeBaseIntrospectionInfo)mi.ReturnType.GetIntrospectionInfo(false);
-            }
-            else
-            {
-                ReturnType = VoidTypeIntrospectionInfo;
-            }
+            ReturnType = m is MethodInfo mi
+                ? (TypeBaseIntrospectionInfo)mi.ReturnType.GetIntrospectionInfo(false)
+                : VoidTypeIntrospectionInfo;
 
-            Parameters = [.. m.GetParameters().Select(x => x.GetIntrospectionInfo(false))];
+            Parameters = [.. m.GetParameters().Select(x => (ParameterBaseIntrospectionInfo)x.GetIntrospectionInfo(false))];
 
-            // x.IsGenericParameter == true
-            GenericParameters = m.IsGenericMethodDefinition ? [.. m.GetGenericArguments().Select(x => (ITypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))] : [];
+            GenericParameters = m.IsGenericMethodDefinition
+                ? [.. m.GetGenericArguments().Select(x => (TypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))]
+                : [];
 
-            GenericArguments = m.IsGenericMethod ? [.. m.GetGenericArguments().Where(x => !x.IsGenericParameter).Select(x => (ITypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))] : [];
+            GenericArguments = m.IsGenericMethod
+                ? [.. m.GetGenericArguments().Where(x => !x.IsGenericParameter).Select(x => (TypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))]
+                : [];
         }
     }
 }
