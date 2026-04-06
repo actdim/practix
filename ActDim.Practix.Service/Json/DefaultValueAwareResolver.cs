@@ -28,7 +28,7 @@ namespace ActDim.Practix.Service.Json
             if (typeInfo.Kind != JsonTypeInfoKind.Object)
                 return;
 
-            var defaults = new List<(JsonPropertyInfo prop, object? defaultValue)>();
+            var defaults = new List<(JsonPropertyInfo prop, object defaultValue)>();
 
             foreach (var property in typeInfo.Properties)
             {
@@ -75,7 +75,7 @@ namespace ActDim.Practix.Service.Json
             };
         }
 
-        private static object? GetTypeDefault(Type type)
+        private static object GetTypeDefault(Type type)
         {
             return type.IsValueType ? Activator.CreateInstance(type) : null;
         }

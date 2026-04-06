@@ -1,19 +1,20 @@
-﻿using System;
+﻿using ActDim.Practix.Collections.Concurrent;
+using ActDim.Practix.TypeAccess.Linq.Dynamic;
+using Ardalis.GuardClauses;
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Collections.Generic;
 using System.Reflection.Emit;
-using System.Text;
-using System.Collections;
 using System.Runtime.CompilerServices;
-using System.Collections.Concurrent;
-using Conditions;
-using ActDim.Practix.Collections.Concurrent;
-using ActDim.Practix.TypeAccess.Linq.Dynamic;
-using Newtonsoft.Json.Linq;
+using System.Runtime.Serialization.Formatters;
 using System.Security;
+using System.Text;
+using System.Xml.Linq;
 
 // [assembly: AllowPartiallyTrustedCallers]
 // [assembly: SecurityTransparent]
@@ -27,7 +28,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
     /// </summary>
     public static class TypeAccessor
     {
-        public static Type GetFuncType(params Type[]? typeArgs)
+        public static Type GetFuncType(params Type[] typeArgs)
         {
             // TODO: cache (memoize)            
             // var result = Type.GetType($"System.Func`{typeArgs.Length}");
@@ -35,7 +36,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
             return Expression.GetFuncType(typeArgs);
         }
 
-        public static Type GetActionType(params Type[]? typeArgs)
+        public static Type GetActionType(params Type[] typeArgs)
         {
             // TODO: cache (memoize)
             return Expression.GetActionType(typeArgs);
@@ -49,7 +50,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>		        
         public static MemberInfo GetMemberInfo(LambdaExpression expr)
         {
-            expr.Requires(nameof(expr)).IsNotNull();
+            Guard.Against.Null(expr, nameof(expr));
 
             var bodyExpr = expr.Body;
 
@@ -119,7 +120,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static MethodInfo GetMethodInfo(Expression<Action> expr)
         {
-            expr.Requires(nameof(expr)).IsNotNull();
+            Guard.Against.Null(expr, nameof(expr));
 
             var bodyExpr = expr.Body;
             if (bodyExpr.NodeType != ExpressionType.Call)
@@ -296,8 +297,8 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static Delegate GetConstructor(ConstructorInfo ctorInfo, Type delegateType) // GetCtor
         {
-            ctorInfo.Requires(nameof(ctorInfo)).IsNotNull();
-            delegateType.Requires(nameof(delegateType)).IsNotNull();
+            Guard.Against.Null(ctorInfo, nameof(ctorInfo));
+            Guard.Against.Null(delegateType, nameof(delegateType));
             var pair = (ctorInfo, delegateType);
             var result = TypedConstructorCache.GetOrCreateValue(pair);
             return result;
@@ -307,7 +308,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         {
             return (TDelegate)BuildConstructor(typeof(TDelegate));
         }
-        
+
         public static Delegate BuildConstructor(Type delegateType)
         {
             // https://github.com/FluentIL/FluentIL
@@ -465,7 +466,8 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static FastDynamicDelegate GetConstructorEx(ConstructorInfo ctor)
         {
-            ctor.Requires(nameof(ctor)).IsNotNull();
+            Guard.Against.Null(ctor, nameof(ctor));
+
             var result = ConstructorCache.GetOrCreateValue(ctor);
             return result;
         }
@@ -747,7 +749,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static Delegate GetMethodCaller(MethodInfo method, Type delegateType)
         {
-            method.Requires(nameof(method)).IsNotNull();
+            Guard.Against.Null(method, nameof(method));
 
             if (!delegateType.IsSubclassOf(typeof(Delegate)))
             {
@@ -864,7 +866,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static Func<TInstance, TOutput> GetPropertyGetter<TInstance, TOutput>(PropertyInfo propInfo)
         {
-            propInfo.Requires(nameof(propInfo)).IsNotNull();
+            Guard.Against.Null(propInfo, nameof(propInfo));
 
             var pair = (typeof(Func<TInstance, TOutput>), propInfo);
             var result = TypedPropertyGetterCache.GetOrCreateValue(pair);
@@ -876,7 +878,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static Delegate GetPropertyGetter(PropertyInfo propInfo)
         {
-            propInfo.Requires(nameof(propInfo)).IsNotNull();
+            Guard.Against.Null(propInfo, nameof(propInfo));
 
             var pair = (typeof(Delegate), propInfo);
             var result = TypedPropertyGetterCache.GetOrCreateValue(pair);
@@ -885,8 +887,8 @@ namespace ActDim.Practix.TypeAccess.Reflection
 
         public static Delegate GetPropertyGetter(Type type, string name)
         {
-            type.Requires(nameof(type)).IsNotNull();
-            name.Requires(nameof(name)).IsNotNullOrEmpty();
+            Guard.Against.Null(type, nameof(type));
+            Guard.Against.NullOrEmpty(name, nameof(name));
 
             var propInfo = type.GetProperty(name);
             var result = GetPropertyGetter(propInfo);
@@ -900,8 +902,8 @@ namespace ActDim.Practix.TypeAccess.Reflection
 
         public static Delegate GetFieldGetter(Type type, string name)
         {
-            type.Requires(nameof(type)).IsNotNull();
-            name.Requires(nameof(name)).IsNotNullOrEmpty();
+            Guard.Against.Null(type, nameof(type));
+            Guard.Against.NullOrEmpty(name, nameof(name));
 
             var fieldInfo = type.GetField(name);
             var result = GetFieldGetter(fieldInfo);
@@ -924,7 +926,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
 
         public static TDelegate GetStaticMethodCaller<TDelegate>(Type type, string name)
         {
-            name.Requires(nameof(name)).IsNotNullOrEmpty();
+            Guard.Against.NullOrEmpty(name, nameof(name));
 
             var delegateType = typeof(TDelegate);
             if (!delegateType.IsSubclassOf(BaseDelegateType)) // !BaseDelegateType.IsAssignableFrom(delegateType)
@@ -950,7 +952,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
 
         public static TDelegate GetMethodCaller<TDelegate>(Type type, string name)
         {
-            name.Requires(nameof(name)).IsNotNullOrEmpty();
+            Guard.Against.NullOrEmpty(name, nameof(name));
 
             var delegateType = typeof(TDelegate);
             if (!delegateType.IsSubclassOf(BaseDelegateType)) // !BaseDelegateType.IsAssignableFrom(delegateType)
@@ -1040,7 +1042,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static Delegate GetPropertySetter(PropertyInfo propInfo)
         {
-            propInfo.Requires(nameof(propInfo)).IsNotNull();
+            Guard.Against.Null(propInfo, nameof(propInfo));
 
             var pair = (typeof(Delegate), propInfo);
             var result = TypedPropertySetterCache.GetOrCreateValue(pair);
@@ -1057,7 +1059,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static Action<TInstance, TValue> GetPropertySetter<TInstance, TValue>(PropertyInfo propInfo)
         {
-            propInfo.Requires(nameof(propInfo)).IsNotNull();
+            Guard.Against.Null(propInfo, nameof(propInfo));
 
             var pair = (typeof(Action<TInstance, TValue>), propInfo);
             var result = TypedPropertySetterCache.GetOrCreateValue(pair);
@@ -1213,8 +1215,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static Delegate GetFieldGetter(FieldInfo fieldInfo)
         {
-            fieldInfo.Requires(nameof(fieldInfo)).IsNotNull();
-
+            Guard.Against.Null(fieldInfo, nameof(fieldInfo));
             var pair = (typeof(Delegate), fieldInfo);
             var result = TypedFieldGetterCache.GetOrCreateValue(pair);
             return result;
@@ -1230,8 +1231,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static Func<T, TField> GetFieldGetter<T, TField>(FieldInfo fieldInfo)
         {
-            fieldInfo.Requires(nameof(fieldInfo)).IsNotNull();
-
+            Guard.Against.Null(fieldInfo, nameof(fieldInfo));
             var pair = (typeof(Func<T, TField>), fieldInfo);
             var result = TypedFieldGetterCache.GetOrCreateValue(pair);
             return (Func<T, TField>)result;
@@ -1293,7 +1293,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static Delegate GetFieldSetter(FieldInfo fieldInfo)
         {
-            fieldInfo.Requires(nameof(fieldInfo)).IsNotNull();
+            Guard.Against.Null(fieldInfo, nameof(fieldInfo));
 
             var pair = (typeof(Delegate), fieldInfo);
             var result = TypedFieldSetterCache.GetOrCreateValue(pair);
@@ -1310,7 +1310,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static Action<T, TField> GetFieldSetter<T, TField>(FieldInfo fieldInfo)
         {
-            fieldInfo.Requires(nameof(fieldInfo)).IsNotNull();
+            Guard.Against.Null(fieldInfo, nameof(fieldInfo));
 
             var pair = (typeof(Action<T, TField>), fieldInfo);
             var result = TypedFieldSetterCache.GetOrCreateValue(pair);
@@ -1401,7 +1401,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static MemberInfo GetMemberInfo<TOutput>(Expression<Func<T, TOutput>> expr)
         {
-            expr.Requires(nameof(expr)).IsNotNull();
+            Guard.Against.Null(expr, nameof(expr));
 
             var bodyExpr = expr.Body;
 
@@ -1463,7 +1463,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         public static MethodInfo GetMethodInfo(Expression<Action<T>> expr)
         {
-            expr.Requires(nameof(expr)).IsNotNull();
+            Guard.Against.Null(expr, nameof(expr));
 
             var bodyExpr = expr.Body;
             if (bodyExpr.NodeType != ExpressionType.Call)

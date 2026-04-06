@@ -757,10 +757,9 @@ namespace ActDim.Practix.Service
                 ConfigureWebServer(serverOptions, config);
             });
 
-            webHostBuilder.UseKestrel(options =>
-            {
-                options.buff
-            });
+            // webHostBuilder.UseKestrel(options =>
+            // {                
+            // });
 
             // webHostBuilder.UseHttpSys(httpSysOptions =>
             // {

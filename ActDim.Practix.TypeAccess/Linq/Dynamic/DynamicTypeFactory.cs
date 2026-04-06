@@ -1,15 +1,16 @@
-﻿using System;
+﻿using ActDim.Practix;
+using ActDim.Practix.TypeAccess.Reflection;
+using Ardalis.GuardClauses;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.Serialization.Formatters;
 using System.Security;
-using System.Collections.Concurrent;
-using Conditions;
-using ActDim.Practix;
 using System.Security.Permissions;
-using ActDim.Practix.TypeAccess.Reflection;
 
 namespace ActDim.Practix.TypeAccess.Linq.Dynamic
 {
@@ -55,8 +56,8 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
         internal Type CreateType(DynamicProperty[] properties)
         {
             // argument must contain at least 1 property definition
-            properties.Requires(nameof(properties)).IsNotNull().IsNotEmpty();
-            var signature = new Signature(properties.ToArray());
+            Guard.Against.NullOrEmpty(properties, nameof(properties));
+            var signature = new Signature([.. properties]);
             return _typeCache.GetOrAdd(signature, s =>
             {
                 var type = CreateType(s, properties);
@@ -200,7 +201,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
             //http://msdn.microsoft.com/en-us/library/ms145822.aspx 
             //http://msdn.microsoft.com/en-us/library/system.reflection.emit.typebuilder.defineproperty(v=vs.71).aspx			
 
-            propertyValues.Requires(nameof(propertyValues)).IsNotNull().IsNotEmpty();
+            Guard.Against.NullOrEmpty(propertyValues, nameof(propertyValues));
 
             var propertyTypeMap = propertyValues.ToDictionary(pair => pair.Key, pair => pair.Value == null ? typeof(object) : pair.Value.GetType());
             if (type == null)

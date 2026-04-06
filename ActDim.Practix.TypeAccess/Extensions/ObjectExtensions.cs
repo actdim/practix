@@ -1,5 +1,5 @@
-﻿using Conditions;
-using ActDim.Practix.TypeAccess.Reflection;
+﻿using ActDim.Practix.TypeAccess.Reflection;
+using Ardalis.GuardClauses;
 
 namespace ActDim.Practix.TypeAccess.Linq //System.Reflection/ActDim.Practix.TypeAccess.Extensions/ActDim.Practix.TypeAccess.Reflection.Extensions
 {
@@ -18,26 +18,26 @@ namespace ActDim.Practix.TypeAccess.Linq //System.Reflection/ActDim.Practix.Type
 
         public static TDelegate GetPropertyGetter<TDelegate>(this object obj, string name) where TDelegate : Delegate // <TProperty>
         {
-            obj.Requires(nameof(obj)).IsNotNull();
+            Guard.Against.Null(obj, nameof(obj));
             return obj.GetType().GetPropertyGetter<TDelegate>(name);
         }
 
         public static TDelegate GetFieldGetter<TDelegate>(this object obj, string name) where TDelegate : Delegate // <TProperty>
         {
-            obj.Requires(nameof(obj)).IsNotNull();
+            Guard.Against.Null(obj, nameof(obj));
             return obj.GetType().GetFieldGetter<TDelegate>(name) as TDelegate;
         }
 
         public static TProperty GetProperty<TProperty>(this object obj, string name)
         {
-            obj.Requires(nameof(obj)).IsNotNull();
+            Guard.Against.Null(obj, nameof(obj));
             var getter = TypeAccessor.GetPropertyGetter(obj.GetType(), name);
             return (TProperty)getter.DynamicInvoke(obj);
         }
 
         public static TField GetField<TField>(this object obj, string name)
         {
-            obj.Requires(nameof(obj)).IsNotNull();
+            Guard.Against.Null(obj, nameof(obj));
             var getter = TypeAccessor.GetFieldGetter(obj.GetType(), name);
             return (TField)getter.DynamicInvoke(obj);
         }
@@ -45,7 +45,7 @@ namespace ActDim.Practix.TypeAccess.Linq //System.Reflection/ActDim.Practix.Type
         // GetMethodInvoker
         public static TDelegate GetMethodCaller<TDelegate>(this object obj, string name)
         {
-            obj.Requires(nameof(obj)).IsNotNull();
+            Guard.Against.Null(obj, nameof(obj));
             return obj.GetType().GetMethodCaller<TDelegate>(name);
         }
 

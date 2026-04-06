@@ -31,16 +31,5 @@ namespace ActDim.Practix.Introspection
             DeclaringType = (ITypeBaseIntrospectionInfo)m.DeclaringType?.GetIntrospectionInfo(false);
             ReflectedType = (ITypeBaseIntrospectionInfo)m.ReflectedType?.GetIntrospectionInfo(false);
         }
-
-        // [OnDeserialized]
-        // private void OnDeserialized(StreamingContext context)
-        // {
-        //     var cached = IntrospectionCache.GetOrCreate(MemberId, _ => this);
-        //     if (!ReferenceEquals(this, cached))
-        //     {
-        //         // replace/update in cache?
-        //         // ⚠ exception?
-        //     }
-        // }
     }
 }

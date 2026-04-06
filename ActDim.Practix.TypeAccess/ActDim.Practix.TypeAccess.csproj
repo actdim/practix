@@ -8,10 +8,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Conditions" Version="2.1.0" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\ActDim.Practix.Common\ActDim.Practix.Common.csproj" />
 	</ItemGroup>
 
