@@ -1,7 +1,6 @@
-﻿using Conditions;
-using ActDim.Practix.TypeAccess.Reflection;
+﻿using ActDim.Practix.TypeAccess.Reflection;
 
-namespace ActDim.Practix.TypeAccess.Linq // System.Reflection/ActDim.Practix.TypeAccess.Extensions/ActDim.Practix.TypeAccess.Reflection.Extensions
+namespace ActDim.Practix.TypeAccess.Linq // ActDim.Practix.TypeAccess.Extensions
 {
     public static class TypeExtensions
     {
@@ -31,7 +30,7 @@ namespace ActDim.Practix.TypeAccess.Linq // System.Reflection/ActDim.Practix.Typ
         /// <param name="type">The type on which the method was invoked.</param>
         /// <returns>An instance of the <paramref name="type"/>.</returns>
         public static object CreateInstance(this Type type) // New/NewInstance/Construct/Instantiate
-        {                        
+        {
             var delegateType = TypeAccessor.GetFuncType([type]);
             var ctor = TypeAccessor.CreateConstructorEx(delegateType);
             return ctor();
@@ -106,13 +105,13 @@ namespace ActDim.Practix.TypeAccess.Linq // System.Reflection/ActDim.Practix.Typ
         }
 
         public static TDelegate GetPropertyGetter<TDelegate>(this Type type, string name) where TDelegate : Delegate
-        {            
+        {
             return TypeAccessor.GetPropertyGetter(type, name) as TDelegate;
         }
 
         public static TDelegate GetFieldGetter<TDelegate>(this Type type, string name) where TDelegate : Delegate
-        {            
+        {
             return TypeAccessor.GetFieldGetter(type, name) as TDelegate;
-        }        
+        }
     }
 }
