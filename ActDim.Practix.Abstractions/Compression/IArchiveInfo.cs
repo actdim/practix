@@ -1,4 +1,6 @@
-﻿namespace ActDim.Practix.Abstractions.Compression
+﻿using System.Collections.Generic;
+
+namespace ActDim.Practix.Abstractions.Compression
 {
     public interface IArchiveInfo
     {

@@ -1,4 +1,6 @@
-﻿namespace ActDim.Practix.Abstractions.Logging
+﻿using System;
+
+namespace ActDim.Practix.Abstractions.Logging
 {
 	/// <summary>
 	/// Structured Logger

@@ -1,20 +1,24 @@
 using ActDim.Practix.Abstractions.Json;
-using ActDim.Practix.Service.Json;
+using ActDim.Practix.Common.Json;
+using System;
+using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using Xunit;
 
-namespace ActDim.Practix.Service.Tests.Json;
+namespace ActDim.Practix.Common.Json;
 
-[TestFixture]
 public class StandardJsonSerializerTests
 {
-    private StandardJsonSerializer _ser;
+    private readonly StandardJsonSerializer _ser;
 
-    [SetUp]
-    public void SetUp()
+    public StandardJsonSerializerTests()
     {
         _ser = new StandardJsonSerializer();
     }
@@ -34,90 +38,89 @@ public class StandardJsonSerializerTests
 
     // ── DefaultOptions ───────────────────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void GetDefaultOptions_ReturnsNullNamingPolicy()
     {
         var options = _ser.CreateDefaultOptions();
-        Assert.That(options.PropertyNamingPolicy, Is.Null);
+        Assert.Null(options.PropertyNamingPolicy);
     }
 
-    [Test]
+    [Fact]
     public void GetDefaultOptions_ReturnsPropertyNameCaseInsensitive()
     {
         var options = _ser.CreateDefaultOptions();
-        Assert.That(options.PropertyNameCaseInsensitive, Is.True);
+        Assert.True(options.PropertyNameCaseInsensitive);
     }
 
-    [Test]
+    [Fact]
     public void GetDefaultOptions_NeverIgnoresProperties()
     {
         var options = _ser.CreateDefaultOptions();
-        Assert.That(options.DefaultIgnoreCondition, Is.EqualTo(JsonIgnoreCondition.Never));
+        Assert.Equal(JsonIgnoreCondition.Never, options.DefaultIgnoreCondition);
     }
 
-    [Test]
+    [Fact]
     public void GetDefaultOptions_NotIndented()
     {
         var options = _ser.CreateDefaultOptions();
-        Assert.That(options.WriteIndented, Is.False);
+        Assert.False(options.WriteIndented);
     }
 
     // ── GetDefaultMergeOptions ───────────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void GetDefaultMergeOptions_ReturnsReplaceArrayHandling()
     {
         var options = _ser.CreateDefaultMergeOptions();
-        Assert.That(options.MergeArrayHandling, Is.EqualTo(JsonMergeArrayHandling.Replace));
+        Assert.Equal(JsonMergeArrayHandling.Replace, options.MergeArrayHandling);
     }
 
-    [Test]
+    [Fact]
     public void GetDefaultMergeOptions_ReturnsMergeNullValueHandling()
     {
         var options = _ser.CreateDefaultMergeOptions();
-        Assert.That(options.MergeNullValueHandling, Is.EqualTo(JsonMergeNullValueHandling.Merge));
+        Assert.Equal(JsonMergeNullValueHandling.Merge, options.MergeNullValueHandling);
     }
 
-    [Test]
+    [Fact]
     public void GetDefaultMergeOptions_HasBaseOptions()
     {
         var options = _ser.CreateDefaultMergeOptions();
-        Assert.That(options.BaseOptions, Is.Not.Null);
+        Assert.NotNull(options.BaseOptions);
     }
 
     // ── SerializeObject ──────────────────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void SerializeObject_ProducesValidJson()
     {
         var result = _ser.Serialize(new { Name = "Alice" });
-        Assert.That(result, Is.EqualTo("{\"Name\":\"Alice\"}"));
+        Assert.Equal("{\"Name\":\"Alice\"}", result);
         result = _ser.Serialize("test");
-        Assert.That(result, Is.EqualTo("\"test\""));
+        Assert.Equal("\"test\"", result);
         result = _ser.Serialize(99);
-        Assert.That(result, Is.EqualTo("99"));
+        Assert.Equal("99", result);
     }
 
-    [Test]
+    [Fact]
     public void SerializeObject_IncludesNullProperties()
     {
         var result = _ser.Serialize(new { Name = (string?)null, Age = 5 });
         Assert.Multiple(() =>
         {
-            Assert.That(result, Does.Contain("\"Name\":null"));
-            Assert.That(result, Does.Contain("Age"));
+            Assert.Contains("\"Name\":null", result);
+            Assert.Contains("Age", result);
         });
     }
 
-    [Test]
+    [Fact]
     public void SerializeObject_Enum_DefaultsToInteger()
     {
-        // Without JsonStringEnumConverter in options, enum serializes as integer
         var result = _ser.Serialize(new { Kind = JsonMergeArrayHandling.Concat });
-        Assert.That(result, Is.EqualTo("{\"Kind\":0}"));
+        Assert.Equal("{\"Kind\":0}", result);
     }
 
-    [Test]
+    [Fact]
     public void SerializeObject_Enum_AsString_WithExplicitConverter()
     {
         var options = _ser.CreateDefaultOptions();
@@ -131,159 +134,159 @@ public class StandardJsonSerializerTests
         }, options);
         Assert.Multiple(() =>
         {
-            Assert.That(result, Does.Contain("\"Concat\""));
-            Assert.That(result, Does.Contain("\"Replace\""));
-            Assert.That(result, Does.Contain("\"Merge\""));
-            Assert.That(result, Does.Contain("\"Union\""));
+            Assert.Contains("\"Concat\"", result);
+            Assert.Contains("\"Replace\"", result);
+            Assert.Contains("\"Merge\"", result);
+            Assert.Contains("\"Union\"", result);
         });
     }
 
-    [Test]
+    [Fact]
     public void SerializeObject_DateTimeFormat()
     {
         var dt = new DateTime(2024, 6, 15, 10, 30, 45, 123, DateTimeKind.Unspecified);
         var result = _ser.Serialize(new { When = dt });
-        Assert.That(result, Does.Contain("\"2024-06-15T10:30:45.123\""));
+        Assert.Contains("\"2024-06-15T10:30:45.123\"", result);
     }
 
-    [Test]
+    [Fact]
     public void SerializeObject_WithExplicitOptions_UsesProvidedOptions()
     {
         var options = new JsonSerializerOptions { WriteIndented = true };
         var result = _ser.Serialize(new { X = 1 }, options);
-        Assert.That(result, Does.Contain(Environment.NewLine));
+        Assert.Contains(Environment.NewLine, result);
     }
 
-    [Test]
+    [Fact]
     public void SerializeObject_WithNullOptions_FallsBackToDefault()
     {
         var result = _ser.Serialize(new { Name = "X" }, (JsonSerializerOptions?)null);
-        Assert.That(result, Is.EqualTo("{\"Name\":\"X\"}"));
+        Assert.Equal("{\"Name\":\"X\"}", result);
     }
 
     // ── SerializeObject (stream) ─────────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void SerializeObject_ToStream_WritesJson()
     {
         using var ms = new MemoryStream();
         _ser.Serialize(new { Value = 42 }, ms);
         var json = Encoding.UTF8.GetString(ms.ToArray());
-        Assert.That(json, Is.EqualTo("{\"Value\":42}"));
+        Assert.Equal("{\"Value\":42}", json);
     }
 
-    [Test]
+    [Fact]
     public async Task SerializeObjectAsync_ToStream_WritesJson()
     {
         using var ms = new MemoryStream();
         await _ser.SerializeAsync(new { Value = 99 }, ms);
         var json = Encoding.UTF8.GetString(ms.ToArray());
-        Assert.That(json, Is.EqualTo("{\"Value\":99}"));
+        Assert.Equal("{\"Value\":99}", json);
     }
 
     // ── DeserializeObject ────────────────────────────────────────────────────
 
     private record PersonRecord(string Name, int Age);
 
-    [Test]
+    [Fact]
     public void DeserializeObject_Generic_ReturnsTypedObject()
     {
         var result = _ser.Deserialize<PersonRecord>("{\"name\":\"Bob\",\"age\":30}");
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Name, Is.EqualTo("Bob"));
-            Assert.That(result.Age, Is.EqualTo(30));
+            Assert.NotNull(result);
+            Assert.Equal("Bob", result.Name);
+            Assert.Equal(30, result.Age);
         });
     }
 
-    [Test]
+    [Fact]
     public void DeserializeObject_NonGeneric_ReturnsObject()
     {
         var result = _ser.Deserialize("{\"name\":\"Carol\"}", typeof(PersonRecord));
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.InstanceOf<PersonRecord>());
-            Assert.That(((PersonRecord)result).Name, Is.EqualTo("Carol"));
+            Assert.IsAssignableFrom<PersonRecord>(result);
+            Assert.Equal("Carol", ((PersonRecord)result).Name);
         });
     }
 
-    [Test]
+    [Fact]
     public void DeserializeObject_IsCaseInsensitive()
     {
         var result = _ser.Deserialize<PersonRecord>("{\"NAME\":\"Dave\",\"AGE\":25}");
-        Assert.That(result.Name, Is.EqualTo("Dave"));
+        Assert.Equal("Dave", result.Name);
     }
 
-    [Test]
+    [Fact]
     public void DeserializeObject_EnumFromString()
     {
         var options = _ser.CreateDefaultOptions();
         options.Converters.Insert(0, new JsonStringEnumConverter());
         var result = _ser.Deserialize<JsonMergeArrayHandling>("\"Union\"", options);
-        Assert.That(result, Is.EqualTo(JsonMergeArrayHandling.Union));
+        Assert.Equal(JsonMergeArrayHandling.Union, result);
     }
 
-    [Test]
+    [Fact]
     public void DeserializeObject_DateTime_ParsesFormat()
     {
         var result = _ser.Deserialize<DateTime>("\"2024-06-15T10:30:45.123\"");
-        Assert.That(result, Is.EqualTo(new DateTime(2024, 6, 15, 10, 30, 45, 123)));
+        Assert.Equal(new DateTime(2024, 6, 15, 10, 30, 45, 123), result);
     }
 
-    [Test]
+    [Fact]
     public void DeserializeObject_FromStream_ReturnsObject()
     {
         var json = "{\"name\":\"Eve\",\"age\":22}"u8.ToArray();
         using var ms = new MemoryStream(json);
         var result = _ser.Deserialize<PersonRecord>(ms);
-        Assert.That(result.Name, Is.EqualTo("Eve"));
+        Assert.Equal("Eve", result.Name);
     }
 
-    [Test]
+    [Fact]
     public async Task DeserializeObjectAsync_FromStream_ReturnsObject()
     {
         var json = "{\"name\":\"Frank\",\"age\":33}"u8.ToArray();
         using var ms = new MemoryStream(json);
         var result = await _ser.DeserializeAsync<PersonRecord>(ms);
-        Assert.That(result.Name, Is.EqualTo("Frank"));
+        Assert.Equal("Frank", result.Name);
     }
 
     // ── String enums ─────────────────────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void StringEnum_Serialize_UsesEnumName()
     {
         var options = _ser.CreateDefaultOptions();
         options.Converters.Insert(0, new JsonStringEnumConverter());
         var result = _ser.Serialize(JsonMergeNullValueHandling.Ignore, options);
-        Assert.That(result, Is.EqualTo("\"Ignore\""));
+        Assert.Equal("\"Ignore\"", result);
     }
 
-    [Test]
+    [Fact]
     public void StringEnum_Deserialize_CaseInsensitive()
     {
         var options = _ser.CreateDefaultOptions();
         options.Converters.Insert(0, new JsonStringEnumConverter());
         Assert.Multiple(() =>
         {
-            Assert.That(_ser.Deserialize<JsonMergeArrayHandling>("\"replace\"", options), Is.EqualTo(JsonMergeArrayHandling.Replace));
-            Assert.That(_ser.Deserialize<JsonMergeArrayHandling>("\"CONCAT\"", options), Is.EqualTo(JsonMergeArrayHandling.Concat));
-            Assert.That(_ser.Deserialize<JsonMergeArrayHandling>("\"Merge\"", options), Is.EqualTo(JsonMergeArrayHandling.Merge));
+            Assert.Equal(JsonMergeArrayHandling.Replace, _ser.Deserialize<JsonMergeArrayHandling>("\"replace\"", options));
+            Assert.Equal(JsonMergeArrayHandling.Concat, _ser.Deserialize<JsonMergeArrayHandling>("\"CONCAT\"", options));
+            Assert.Equal(JsonMergeArrayHandling.Merge, _ser.Deserialize<JsonMergeArrayHandling>("\"Merge\"", options));
         });
     }
 
-    [Test]
+    [Fact]
     public void StringEnum_RoundTrip()
     {
         var json = _ser.Serialize(new { MergeArrayHandling = JsonMergeArrayHandling.Union });
         var restored = _ser.Deserialize<JsonMergeOptions>(json);
-        Assert.That(restored.MergeArrayHandling, Is.EqualTo(JsonMergeArrayHandling.Union));
+        Assert.Equal(JsonMergeArrayHandling.Union, restored.MergeArrayHandling);
     }
 
     // ── Dictionary ───────────────────────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void Dictionary_Serialize_StringString()
     {
         var dict = new Dictionary<string, string> { ["key1"] = "val1", ["key2"] = "val2" };
@@ -291,26 +294,25 @@ public class StandardJsonSerializerTests
         using var doc = JsonDocument.Parse(result);
         Assert.Multiple(() =>
         {
-            Assert.That(doc.RootElement.GetProperty("key1").GetString(), Is.EqualTo("val1"));
-            Assert.That(doc.RootElement.GetProperty("key2").GetString(), Is.EqualTo("val2"));
+            Assert.Equal("val1", doc.RootElement.GetProperty("key1").GetString());
+            Assert.Equal("val2", doc.RootElement.GetProperty("key2").GetString());
         });
     }
 
-    [Test]
+    [Fact]
     public void Dictionary_Serialize_KeysNotConverted()
     {
-        // DictionaryKeyPolicy = null — keys keep original casing
         var dict = new Dictionary<string, int> { ["MyKey"] = 1, ["anotherKey"] = 2 };
         var result = _ser.Serialize(dict);
         using var doc = JsonDocument.Parse(result);
         Assert.Multiple(() =>
         {
-            Assert.That(doc.RootElement.TryGetProperty("MyKey", out _), Is.True);
-            Assert.That(doc.RootElement.TryGetProperty("anotherKey", out _), Is.True);
+            Assert.True(doc.RootElement.TryGetProperty("MyKey", out _));
+            Assert.True(doc.RootElement.TryGetProperty("anotherKey", out _));
         });
     }
 
-    [Test]
+    [Fact]
     public void Dictionary_Serialize_WithEnumValues()
     {
         var dict = new Dictionary<string, JsonMergeArrayHandling>
@@ -324,62 +326,62 @@ public class StandardJsonSerializerTests
         using var doc = JsonDocument.Parse(result);
         Assert.Multiple(() =>
         {
-            Assert.That(doc.RootElement.GetProperty("first").GetString(), Is.EqualTo("Concat"));
-            Assert.That(doc.RootElement.GetProperty("second").GetString(), Is.EqualTo("Union"));
+            Assert.Equal("Concat", doc.RootElement.GetProperty("first").GetString());
+            Assert.Equal("Union", doc.RootElement.GetProperty("second").GetString());
         });
     }
 
-    [Test]
+    [Fact]
     public void Dictionary_Deserialize_StringString()
     {
         var result = _ser.Deserialize<Dictionary<string, string>>("{\"a\":\"1\",\"b\":\"2\"}");
         Assert.Multiple(() =>
         {
-            Assert.That(result["a"], Is.EqualTo("1"));
-            Assert.That(result["b"], Is.EqualTo("2"));
+            Assert.Equal("1", result["a"]);
+            Assert.Equal("2", result["b"]);
         });
     }
 
-    [Test]
+    [Fact]
     public void Dictionary_Deserialize_StringObject()
     {
         var result = _ser.Deserialize<Dictionary<string, object>>("{\"num\":42,\"str\":\"hi\"}");
         Assert.Multiple(() =>
         {
-            Assert.That(result["num"], Is.EqualTo(42L));
-            Assert.That(result["str"], Is.EqualTo("hi"));
+            Assert.Equal(42L, result["num"]);
+            Assert.Equal("hi", result["str"]);
         });
     }
 
-    [Test]
+    [Fact]
     public void Dictionary_RoundTrip()
     {
         var original = new Dictionary<string, string> { ["x"] = "hello", ["y"] = "world" };
         var json = _ser.Serialize(original);
         var restored = _ser.Deserialize<Dictionary<string, string>>(json);
-        Assert.That(restored, Is.EqualTo(original));
+        Assert.Equal(original, restored);
     }
 
-    [Test]
+    [Fact]
     public void Dictionary_Clone_IsIndependent()
     {
         var original = new Dictionary<string, string> { ["k"] = "v" };
         var clone = _ser.Clone(original);
         clone["k"] = "changed";
-        Assert.That(original["k"], Is.EqualTo("v"));
+        Assert.Equal("v", original["k"]);
     }
 
     // ── Anonymous types ──────────────────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void Anonymous_Serialize_KeepsPascalCase()
     {
         var obj = new { FirstName = "Alice", LastName = "Smith", Age = 30 };
         var json = _ser.Serialize(obj);
-        Assert.That(json, Is.EqualTo("{\"FirstName\":\"Alice\",\"LastName\":\"Smith\",\"Age\":30}"));
+        Assert.Equal("{\"FirstName\":\"Alice\",\"LastName\":\"Smith\",\"Age\":30}", json);
     }
 
-    [Test]
+    [Fact]
     public void Anonymous_Serialize_NestedAnonymous()
     {
         var obj = new { User = new { Name = "Bob" }, Score = 99 };
@@ -387,37 +389,37 @@ public class StandardJsonSerializerTests
         using var doc = JsonDocument.Parse(json);
         Assert.Multiple(() =>
         {
-            Assert.That(doc.RootElement.GetProperty("User").GetProperty("Name").GetString(), Is.EqualTo("Bob"));
-            Assert.That(doc.RootElement.GetProperty("Score").GetInt32(), Is.EqualTo(99));
+            Assert.Equal("Bob", doc.RootElement.GetProperty("User").GetProperty("Name").GetString());
+            Assert.Equal(99, doc.RootElement.GetProperty("Score").GetInt32());
         });
     }
 
-    [Test]
+    [Fact]
     public void Anonymous_Serialize_NullPropertyIncluded()
     {
-        var obj = new { Name = "Alice", Tag = (string?)null };
+        var obj = new { Name = "Alice", Tag = (string)null };
         var json = _ser.Serialize(obj);
-        Assert.That(json, Does.Contain("\"Tag\":null"));
+        Assert.Contains("\"Tag\":null", json);
     }
 
-    [Test]
+    [Fact]
     public void Anonymous_Merge_CombinesDistinctProperties()
     {
-        var result = _ser.MergeAndSerialize(new List<object>
-        {
+        var result = _ser.MergeAndSerialize(
+        [
             new { A = 1, B = 2 },
             new { C = 3 }
-        });
+        ]);
         using var doc = JsonDocument.Parse(result);
         Assert.Multiple(() =>
         {
-            Assert.That(doc.RootElement.GetProperty("A").GetInt32(), Is.EqualTo(1));
-            Assert.That(doc.RootElement.GetProperty("B").GetInt32(), Is.EqualTo(2));
-            Assert.That(doc.RootElement.GetProperty("C").GetInt32(), Is.EqualTo(3));
+            Assert.Equal(1, doc.RootElement.GetProperty("A").GetInt32());
+            Assert.Equal(2, doc.RootElement.GetProperty("B").GetInt32());
+            Assert.Equal(3, doc.RootElement.GetProperty("C").GetInt32());
         });
     }
 
-    [Test]
+    [Fact]
     public void Anonymous_Merge_SecondOverridesSharedProperty()
     {
         var result = _ser.MergeAndSerialize(new List<object>
@@ -428,12 +430,12 @@ public class StandardJsonSerializerTests
         using var doc = JsonDocument.Parse(result);
         Assert.Multiple(() =>
         {
-            Assert.That(doc.RootElement.GetProperty("X").GetInt32(), Is.EqualTo(99));
-            Assert.That(doc.RootElement.GetProperty("Y").GetInt32(), Is.EqualTo(2));
+            Assert.Equal(99, doc.RootElement.GetProperty("X").GetInt32());
+            Assert.Equal(2, doc.RootElement.GetProperty("Y").GetInt32());
         });
     }
 
-    [Test]
+    [Fact]
     public void Anonymous_RoundTrip_ViaJsonNode()
     {
         var original = new { Name = "Carol", Count = 7 };
@@ -441,77 +443,76 @@ public class StandardJsonSerializerTests
         var node = _ser.Deserialize<JsonNode>(json);
         Assert.Multiple(() =>
         {
-            Assert.That(node!["Name"]!.GetValue<string>(), Is.EqualTo("Carol"));
-            Assert.That(node!["Count"]!.GetValue<int>(), Is.EqualTo(7));
+            Assert.Equal("Carol", node!["Name"]!.GetValue<string>());
+            Assert.Equal(7, node!["Count"]!.GetValue<int>());
         });
     }
 
-    [Test]
+    [Fact]
     public void Anonymous_SerializeArray_ProducesCorrectJson()
     {
         var obj = new { Tags = new[] { "a", "b", "c" } };
         var json = _ser.Serialize(obj);
         using var doc = JsonDocument.Parse(json);
         var tags = doc.RootElement.GetProperty("Tags").EnumerateArray().Select(x => x.GetString()).ToList();
-        Assert.That(tags, Is.EqualTo(new[] { "a", "b", "c" }));
+        Assert.Equal(new[] { "a", "b", "c" }, tags);
     }
 
     // ── Dynamic / object deserialization ─────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void Dynamic_DeserializeToObject_ReturnsExpandoObject()
     {
-        // ObjectJsonConverter maps JSON objects to ExpandoObject
         var result = _ser.Deserialize<object>("{\"x\":1,\"y\":2}");
-        Assert.That(result, Is.InstanceOf<ExpandoObject>());
+        Assert.IsAssignableFrom<ExpandoObject>(result);
     }
 
-    [Test]
+    [Fact]
     public void Dynamic_DeserializeToObject_CanReadProperties()
     {
         var result = (IDictionary<string, object>)_ser.Deserialize<object>("{\"name\":\"dyn\",\"value\":42}");
         Assert.Multiple(() =>
         {
-            Assert.That(result["name"], Is.EqualTo("dyn"));
-            Assert.That(result["value"], Is.EqualTo(42L));
+            Assert.Equal("dyn", result["name"]);
+            Assert.Equal(42L, result["value"]);
         });
     }
 
-    [Test]
+    [Fact]
     public void Dynamic_DeserializeToDynamic_ReturnsExpandoObject()
     {
         dynamic result = _ser.Deserialize<dynamic>("{\"flag\":true}");
-        Assert.That(result.flag, Is.True);
-        Assert.That(result, Is.InstanceOf<ExpandoObject>());
+        Assert.True(result.flag);
+        Assert.IsAssignableFrom<ExpandoObject>(result);
     }
 
-    [Test]
+    [Fact]
     public void Dynamic_DeserializeNestedObject_NavigableAsDynamic()
     {
         dynamic result = _ser.Deserialize<object>("{\"outer\":{\"inner\":99}}");
-        Assert.That((long)result.outer.inner, Is.EqualTo(99L));
+        Assert.Equal(99L, (long)result.outer.inner);
     }
 
-    [Test]
+    [Fact]
     public void Dynamic_DeserializeArray_ReturnsListOfObject()
     {
         var result = _ser.Deserialize<object>("[1,2,3]");
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.InstanceOf<List<object>>());
-            Assert.That(((List<object>)result).Cast<long>(), Is.EqualTo(new long[] { 1, 2, 3 }));
+            Assert.IsAssignableFrom<List<object>>(result);
+            Assert.Equal(new long[] { 1, 2, 3 }, ((List<object>)result).Cast<long>());
         });
     }
 
-    [Test]
+    [Fact]
     public void Dynamic_SerializeJsonNode_ProducesCorrectJson()
     {
         var node = JsonNode.Parse("{\"key\":\"val\"}");
         var json = _ser.Serialize(node);
-        Assert.That(json, Is.EqualTo("{\"key\":\"val\"}"));
+        Assert.Equal("{\"key\":\"val\"}", json);
     }
 
-    [Test]
+    [Fact]
     public void Dynamic_RoundTrip_ObjectThroughExpando()
     {
         var original = new PersonRecord("RT", 5);
@@ -520,98 +521,98 @@ public class StandardJsonSerializerTests
         var restored = _ser.Deserialize<PersonRecord>(_ser.Serialize(expando));
         Assert.Multiple(() =>
         {
-            Assert.That(restored.Name, Is.EqualTo("RT"));
-            Assert.That(restored.Age, Is.EqualTo(5));
+            Assert.Equal("RT", restored.Name);
+            Assert.Equal(5, restored.Age);
         });
     }
 
     // ── MergeAndSerializeObject ──────────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void MergeAndSerialize_EmptyList_ReturnsEmptyObject()
     {
         var result = _ser.MergeAndSerialize(new List<object>());
-        Assert.That(result, Is.EqualTo("{}"));
+        Assert.Equal("{}", result);
     }
 
-    [Test]
+    [Fact]
     public void MergeAndSerialize_NullList_ReturnsEmptyObject()
     {
-        var result = _ser.MergeAndSerialize((IList<object>?)null);
-        Assert.That(result, Is.EqualTo("{}"));
+        var result = _ser.MergeAndSerialize((IList<object>)null);
+        Assert.Equal("{}", result);
     }
 
-    [Test]
+    [Fact]
     public void MergeAndSerialize_AllNullItems_ReturnsEmptyObject()
     {
         var result = _ser.MergeAndSerialize(new List<object> { null!, null! });
-        Assert.That(result, Is.EqualTo("{}"));
+        Assert.Equal("{}", result);
     }
 
-    [Test]
+    [Fact]
     public void MergeAndSerialize_SingleItem_ReturnsSerializedItem()
     {
         var result = _ser.MergeAndSerialize(new List<object> { new { Name = "Alice" } });
-        Assert.That(result, Is.EqualTo("{\"Name\":\"Alice\"}"));
+        Assert.Equal("{\"Name\":\"Alice\"}", result);
     }
 
-    [Test]
+    [Fact]
     public void MergeAndSerialize_TwoObjects_MergesProperties()
     {
         var result = _ser.MergeAndSerialize([new { A = 1 }, new { B = 2 }]);
         using var doc = JsonDocument.Parse(result);
         Assert.Multiple(() =>
         {
-            Assert.That(doc.RootElement.GetProperty("A").GetInt32(), Is.EqualTo(1));
-            Assert.That(doc.RootElement.GetProperty("B").GetInt32(), Is.EqualTo(2));
+            Assert.Equal(1, doc.RootElement.GetProperty("A").GetInt32());
+            Assert.Equal(2, doc.RootElement.GetProperty("B").GetInt32());
         });
     }
 
-    [Test]
+    [Fact]
     public void MergeAndSerialize_SecondOverridesFirst()
     {
         var result = _ser.MergeAndSerialize([new { Name = "Alice" }, new { Name = "Bob" }]);
         using var doc = JsonDocument.Parse(result);
-        Assert.That(doc.RootElement.GetProperty("Name").GetString(), Is.EqualTo("Bob"));
+        Assert.Equal("Bob", doc.RootElement.GetProperty("Name").GetString());
     }
 
-    [Test]
+    [Fact]
     public void MergeAndSerialize_ArrayHandling_Replace()
     {
         var result = _ser.MergeAndSerialize(
             [new { Items = new[] { 1, 2 } }, new { Items = new[] { 3 } }],
             MergeOptsFor(JsonMergeArrayHandling.Replace));
-        Assert.That(ParseItemsArray(result), Is.EqualTo(new[] { 3 }));
+        Assert.Equal(new[] { 3 }, ParseItemsArray(result));
     }
 
-    [Test]
+    [Fact]
     public void MergeAndSerialize_ArrayHandling_Concat()
     {
         var result = _ser.MergeAndSerialize(
             [new { Items = new[] { 1, 2 } }, new { Items = new[] { 3 } }],
             MergeOptsFor(JsonMergeArrayHandling.Concat));
-        Assert.That(ParseItemsArray(result), Is.EqualTo(new[] { 1, 2, 3 }));
+        Assert.Equal(new[] { 1, 2, 3 }, ParseItemsArray(result));
     }
 
-    [Test]
+    [Fact]
     public void MergeAndSerialize_ArrayHandling_Union()
     {
         var result = _ser.MergeAndSerialize(
             [new { Items = new[] { 1, 2 } }, new { Items = new[] { 2, 3 } }],
             MergeOptsFor(JsonMergeArrayHandling.Union));
-        Assert.That(ParseItemsArray(result), Is.EqualTo(new[] { 1, 2, 3 }));
+        Assert.Equal(new[] { 1, 2, 3 }, ParseItemsArray(result));
     }
 
-    [Test]
+    [Fact]
     public void MergeAndSerialize_ArrayHandling_MergeByIndex()
     {
         var result = _ser.MergeAndSerialize(
             [new { Items = new[] { 1, 2 } }, new { Items = new[] { 9 } }],
             MergeOptsFor(JsonMergeArrayHandling.Merge));
-        Assert.That(ParseItemsArray(result), Is.EqualTo(new[] { 9, 2 }));
+        Assert.Equal(new[] { 9, 2 }, ParseItemsArray(result));
     }
 
-    [Test]
+    [Fact]
     public void MergeAndSerialize_NullValueHandling_Ignore_KeepsTargetValue()
     {
         var mergeOpts = new JsonMergeOptions
@@ -624,143 +625,144 @@ public class StandardJsonSerializerTests
             MergeArrayHandling = JsonMergeArrayHandling.Replace,
             MergeNullValueHandling = JsonMergeNullValueHandling.Ignore
         };
-
         mergeOpts.BaseOptions.Converters.Add(new JsonStringEnumConverter());
 
-        var obj1 = new Dictionary<string, object?> { ["name"] = "Alice" };
-        var obj2 = new Dictionary<string, object?> { ["name"] = null };
-
+        var obj1 = new Dictionary<string, object> { ["name"] = "Alice" };
+        var obj2 = new Dictionary<string, object> { ["name"] = null };
         var result = _ser.MergeAndSerialize([obj1, obj2], mergeOpts);
         using var doc = JsonDocument.Parse(result);
-        Assert.That(doc.RootElement.GetProperty("name").GetString(), Is.EqualTo("Alice"));
+        Assert.Equal("Alice", doc.RootElement.GetProperty("name").GetString());
     }
 
     // ── PopulateObject ───────────────────────────────────────────────────────
 
     private class MutablePerson
     {
-        public string? Name { get; set; }
+        public string Name { get; set; }
         public int Age { get; set; }
     }
 
-    [Test]
+    [Fact]
     public void PopulateObject_UpdatesExistingProperties()
     {
         var target = new MutablePerson { Name = "Old", Age = 10 };
         _ser.Populate("{\"Name\":\"New\"}", target);
         Assert.Multiple(() =>
         {
-            Assert.That(target.Name, Is.EqualTo("New"));
-            Assert.That(target.Age, Is.EqualTo(10));
+            Assert.Equal("New", target.Name);
+            Assert.Equal(10, target.Age);
         });
     }
 
-    [Test]
+    [Fact]
     public void PopulateObject_NullTarget_DoesNotThrow()
     {
-        Assert.DoesNotThrow(() => _ser.Populate<MutablePerson>("{\"name\":\"X\"}", null!));
+        var ex = Record.Exception(() => _ser.Populate<MutablePerson>("{\"name\":\"X\"}", null!));
+        Assert.Null(ex);
     }
 
-    [Test]
+    [Fact]
     public void PopulateObject_NonObjectJson_DoesNotThrow()
     {
         var target = new MutablePerson { Name = "Keep" };
-        Assert.DoesNotThrow(() => _ser.Populate("\"not-an-object\"", target));
-        Assert.That(target.Name, Is.EqualTo("Keep"));
+        var ex = Record.Exception(() => _ser.Populate("\"not-an-object\"", target));
+        Assert.Null(ex);
+        Assert.Equal("Keep", target.Name);
     }
 
-    [Test]
+    [Fact]
     public void PopulateObject_NullPropertyValue_SetsPropertyToNull()
     {
         var target = new MutablePerson { Name = "Old", Age = 10 };
         _ser.Populate("{\"Name\":null}", target);
-        Assert.That(target.Name, Is.Null);
+        Assert.Null(target.Name);
     }
 
-    [Test]
+    [Fact]
     public void PopulateObject_NullPropertyValue_DoesNotThrow()
     {
         var target = new MutablePerson { Name = "Old", Age = 10 };
-        Assert.DoesNotThrow(() => _ser.Populate("{\"Name\":null}", target));
+        var ex = Record.Exception(() => _ser.Populate("{\"Name\":null}", target));
+        Assert.Null(ex);
     }
 
     // ── FormatPropertyName ───────────────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void FormatPropertyName_ReturnsPropertyNameUnchanged()
     {
-        Assert.That(_ser.FormatPropertyName("MyProperty"), Is.EqualTo("MyProperty"));
+        Assert.Equal("MyProperty", _ser.FormatPropertyName("MyProperty"));
     }
 
-    [Test]
+    [Fact]
     public void FormatPropertyName_HandlesDottedPath()
     {
-        Assert.That(_ser.FormatPropertyName("ParentObject.ChildProperty"), Is.EqualTo("ParentObject.ChildProperty"));
+        Assert.Equal("ParentObject.ChildProperty", _ser.FormatPropertyName("ParentObject.ChildProperty"));
     }
 
-    [Test]
+    [Fact]
     public void FormatPropertyName_NullInput_ReturnsNull()
     {
-        Assert.That(_ser.FormatPropertyName(null), Is.Null);
+        Assert.Null(_ser.FormatPropertyName(null));
     }
 
-    [Test]
+    [Fact]
     public void FormatPropertyName_EmptyString_ReturnsEmpty()
     {
-        Assert.That(_ser.FormatPropertyName(string.Empty), Is.EqualTo(string.Empty));
+        Assert.Equal(string.Empty, _ser.FormatPropertyName(string.Empty));
     }
 
     // ── Clone / Copy / PatchObject ───────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void Clone_ReturnsDeepCopy()
     {
         var original = new MutablePerson { Name = "Alice", Age = 30 };
         var clone = _ser.Clone(original);
         Assert.Multiple(() =>
         {
-            Assert.That(clone, Is.Not.SameAs(original));
-            Assert.That(clone.Name, Is.EqualTo("Alice"));
-            Assert.That(clone.Age, Is.EqualTo(30));
+            Assert.NotSame(original, clone);
+            Assert.Equal("Alice", clone.Name);
+            Assert.Equal(30, clone.Age);
         });
     }
 
-    [Test]
+    [Fact]
     public void Clone_Null_ReturnsDefault()
     {
         var result = _ser.Clone<MutablePerson>(null!);
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [Test]
+    [Fact]
     public void Clone_ModifyingCloneDoesNotAffectOriginal()
     {
         var original = new MutablePerson { Name = "Alice" };
         var clone = _ser.Clone(original);
         clone.Name = "Bob";
-        Assert.That(original.Name, Is.EqualTo("Alice"));
+        Assert.Equal("Alice", original.Name);
     }
 
-    [Test]
+    [Fact]
     public async Task CloneAsync_ReturnsDeepCopy()
     {
         var original = new MutablePerson { Name = "Async", Age = 5 };
         var clone = await _ser.CloneAsync(original);
         Assert.Multiple(() =>
         {
-            Assert.That(clone.Name, Is.EqualTo("Async"));
-            Assert.That(clone, Is.Not.SameAs(original));
+            Assert.Equal("Async", clone.Name);
+            Assert.NotSame(original, clone);
         });
     }
 
-    [Test]
+    [Fact]
     public async Task CloneAsync_Null_ReturnsDefault()
     {
         var result = await _ser.CloneAsync<MutablePerson>(null!);
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [Test]
+    [Fact]
     public void Copy_CopiesPropertiesFromSource()
     {
         var target = new MutablePerson { Name = "Old", Age = 1 };
@@ -768,92 +770,92 @@ public class StandardJsonSerializerTests
         _ser.Copy(target, source);
         Assert.Multiple(() =>
         {
-            Assert.That(target.Name, Is.EqualTo("New"));
-            Assert.That(target.Age, Is.EqualTo(99));
+            Assert.Equal("New", target.Name);
+            Assert.Equal(99, target.Age);
         });
     }
 
-    [Test]
+    [Fact]
     public void Copy_NullSource_ReturnsTargetUnchanged()
     {
         var target = new MutablePerson { Name = "Keep" };
         var result = _ser.Copy(target, null!);
-        Assert.That(result!.Name, Is.EqualTo("Keep"));
+        Assert.Equal("Keep", result!.Name);
     }
 
-    [Test]
+    [Fact]
     public void PatchObject_AppliesPartialJson()
     {
         var obj = new MutablePerson { Name = "Alice", Age = 10 };
         _ser.Patch(obj, "{\"Age\":99}");
         Assert.Multiple(() =>
         {
-            Assert.That(obj.Age, Is.EqualTo(99));
-            Assert.That(obj.Name, Is.EqualTo("Alice"));
+            Assert.Equal(99, obj.Age);
+            Assert.Equal("Alice", obj.Name);
         });
     }
 
-    [Test]
+    [Fact]
     public void PatchObject_NullPatch_ReturnsObjectUnchanged()
     {
         var obj = new MutablePerson { Name = "Alice" };
         var result = _ser.Patch(obj, null);
-        Assert.That(result.Name, Is.EqualTo("Alice"));
+        Assert.Equal("Alice", result.Name);
     }
 
-    [Test]
+    [Fact]
     public void PatchObject_EmptyPatch_ReturnsObjectUnchanged()
     {
         var obj = new MutablePerson { Name = "Alice" };
         var result = _ser.Patch(obj, string.Empty);
-        Assert.That(result.Name, Is.EqualTo("Alice"));
+        Assert.Equal("Alice", result.Name);
     }
 
     // ── PopulateDefaultOptions ───────────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void PopulateDefaultOptions_CopiesConvertersToTarget()
     {
         var target = new JsonSerializerOptions();
         _ser.CopyOptions(target);
-        Assert.That(target.Converters, Is.Not.Empty);
+        Assert.NotEmpty(target.Converters);
     }
 
-    [Test]
+    [Fact]
     public void PopulateDefaultOptions_SetsNullNamingPolicyOnTarget()
     {
         var target = new JsonSerializerOptions();
         _ser.CopyOptions(target);
-        Assert.That(target.PropertyNamingPolicy, Is.Null);
+        Assert.Null(target.PropertyNamingPolicy);
     }
 
-    [Test]
+    [Fact]
     public void PopulateDefaultOptions_DoesNotDuplicateConverters()
     {
         var target = new JsonSerializerOptions();
         _ser.CopyOptions(target);
         var countFirst = target.Converters.Count;
         _ser.CopyOptions(target);
-        Assert.That(target.Converters, Has.Count.EqualTo(countFirst));
+        Assert.Equal(countFirst, target.Converters.Count);
     }
 
     // ── Exception serialization ──────────────────────────────────────────────
 
-    [Test]
+    [Fact]
     public void Exception_CanConvert_ReturnsTrueForExceptionAndSubclasses()
     {
         var converter = new ExceptionJsonConverter();
         Assert.Multiple(() =>
         {
-            Assert.That(converter.CanConvert(typeof(Exception)), Is.True);
-            Assert.That(converter.CanConvert(typeof(ArgumentException)), Is.True);
-            Assert.That(converter.CanConvert(typeof(InvalidOperationException)), Is.True);
-            Assert.That(converter.CanConvert(typeof(string)), Is.False);
-            Assert.That(converter.CanConvert(typeof(object)), Is.False);
+            Assert.True(converter.CanConvert(typeof(Exception)));
+            Assert.True(converter.CanConvert(typeof(ArgumentException)));
+            Assert.True(converter.CanConvert(typeof(InvalidOperationException)));
+            Assert.False(converter.CanConvert(typeof(string)));
+            Assert.False(converter.CanConvert(typeof(object)));
         });
     }
 
-    [Test]
+    [Fact]
     public void Exception_Write_ContainsTypeAndMessage()
     {
         var ex = new InvalidOperationException("something went wrong");
@@ -861,12 +863,12 @@ public class StandardJsonSerializerTests
         using var doc = JsonDocument.Parse(json);
         Assert.Multiple(() =>
         {
-            Assert.That(doc.RootElement.GetProperty("type").GetString(), Is.EqualTo("System.InvalidOperationException"));
-            Assert.That(doc.RootElement.GetProperty("message").GetString(), Is.EqualTo("something went wrong"));
+            Assert.Equal("System.InvalidOperationException", doc.RootElement.GetProperty("type").GetString());
+            Assert.Equal("something went wrong", doc.RootElement.GetProperty("message").GetString());
         });
     }
 
-    [Test]
+    [Fact]
     public void Exception_Write_ContainsStackTrace()
     {
         Exception ex;
@@ -875,63 +877,63 @@ public class StandardJsonSerializerTests
 
         var json = _ser.Serialize(ex);
         using var doc = JsonDocument.Parse(json);
-        Assert.That(doc.RootElement.TryGetProperty("stackTrace", out var st), Is.True);
-        Assert.That(st.GetString(), Does.Contain(nameof(Exception_Write_ContainsStackTrace)));
+        Assert.True(doc.RootElement.TryGetProperty("stackTrace", out var st));
+        Assert.Contains(nameof(Exception_Write_ContainsStackTrace), st.GetString());
     }
 
-    [Test]
+    [Fact]
     public void Exception_Write_NoStackTrace_OmitsProperty()
     {
         var ex = new Exception("no stack");
         var json = _ser.Serialize(ex);
         using var doc = JsonDocument.Parse(json);
-        Assert.That(doc.RootElement.TryGetProperty("stackTrace", out _), Is.False);
+        Assert.False(doc.RootElement.TryGetProperty("stackTrace", out _));
     }
 
-    [Test]
+    [Fact]
     public void Exception_Write_ContainsInnerException()
     {
         var inner = new ArgumentNullException("param");
         var outer = new InvalidOperationException("outer", inner);
         var json = _ser.Serialize(outer);
         using var doc = JsonDocument.Parse(json);
-        Assert.That(doc.RootElement.TryGetProperty("innerException", out var ie), Is.True);
+        Assert.True(doc.RootElement.TryGetProperty("innerException", out var ie));
         Assert.Multiple(() =>
         {
-            Assert.That(ie.GetProperty("type").GetString(), Is.EqualTo("System.ArgumentNullException"));
-            Assert.That(ie.GetProperty("message").GetString(), Does.Contain("param"));
+            Assert.Equal("System.ArgumentNullException", ie.GetProperty("type").GetString());
+            Assert.Contains("param", ie.GetProperty("message").GetString());
         });
     }
 
-    [Test]
+    [Fact]
     public void Exception_Write_NoInnerException_OmitsProperty()
     {
         var ex = new Exception("alone");
         var json = _ser.Serialize(ex);
         using var doc = JsonDocument.Parse(json);
-        Assert.That(doc.RootElement.TryGetProperty("innerException", out _), Is.False);
+        Assert.False(doc.RootElement.TryGetProperty("innerException", out _));
     }
 
-    [Test]
+    [Fact]
     public void Exception_Write_AsObjectProperty_Works()
     {
         var obj = new { Error = (object)new ArgumentException("bad arg") };
         var json = _ser.Serialize(obj);
         using var doc = JsonDocument.Parse(json);
         var error = doc.RootElement.GetProperty("Error");
-        Assert.That(error.GetProperty("type").GetString(), Is.EqualTo("System.ArgumentException"));
+        Assert.Equal("System.ArgumentException", error.GetProperty("type").GetString());
     }
 
-    [Test]
+    [Fact]
     public void Exception_Write_SubclassUsesFullTypeName()
     {
         var ex = new ArgumentOutOfRangeException("index", "must be positive");
         var json = _ser.Serialize(ex);
         using var doc = JsonDocument.Parse(json);
-        Assert.That(doc.RootElement.GetProperty("type").GetString(), Is.EqualTo("System.ArgumentOutOfRangeException"));
+        Assert.Equal("System.ArgumentOutOfRangeException", doc.RootElement.GetProperty("type").GetString());
     }
 
-    [Test]
+    [Fact]
     public void Exception_Read_ThrowsNotSupported()
     {
         var converter = new ExceptionJsonConverter();

@@ -4,6 +4,11 @@ using Ardalis.GuardClauses;
 using ActDim.Practix.Extensions;
 using ActDim.Practix.Abstractions.Compression;
 using ActDim.Practix.Memory;
+using System.IO;
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Threading;
 // using Org.BouncyCastle.Utilities.Zlib;
 
 namespace ActDim.Practix.Compression

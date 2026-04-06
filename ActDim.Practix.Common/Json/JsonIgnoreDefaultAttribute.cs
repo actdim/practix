@@ -1,6 +1,6 @@
 using System;
 
-namespace ActDim.Practix.Service.Json
+namespace ActDim.Practix.Common.Json
 {
     /// <summary>
     /// Instructs <see cref="DefaultValueAwareResolver"/> to omit the property from JSON output

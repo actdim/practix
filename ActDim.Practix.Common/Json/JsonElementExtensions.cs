@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json;
 
-namespace ActDim.Practix.Service.Json
+namespace ActDim.Practix.Common.Json
 {
     public static class JsonElementExtensions
     {

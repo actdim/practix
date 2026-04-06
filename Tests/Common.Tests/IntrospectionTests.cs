@@ -1,32 +1,26 @@
-﻿using ActDim.Practix.Abstractions;
-using ActDim.Practix.Abstractions.Introspection;
-using NUnit.Framework;
 using System;
 using ActDim.Practix.Introspection;
-using ActDim.Practix.Extensions;
+using Xunit;
 
 namespace ActDim.Practix.Common.Tests
 {
-    [TestFixture]
     public class IntrospectionTests
     {
-        [Test]
-        public IntrospectionTests TestMethod(int arg1, string arg2, IIntrospectionInfo arg3)
+        // Used as a test subject for reflection in CanFormatIntrospectionInfo
+        public IntrospectionTests TestMethod(int arg1, string arg2, IntrospectionInfo arg3)
         {
             throw new NotImplementedException();
         }
 
-        [Test]
+        [Fact]
         public void CanCacheIntrospectionInfo()
         {
             var t1 = GetType().GetIntrospectionInfo();
-
             var t2 = typeof(IntrospectionTests).GetIntrospectionInfo();
-
-            Assert.AreEqual(t1, t2);
+            Assert.Equal(t1, t2);
         }
 
-        [Test]
+        [Fact]
         public void CanFormatIntrospectionInfo()
         {
             var t = GetType();

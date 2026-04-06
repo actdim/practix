@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
-namespace ActDim.Practix.Service.Json
+namespace ActDim.Practix.Common.Json
 {
     /// <summary>
     /// Honors [DefaultValue], [JsonDefaultValue], and [JsonIgnoreDefault] attributes on properties:

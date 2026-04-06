@@ -1,4 +1,6 @@
-﻿namespace ActDim.Practix.Abstractions.IO
+﻿using System;
+
+namespace ActDim.Practix.Abstractions.IO
 {
     public interface IStorageOptions
     {

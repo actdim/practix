@@ -2,7 +2,7 @@ using ActDim.Practix.Abstractions.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace ActDim.Practix.Service.Json;
+namespace ActDim.Practix.Common.Json;
 
 /// <summary>
 /// Microsoft.Extensions.DependencyInjection registration helpers for the JSON serializer.

@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
-using SalientBits.InterCode.Linq.Dynamic;
-using Conditions;
+using ActDim.Practix.TypeAccess.Linq.Dynamic;
+using Ardalis.GuardClauses;
 
 namespace SalientBits.InterString // SalientBits.StringInterpolation/SalientBits.Common.Text
 {
@@ -56,7 +56,7 @@ namespace SalientBits.InterString // SalientBits.StringInterpolation/SalientBits
 
         private static List<string> FormatHelper(this string format, object source, bool allowCompositeFormat, out string newFormat)
         {
-            Condition.Requires(format, nameof(format)).IsNotNull();
+            Guard.Against.Null(format, nameof(format));
 
             var sb = new StringBuilder(format.Length);
 

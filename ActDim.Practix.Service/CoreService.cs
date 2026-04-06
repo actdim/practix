@@ -28,7 +28,7 @@ namespace ActDim.Practix.Service
     /// </summary>
     public class CoreService
     {
-        private static string[] ConfigVarPrefixes = ["ASPNETCORE_", "DOTNET_"]; // Add app specific prefixes
+        private static readonly string[] ConfigVarPrefixes = ["ASPNETCORE_", "DOTNET_"]; // Add app specific prefixes
 
         private readonly IHost _host;
 
@@ -94,7 +94,19 @@ namespace ActDim.Practix.Service
 
             hostBuilder.ConfigureServices((builderContext, services) =>
             {
-                services.Configure<AppSettings>(_configuration);
+                // builderContext.Configuration
+                // services.Configure<AppSettings>(_configuration);
+
+                // lazy configuration
+                services.AddOptions<AppSettings>()
+                    .Configure<IConfiguration>((obj, config) =>
+                        config.Bind(obj));
+
+                // services.AddOptions<AppSettings>()
+                //    .Configure<IConfiguration>((obj, config) =>
+                //        config.GetSection("App").Bind(obj));
+
+                // see also: IOptionsSnapshot, IOptionsMonitor
 
                 /*
                 public class MySettingsSetup : IConfigureOptions<MySettings>
@@ -105,9 +117,9 @@ namespace ActDim.Practix.Service
                         options.Setting2 = 123;
                     }
                 }
-                builder.Services.AddSingleton<IConfigureOptions<MySettings>, MySettingsSetup>();
-                builder.Services.AddOptions<MySettings>()
-                    .Bind(builder.Configuration.GetSection("MySettings"))
+                services.AddSingleton<IConfigureOptions<MySettings>, MySettingsSetup>();
+                services.AddOptions<MySettings>()
+                    .Bind(_configuration.GetSection("MySettings"))
                     .ValidateDataAnnotations()
                     .ValidateOnStart();
 
@@ -888,12 +900,12 @@ namespace ActDim.Practix.Service
             // });
 
             appBuilder.UseEndpoints(endpointRouteBuilder =>
-            {                
+            {
                 // endpointRouteBuilder.MapDefaultControllerRoute();
                 endpointRouteBuilder.MapControllers()
                     // .RequireCors(CorsPolicies.Unrestricted)
                     ;
-            });            
+            });
 
             // appBuilder.UseWebSockets(new WebSocketOptions());
 
@@ -1001,7 +1013,7 @@ namespace ActDim.Practix.Service
             var kestrelSection = config.GetSection("Kestrel");
 
             options.Limits.MaxResponseBufferSize = 64 * 1024;
-            options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;            
+            options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;
 
             options.Configure(kestrelSection)
                 .Endpoint("HTTP", endpointConfig =>

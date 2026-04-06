@@ -1,4 +1,6 @@
-﻿namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
+﻿using System;
+
+namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 {
     /// <summary>
     /// DateTime extensions

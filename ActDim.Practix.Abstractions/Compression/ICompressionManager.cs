@@ -1,4 +1,10 @@
-﻿namespace ActDim.Practix.Abstractions.Compression
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace ActDim.Practix.Abstractions.Compression
 {
     public interface ICompressionManager
     {

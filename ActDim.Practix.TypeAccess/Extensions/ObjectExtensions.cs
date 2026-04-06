@@ -1,5 +1,6 @@
 ﻿using ActDim.Practix.TypeAccess.Reflection;
 using Ardalis.GuardClauses;
+using System;
 
 namespace ActDim.Practix.TypeAccess.Linq //System.Reflection/ActDim.Practix.TypeAccess.Extensions/ActDim.Practix.TypeAccess.Reflection.Extensions
 {

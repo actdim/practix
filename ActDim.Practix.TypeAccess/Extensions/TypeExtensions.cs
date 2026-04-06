@@ -1,4 +1,6 @@
 ﻿using ActDim.Practix.TypeAccess.Reflection;
+using System;
+using System.Linq;
 
 namespace ActDim.Practix.TypeAccess.Linq // ActDim.Practix.TypeAccess.Extensions
 {

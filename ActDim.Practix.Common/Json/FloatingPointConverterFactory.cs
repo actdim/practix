@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ActDim.Practix.Service.Json
+namespace ActDim.Practix.Common.Json
 {
     /// <summary>
     /// Global factory that serializes double/float values with a decimal point for whole numbers

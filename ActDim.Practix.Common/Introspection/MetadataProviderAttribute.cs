@@ -1,4 +1,6 @@
-﻿namespace SalientBits.Common.Reflection.Metadata
+﻿using System;
+
+namespace SalientBits.Common.Reflection.Metadata
 {
     // [AttributeUsage(AttributeTargets.Class | ...)]
     // MemberIntrospectionInfoProviderAttribute

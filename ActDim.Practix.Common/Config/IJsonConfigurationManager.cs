@@ -1,4 +1,6 @@
-﻿namespace ActDim.Practix.Config
+﻿using System.Threading.Tasks;
+
+namespace ActDim.Practix.Config
 {
     public interface IJsonConfigurationManager
     {

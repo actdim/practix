@@ -1,4 +1,7 @@
 ﻿
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 
 namespace ActDim.Practix.Extensions // ActDim.Practix.Linq

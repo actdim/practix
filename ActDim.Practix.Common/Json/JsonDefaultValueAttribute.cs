@@ -1,6 +1,6 @@
 using System;
 
-namespace ActDim.Practix.Service.Json
+namespace ActDim.Practix.Common.Json
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
     public sealed class JsonDefaultValueAttribute : Attribute

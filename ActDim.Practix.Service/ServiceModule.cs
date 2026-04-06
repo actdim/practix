@@ -1,6 +1,4 @@
 ﻿using Autofac;
-using ActDim.Practix.Abstractions.Json;
-using ActDim.Practix.Service.Json;
 
 namespace ActDim.Practix
 {
@@ -8,9 +6,7 @@ namespace ActDim.Practix
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<StandardJsonSerializer>()
-                .As<IJsonSerializer>()
-                .SingleInstance();
+
         }
     }
 }

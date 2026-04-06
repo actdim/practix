@@ -1,9 +1,11 @@
-﻿using Autofac;
-using ActDim.Practix.Abstractions.Compression;
+﻿using ActDim.Practix.Abstractions.Compression;
+using ActDim.Practix.Abstractions.Json;
 using ActDim.Practix.Abstractions.Messaging;
+using ActDim.Practix.Common.Json;
 using ActDim.Practix.Compression;
 using ActDim.Practix.Config;
 using ActDim.Practix.Messaging;
+using Autofac;
 
 namespace ActDim.Practix
 {
@@ -21,6 +23,9 @@ namespace ActDim.Practix
                 .As<ICallContextProvider>();
             builder.RegisterType<CompressionManager>()
                 .As<ICompressionManager>()
+                .SingleInstance();
+            builder.RegisterType<StandardJsonSerializer>()
+                .As<IJsonSerializer>()
                 .SingleInstance();
         }
     }

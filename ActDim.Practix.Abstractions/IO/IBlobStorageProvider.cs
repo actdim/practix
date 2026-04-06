@@ -1,4 +1,8 @@
-﻿namespace ActDim.Practix.Abstractions.IO
+﻿using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace ActDim.Practix.Abstractions.IO
 {
     public interface IBlobStorageProvider
     {

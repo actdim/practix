@@ -1,33 +1,29 @@
-﻿
-using ActDim.Practix.Abstractions.Introspection;
-using System.Reflection;
+using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace ActDim.Practix.Introspection
 {
-    [Serializable]
-    public class TypeIntrospectionInfo : TypeBaseIntrospectionInfo, ITypeIntrospectionInfo
+    public class TypeIntrospectionInfo : TypeBaseIntrospectionInfo
     {
         internal static new readonly ConditionalWeakTable<Type, TypeIntrospectionInfo> Cache = [];
 
-        public IPropertyIntrospectionInfo[] Properties { get; }
+        public PropertyIntrospectionInfo[] Properties { get; set; }
 
-        public IFieldIntrospectionInfo[] Fields { get; }
+        public FieldIntrospectionInfo[] Fields { get; set; }
 
-        public IMethodIntrospectionInfo[] Methods { get; }
+        public MethodIntrospectionInfo[] Methods { get; set; }
 
-        public ITypeBaseIntrospectionInfo[] Interfaces { get; }
+        public TypeBaseIntrospectionInfo[] Interfaces { get; set; }
+
+        public TypeIntrospectionInfo() { }
 
         public TypeIntrospectionInfo(Type t) : base(t)
         {
-            Properties = [.. t.GetProperties().Select(x => (IPropertyIntrospectionInfo)x.GetIntrospectionInfo(false))];
-
-            Fields = [.. t.GetFields().Select(x => (IFieldIntrospectionInfo)x.GetIntrospectionInfo(false))];
-
-            Methods = [.. t.GetMethods().Select(x => (IMethodIntrospectionInfo)x.GetIntrospectionInfo(false))];
-
-            Interfaces = [.. t.GetInterfaces().Select(x => (ITypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))];
+            Properties = [.. t.GetProperties().Select(x => (PropertyIntrospectionInfo)x.GetIntrospectionInfo(false))];
+            Fields = [.. t.GetFields().Select(x => (FieldIntrospectionInfo)x.GetIntrospectionInfo(false))];
+            Methods = [.. t.GetMethods().Select(x => (MethodIntrospectionInfo)x.GetIntrospectionInfo(false))];
+            Interfaces = [.. t.GetInterfaces().Select(x => (TypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))];
         }
     }
-
 }

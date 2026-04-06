@@ -1,4 +1,7 @@
-﻿namespace ActDim.Practix.Abstractions.Messaging // ActDim.Practix.Abstractions.CallContext
+﻿using System;
+using System.Collections.Generic;
+
+namespace ActDim.Practix.Abstractions.Messaging // ActDim.Practix.Abstractions.CallContext
 {
     public interface ICallContext
     {

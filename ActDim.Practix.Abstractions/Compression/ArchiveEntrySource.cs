@@ -1,4 +1,7 @@
-﻿namespace ActDim.Practix.Abstractions.Compression
+﻿using System;
+using System.IO;
+
+namespace ActDim.Practix.Abstractions.Compression
 {
     // ArchiveEntryDataSource
     public class ArchiveEntrySource

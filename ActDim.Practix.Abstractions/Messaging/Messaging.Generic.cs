@@ -1,4 +1,6 @@
-﻿namespace ActDim.Practix.Abstractions.Messaging
+﻿using System.Collections.Generic;
+
+namespace ActDim.Practix.Abstractions.Messaging
 {
     /// <summary>
     /// DataValidationErrorInfo

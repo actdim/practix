@@ -1,19 +1,19 @@
-﻿using ActDim.Practix.Abstractions.Introspection;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace ActDim.Practix.Introspection
 {
-    [Serializable]
-    public class FieldIntrospectionInfo : IntrospectionInfo, IFieldIntrospectionInfo
+    public class FieldIntrospectionInfo : IntrospectionInfo
     {
         internal static new readonly ConditionalWeakTable<FieldInfo, FieldIntrospectionInfo> Cache = [];
 
-        public ITypeBaseIntrospectionInfo FieldType { get; protected set; }
+        public TypeBaseIntrospectionInfo FieldType { get; set; }
+
+        public FieldIntrospectionInfo() { }
 
         public FieldIntrospectionInfo(FieldInfo f) : base(f)
         {
-            FieldType = (ITypeBaseIntrospectionInfo)f.FieldType.GetIntrospectionInfo(false);
+            FieldType = (TypeBaseIntrospectionInfo)f.FieldType.GetIntrospectionInfo(false);
         }
     }
 }

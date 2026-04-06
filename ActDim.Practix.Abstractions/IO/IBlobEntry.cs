@@ -1,4 +1,7 @@
-﻿namespace ActDim.Practix.Abstractions.IO
+﻿using System;
+using System.Collections.Generic;
+
+namespace ActDim.Practix.Abstractions.IO
 {
     public interface IBlobEntry // IBlobMetadata
     {
