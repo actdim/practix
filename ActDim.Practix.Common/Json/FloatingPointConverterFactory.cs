@@ -10,7 +10,7 @@ namespace ActDim.Practix.Common.Json
     /// (e.g. 7.0 instead of 7), matching Newtonsoft.Json's default floating-point behavior.
     /// Handles non-finite double values (NaN, Infinity, -Infinity) as strings,
     /// matching legacy Newtonsoft FloatFormatHandling.String behavior.
-    /// <summary>    
+    /// <summary>
     public class FloatingPointConverterFactory : JsonConverterFactory
     {
         public override bool CanConvert(Type typeToConvert) =>

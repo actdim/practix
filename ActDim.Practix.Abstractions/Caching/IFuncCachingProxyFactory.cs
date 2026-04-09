@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using ActDim.Practix.Abstractions.Patterns;
 
 namespace ActDim.Practix.Abstractions.Caching

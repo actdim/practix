@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ActDim.Practix.Abstractions.Caching
 {
@@ -19,5 +19,5 @@ namespace ActDim.Practix.Abstractions.Caching
 		/// ExcludeParameterTypeList
 		/// </summary>
 		public Type[] ExcludeParameterTypes { get; set; }
-	}	
+	}
 }

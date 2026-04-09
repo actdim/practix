@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.Abstractions.Compression
+namespace ActDim.Practix.Abstractions.Compression
 {
     /// <summary>
     /// Stream compression formats. These formats compress a byte stream without file-level metadata or structure.

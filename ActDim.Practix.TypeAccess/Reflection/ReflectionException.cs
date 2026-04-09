@@ -1,4 +1,4 @@
-﻿
+
 using System;
 
 namespace ActDim.Practix.TypeAccess.Reflection

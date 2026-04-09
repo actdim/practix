@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.TypeAccess.Reflection
+namespace ActDim.Practix.TypeAccess.Reflection
 {
 	/// <summary>
 	/// Delegate that represents a dynamic-call to an untyped delegate.

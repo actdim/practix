@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -22,7 +22,7 @@ namespace ActDim.Practix.Collections.Concurrent // Specialized
 		/// Creates a WeakTable instance.
 		/// </summary>
 		/// <param name="comparer">
-		/// Optional comparer instance. If no or null value is passed then 
+		/// Optional comparer instance. If no or null value is passed then
 		/// EqualityComparer&lt;K>.Default is used to match keys.
 		/// </param>
 		public WeakTable(IEqualityComparer<K> comparer = null)
@@ -439,13 +439,13 @@ namespace ActDim.Practix.Collections.Concurrent // Specialized
 		// 1. Keys in "values" are the same instances as values.
 		// 2. The type of key in "values" is declared as object.
 		//    This is to allow search keys of type K using custom comparer.
-		// 3. WeakReference<State> instances track resurection. 
+		// 3. WeakReference<State> instances track resurection.
 		//    This means that they keep object references during finalization.
 		// 4. State removes its reference from "values" during finalization.
 		// 5. States are collected after their K instances, as they are bound
 		//    using "states" weak table.
 		// 6. Both keys and values are not stongly kept by this instance.
-		//    This means that a value can strongly refer to a key, which won't 
+		//    This means that a value can strongly refer to a key, which won't
 		//    keep them from GC, if there are no more strong references to the key.
 
 		/// <summary>

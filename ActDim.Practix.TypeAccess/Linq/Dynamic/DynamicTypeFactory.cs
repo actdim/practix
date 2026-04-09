@@ -1,4 +1,4 @@
-﻿using ActDim.Practix;
+using ActDim.Practix;
 using ActDim.Practix.TypeAccess.Reflection;
 using Ardalis.GuardClauses;
 using System;
@@ -101,7 +101,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
             for (int i = 0; i < properties.Length; i++)
             {
                 var dp = properties[i];
-                //"_" + dynamicProperty.Name                
+                //"_" + dynamicProperty.Name
                 var fb = typeBuilder.DefineField("<" + dp.Name + ">k__BackingField", dp.Type, FieldAttributes.Private); //HasDefault?
                 var pb = typeBuilder.DefineProperty(dp.Name, PropertyAttributes.HasDefault, dp.Type, null);
 
@@ -198,8 +198,8 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
 
         public object CreateObject(IDictionary<string, object> propertyValues, Type type = null)
         {
-            //http://msdn.microsoft.com/en-us/library/ms145822.aspx 
-            //http://msdn.microsoft.com/en-us/library/system.reflection.emit.typebuilder.defineproperty(v=vs.71).aspx			
+            //http://msdn.microsoft.com/en-us/library/ms145822.aspx
+            //http://msdn.microsoft.com/en-us/library/system.reflection.emit.typebuilder.defineproperty(v=vs.71).aspx
 
             Guard.Against.NullOrEmpty(propertyValues, nameof(propertyValues));
 

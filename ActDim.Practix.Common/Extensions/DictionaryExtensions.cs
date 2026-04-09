@@ -1,4 +1,4 @@
-﻿using Ardalis.GuardClauses;
+using Ardalis.GuardClauses;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -26,12 +26,12 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
 		/// <summary>
 		/// Copies items to the other dictionary.
-		/// </summary>		
+		/// </summary>
 		/// <param name="source">The source.</param>
 		/// <param name="destination">The destination.</param>
 		/// <param name="overwrite">if set to <c>true</c> [overwrite].</param>
 		private static IDictionary CopyTo(this IDictionary source, IDictionary destination, bool overwrite)
-		{			
+		{
 			if (source != null)
 			{
 				foreach (DictionaryEntry entry in source)
@@ -70,7 +70,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 			return local;
 		}
 
-		//GetOrCreate		
+		//GetOrCreate
 		/// <summary>
 		/// Gets or adds the item provided by key and valueFactory to dictionary.
 		/// </summary>
@@ -91,7 +91,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 			{
 				throw new ArgumentNullException(nameof(key));
 			}
-			
+
             Guard.Against.Null(valueFactory, nameof(valueFactory));
 
             if (!dictionary.TryGetValue(key, out TValue value))
@@ -101,7 +101,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 			}
 			return value;
 		}
-				
+
 		// SLOW:
 		// https://www.codeproject.com/Articles/724978/GetOrCreateValueDictionary
 		//public static TV GetOrAddSafe<TK, TV>(this ConcurrentDictionary<TK, Lazy<TV>> dictionary, TK key, Func<TK, TV> creator)

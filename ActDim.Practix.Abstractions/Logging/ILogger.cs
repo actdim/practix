@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ActDim.Practix.Abstractions.Logging
 {
@@ -37,7 +37,7 @@ namespace ActDim.Practix.Abstractions.Logging
 		//
 		//   formatter:
 		//     Function to create a string message of the state and exception.
-		
+
 		void Log<TState>(LogLevel logLevel, TState state, Exception exception, Func<TState, Exception, string> formatter);
 	}
 }

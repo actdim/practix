@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 
 namespace ActDim.Practix.Extensions // ActDim.Practix.Linq

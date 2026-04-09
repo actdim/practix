@@ -37,13 +37,13 @@ namespace ActDim.Practix
 		public object[] Items { get { return _items; } }
 
 		private readonly int _hashCode;
-		
+
 		public TupleSignature(params object[] items)
 		{
 			Guard.Against.Null(items, nameof(items)); // .IsNotEmpty()
 			_items = items;
 			// _items = (object[])items.Clone();
-			// _items = new object[items.Length];						
+			// _items = new object[items.Length];
 			// Array.Copy(items, 0, _items, 0, items.Length);
 			_hashCode = HashCodeHelper.CombineHashCode(_items);
 		}

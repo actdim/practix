@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.Abstractions.Logging
+namespace ActDim.Practix.Abstractions.Logging
 {
     public interface ILoggerProvider
     {

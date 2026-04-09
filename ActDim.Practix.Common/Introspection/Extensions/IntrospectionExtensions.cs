@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace ActDim.Practix.Introspection
+namespace ActDim.Practix.Common.Introspection
 {
     public enum IntrospectionFormatType
     {

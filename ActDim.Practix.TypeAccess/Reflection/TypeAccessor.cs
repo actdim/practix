@@ -1,4 +1,4 @@
-﻿using ActDim.Practix.Collections.Concurrent;
+using ActDim.Practix.Collections.Concurrent;
 using ActDim.Practix.TypeAccess.Linq.Dynamic;
 using Ardalis.GuardClauses;
 using System;
@@ -24,13 +24,13 @@ namespace ActDim.Practix.TypeAccess.Reflection
     /// <summary>
     /// Various reflection related methods that are missing from the standard library.
     /// This class allows you to get members from types more safely than using
-    /// string literals. 	
+    /// string literals.
     /// </summary>
     public static class TypeAccessor
     {
         public static Type GetFuncType(params Type[] typeArgs)
         {
-            // TODO: cache (memoize)            
+            // TODO: cache (memoize)
             // var result = Type.GetType($"System.Func`{typeArgs.Length}");
             // result = result.MakeGenericType(typeArgs);
             return Expression.GetFuncType(typeArgs);
@@ -47,7 +47,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// Gets a member by it's expression usage.
         /// For example, GetMember(() => obj.GetType()) will return the
         /// GetType method.
-        /// </summary>		        
+        /// </summary>
         public static MemberInfo GetMemberInfo(LambdaExpression expr)
         {
             Guard.Against.Null(expr, nameof(expr));
@@ -98,7 +98,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
 
         /// <summary>
         /// Gets a property from a sample usage.
-        /// Example: GetProperty(() => str.Length) will return the property info 
+        /// Example: GetProperty(() => str.Length) will return the property info
         /// of Length.
         /// </summary>
         public static PropertyInfo GetPropertyInfo<T>(Expression<Func<T>> expr)
@@ -160,7 +160,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
             return GetDefaultConstructor<T>();
         }
         #endregion
-        #region GetDefaultConstructor              
+        #region GetDefaultConstructor
 
         private static Delegate CreateConstructorInternal(Type delegateType) // CreateCtor
         {
@@ -249,7 +249,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// <summary>
         /// Gets the default constructor for the given objectType, but return
         /// it already casted to a given "T".
-        /// </summary>        
+        /// </summary>
         public static Func<T> GetDefaultConstructor<T>()
         {
             // return BuildConstructor<Func<T>>();
@@ -329,7 +329,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
                 ctorParamTypes,
                 type,
                 // ctorInfo.Module, // typeof(TypeAccessor).Module
-                true); // !isVisible            
+                true); // !isVisible
 
             var ilGen = dynMethod.GetILGenerator();
 
@@ -861,7 +861,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
 
         /// <summary>
         /// Gets a delegate to read values from the given property in a very fast manner.
-        /// The result will be already cast or will even avoid casts if the 
+        /// The result will be already cast or will even avoid casts if the
         /// generic types are correct.
         /// </summary>
         public static Func<TInstance, TOutput> GetPropertyGetter<TInstance, TOutput>(PropertyInfo propInfo)
@@ -1035,7 +1035,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
             return result;
         }
         #endregion
-        #region GetPropertySetter        
+        #region GetPropertySetter
 
         /// <summary>
         /// Gets a delegate that can be used to do very fast sets on the given property.
@@ -1108,8 +1108,8 @@ namespace ActDim.Practix.TypeAccess.Reflection
                 setExpr = Expression.Call(readInstanceParamExpr, setMethod, readValueParamExpr);
                 // var accessFieldExpr = Expression.Property(readInstanceParamExpr, propInfo);
                 // var accessFieldExpr = Expression.PropertyOrField(readInstanceParamExpr, propInfo.Name);
-                // var accessFieldExpr = Expression.MakeMemberAccess(readInstanceParamExpr, propInfo);                
-                // setExpr = Expression.Assign(accessFieldExpr, readValueParamExpr);                
+                // var accessFieldExpr = Expression.MakeMemberAccess(readInstanceParamExpr, propInfo);
+                // setExpr = Expression.Assign(accessFieldExpr, readValueParamExpr);
                 // // setExpr = ExpressionParser.GenerateAssign(accessFieldExpr, readValueParamExpr);
             }
 
@@ -1208,7 +1208,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         }
         #endregion
 
-        #region GetFieldGetter        
+        #region GetFieldGetter
 
         /// <summary>
         /// Gets a delegate to read values from the given field in a very fast manner.
@@ -1226,7 +1226,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
 
         /// <summary>
         /// Gets a delegate to read values from the given field in a very fast manner.
-        /// The result will be already cast or will even avoid casts if the 
+        /// The result will be already cast or will even avoid casts if the
         /// generic types are correct.
         /// </summary>
         public static Func<T, TField> GetFieldGetter<T, TField>(FieldInfo fieldInfo)
@@ -1305,7 +1305,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
 
         /// <summary>
         /// Gets a delegate to write values to the given field in a very fast manner.
-        /// The result will be already cast or will even avoid casts if the 
+        /// The result will be already cast or will even avoid casts if the
         /// generic types are correct.
         /// </summary>
         public static Action<T, TField> GetFieldSetter<T, TField>(FieldInfo fieldInfo)
@@ -1447,7 +1447,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         #region GetPropertyInfo
         /// <summary>
         /// Gets a property from a sample usage.
-        /// Example: GetProperty((str) => str.Length) will return the property info 
+        /// Example: GetProperty((str) => str.Length) will return the property info
         /// of Length.
         /// </summary>
         public static PropertyInfo GetPropertyInfo<TProperty>(Expression<Func<T, TProperty>> expr)

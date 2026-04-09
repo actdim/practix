@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace ActDim.Practix.Introspection
+namespace ActDim.Practix.Common.Introspection
 {
     public class TypeIntrospectionInfo : TypeBaseIntrospectionInfo
     {

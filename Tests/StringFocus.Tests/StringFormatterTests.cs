@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System.Dynamic;
 using Xunit;
 
-namespace SalientBits.InterString.Tests
+namespace ActDim.Practix.StringFocus.Tests
 {
 	public class StringFormatterTests
 	{

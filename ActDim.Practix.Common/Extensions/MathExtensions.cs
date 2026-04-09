@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -21,21 +21,21 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
         //IsNegative/IsPositive
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="value">original</param>
         /// <param name="count">bits</param>
-        /// <returns></returns>        
+        /// <returns></returns>
 		public static uint RotateLeft(this uint value, int count)
 		{
 			return (value << count) | (value >> (32 - count));
 		}
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="value">original</param>
 		/// <param name="count">bits</param>
-		/// <returns></returns>		
+		/// <returns></returns>
 		public static uint RotateRight(this uint value, int count)
 		{
 			return (value >> count) | (value << (32 - count));
@@ -108,19 +108,19 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 		/// <summary>Returns the larger of two 8-bit signed integers.</summary>
 		/// <returns>Parameter a or b, whichever is larger.</returns>
 		/// <param name="a">The first of two 8-bit unsigned integers to compare.</param>
-		/// <param name="b">The second of two 8-bit unsigned integers to compare.</param>		
+		/// <param name="b">The second of two 8-bit unsigned integers to compare.</param>
 		[SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
 		public static sbyte AtLeast(this sbyte a, sbyte b) { return Math.Max(a, b); }
 		/// <summary>Returns the larger of two 16-bit unsigned integers.</summary>
 		/// <returns>Parameter a or b, whichever is larger.</returns>
 		/// <param name="a">The first of two 16-bit unsigned integers to compare.</param>
-		/// <param name="b">The second of two 16-bit unsigned integers to compare.</param>		
+		/// <param name="b">The second of two 16-bit unsigned integers to compare.</param>
 		[SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
 		public static ushort AtLeast(this ushort a, ushort b) { return Math.Max(a, b); }
 		/// <summary>Returns the larger of two 32-bit unsigned integers.</summary>
 		/// <returns>Parameter a or b, whichever is larger.</returns>
 		/// <param name="a">The first of two 32-bit unsigned integers to compare.</param>
-		/// <param name="b">The second of two 32-bit unsigned integers to compare.</param>		
+		/// <param name="b">The second of two 32-bit unsigned integers to compare.</param>
 		[SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
 		public static uint AtLeast(this uint a, uint b) { return Math.Max(a, b); }
 		/// <summary>Returns the larger of two 64-bit unsigned integers.</summary>
@@ -175,13 +175,13 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 		/// <summary>Returns the smaller of two 8-bit signed integers.</summary>
 		/// <returns>Parameter a or b, whichever is smaller.</returns>
 		/// <param name="a">The first of two 8-bit signed integers to compare.</param>
-		/// <param name="b">The second of two 8-bit signed integers to compare.</param>		
+		/// <param name="b">The second of two 8-bit signed integers to compare.</param>
 		[SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
 		public static sbyte AtMost(this sbyte a, sbyte b) { return Math.Min(a, b); }
 		/// <summary>Returns the smaller of two 16-bit unsigned integers.</summary>
 		/// <returns>Parameter a or b, whichever is smaller.</returns>
 		/// <param name="a">The first of two 16-bit unsigned integers to compare.</param>
-		/// <param name="b">The second of two 16-bit unsigned integers to compare.</param>		
+		/// <param name="b">The second of two 16-bit unsigned integers to compare.</param>
 		[SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
 		public static ushort AtMost(this ushort a, ushort b) { return Math.Min(a, b); }
 		/// <summary>Returns the smaller of two 32-bit unsigned integers.</summary>
@@ -193,7 +193,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 		/// <summary>Returns the smaller of two 64-bit unsigned integers.</summary>
 		/// <returns>Parameter a or b, whichever is smaller.</returns>
 		/// <param name="a">The first of two 64-bit unsigned integers to compare.</param>
-		/// <param name="b">The second of two 64-bit unsigned integers to compare.</param>		
+		/// <param name="b">The second of two 64-bit unsigned integers to compare.</param>
 		[SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
 		public static ulong AtMost(this ulong a, ulong b) { return Math.Min(a, b); }
 
@@ -250,28 +250,28 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 		/// <returns>A value between a and b inclusively.</returns>
 		/// <param name="value">The value to restrict between a and b.</param>
 		/// <param name="a">The first of two 8-bit signed integers to compare.</param>
-		/// <param name="b">The second of two 8-bit signed integers to compare.</param>		
+		/// <param name="b">The second of two 8-bit signed integers to compare.</param>
 		[SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
 		public static sbyte Clamp(this sbyte value, sbyte a, sbyte b) { return a < b ? Math.Min(Math.Max(value, a), b) : Math.Max(Math.Min(value, a), b); }
 		/// <summary>Returns the value constrained inclusively between two 16-bit unsigned integers.</summary>
 		/// <returns>A value between a and b inclusively.</returns>
 		/// <param name="value">The value to restrict between a and b.</param>
 		/// <param name="a">The first of two 16-bit unsigned integers to compare.</param>
-		/// <param name="b">The second of two 16-bit unsigned integers to compare.</param>		
+		/// <param name="b">The second of two 16-bit unsigned integers to compare.</param>
 		[SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
 		public static ushort Clamp(this ushort value, ushort a, ushort b) { return a < b ? Math.Min(Math.Max(value, a), b) : Math.Max(Math.Min(value, a), b); }
 		/// <summary>Returns the value constrained inclusively between two 32-bit unsigned integers.</summary>
 		/// <returns>A value between a and b inclusively.</returns>
 		/// <param name="value">The value to restrict between a and b.</param>
 		/// <param name="a">The first of two 32-bit unsigned integers to compare.</param>
-		/// <param name="b">The second of two 32-bit unsigned integers to compare.</param>		
+		/// <param name="b">The second of two 32-bit unsigned integers to compare.</param>
 		[SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
 		public static uint Clamp(this uint value, uint a, uint b) { return a < b ? Math.Min(Math.Max(value, a), b) : Math.Max(Math.Min(value, a), b); }
 		/// <summary>Returns the value constrained inclusively between two 64-bit unsigned integers.</summary>
 		/// <returns>A value between a and b inclusively.</returns>
 		/// <param name="value">The value to restrict between a and b.</param>
 		/// <param name="a">The first of two 64-bit unsigned integers to compare.</param>
-		/// <param name="b">The second of two 64-bit unsigned integers to compare.</param>		
+		/// <param name="b">The second of two 64-bit unsigned integers to compare.</param>
 		[SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly")]
 		public static ulong Clamp(this ulong value, ulong a, ulong b) { return a < b ? Math.Min(Math.Max(value, a), b) : Math.Max(Math.Min(value, a), b); }
 
@@ -519,7 +519,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 		/// <summary>Returns the absolute value of an 8-bit signed integer.</summary>
 		/// <returns>An 8-bit signed integer, x, such that 0 ≤ x ≤ <see cref="F:System.SByte.MaxValue"/>.</returns>
 		/// <param name="value">A number in the range <see cref="F:System.SByte.MinValue"/> &lt; value ≤ <see cref="F:System.SByte.MaxValue"/>.</param>
-		/// <exception cref="T:System.OverflowException">value equals <see cref="F:System.SByte.MinValue"/>.</exception>		
+		/// <exception cref="T:System.OverflowException">value equals <see cref="F:System.SByte.MinValue"/>.</exception>
 		public static sbyte Abs(this sbyte value) { return Math.Abs(value); }
 #if !SILVERLIGHT
 		/// <summary>Produces the full product of two 32-bit numbers.</summary>
@@ -610,7 +610,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 		public static int Sign(this long value) { return Math.Sign(value); }
 		/// <summary>Returns a value indicating the sign of an 8-bit signed integer.</summary>
 		/// <returns>A number indicating the sign of value.Number Description -1 value is less than zero. 0 value is equal to zero. 1 value is greater than zero.</returns>
-		/// <param name="value">A signed number.</param>		
+		/// <param name="value">A signed number.</param>
 		public static int Sign(this sbyte value) { return Math.Sign(value); }
 
 		/// <summary>Returns the square root of a specified number.</summary>

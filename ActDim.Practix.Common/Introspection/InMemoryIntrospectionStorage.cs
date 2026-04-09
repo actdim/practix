@@ -2,7 +2,7 @@ using ActDim.Practix.Abstractions.Patterns;
 using System.Collections.Concurrent;
 using System.Reflection;
 
-namespace ActDim.Practix.Introspection
+namespace ActDim.Practix.Common.Introspection
 {
     public class InMemoryIntrospectionStorage : IProvider<IntrospectionInfo, IntrospectionMemberId>
     {

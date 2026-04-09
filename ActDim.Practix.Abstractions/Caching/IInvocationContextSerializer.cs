@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace ActDim.Practix.Abstractions.Caching
 {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,13 +7,13 @@ using System.Text.RegularExpressions;
 using ActDim.Practix.TypeAccess.Linq.Dynamic;
 using Ardalis.GuardClauses;
 
-namespace SalientBits.InterString // SalientBits.StringInterpolation/SalientBits.Common.Text
+namespace ActDim.Practix.StringFocus
 {
     public static class StringFormatter
     {
         // TODO: format with parameters: specified by object or Dictionary<string, object>
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="format"></param>
         /// <param name="source"></param>

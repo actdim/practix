@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.Abstractions.Messaging
+namespace ActDim.Practix.Abstractions.Messaging
 {
     /// <summary>
     /// DataValidationErrorInfo

@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +9,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
     public static class DirectoryExtensions
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="path"></param>
         /// <param name="errHandler">onError</param>

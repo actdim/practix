@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Ardalis.GuardClauses;
 using System.Buffers;
 using ActDim.Practix.Memory;
@@ -19,7 +19,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         private const int BufferSize = 8 * 1024; // 8kB
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="encoding"></param>
@@ -96,7 +96,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="encoding"></param>
@@ -149,7 +149,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="str"></param>
@@ -173,7 +173,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="str"></param>
@@ -197,7 +197,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <typeparam name="TStream"></typeparam>
         /// <param name="src"></param>
@@ -236,7 +236,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// <param name="src"></param>
         /// <param name="dst"></param>
         /// <param name="bufferSize"></param>
-        /// <returns></returns>        
+        /// <returns></returns>
         public static TStream ZeroAllocCopyTo<TStream>(this Stream src, TStream dst, int bufferSize = BufferSize) where TStream : Stream
         {
             {
@@ -292,11 +292,11 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <typeparam name="TStream"></typeparam>
         /// <param name="src"></param>
-        /// <param name="dst"></param>        
+        /// <param name="dst"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task<TStream> ZeroAllocCopyToAsync<TStream>(this MemoryStream src, TStream dst, CancellationToken cancellationToken = default) where TStream : Stream
@@ -388,7 +388,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="src"></param>
         /// <returns></returns>
@@ -401,8 +401,8 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             }
             // dst
             var outputStream = MemoryManager.Default.GetStream(nameof(StreamExtensions));
-            // return src.ZeroAllocCopyTo(outputStream, bufferSize);            
-            src.CopyTo(outputStream); // bufferSize parameter is ignored in RecyclableMemoryStream implementation of CopyTo method            
+            // return src.ZeroAllocCopyTo(outputStream, bufferSize);
+            src.CopyTo(outputStream); // bufferSize parameter is ignored in RecyclableMemoryStream implementation of CopyTo method
             outputStream.Position = 0L;
             return outputStream;
         }
@@ -421,14 +421,14 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             }
             // dst
             var outputStream = MemoryManager.Default.GetStream(nameof(StreamExtensions));
-            // return await src.ZeroAllocCopyToAsync(outputStream, bufferSize, cancellationToken);            
+            // return await src.ZeroAllocCopyToAsync(outputStream, bufferSize, cancellationToken);
             await src.CopyToAsync(outputStream, cancellationToken); // bufferSize parameter is ignored in RecyclableMemoryStream implementation of CopyToAsync method
             outputStream.Position = 0L;
             return outputStream;
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="src"></param>
         /// <param name="dstFactory"></param>
@@ -453,7 +453,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="src"></param>
         /// <param name="dstFactory"></param>
@@ -497,7 +497,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="src"></param>
         /// <param name="dstFactory"></param>
@@ -542,7 +542,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="bufferSize"></param>
@@ -554,7 +554,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="bufferSize"></param>

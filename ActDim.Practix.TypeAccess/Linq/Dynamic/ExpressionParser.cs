@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -240,7 +240,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
             //parameters.CopyTo(_parameters, parameters.GetLowerBound(0));
             //_parameters = parameters.ToArray();
             //Array.Copy
-            //Array.ConstrainedCopy  
+            //Array.ConstrainedCopy
             //Buffer.BlockCopy
             if (parameters != null) ProcessParameters(parameters);
             if (values != null) ProcessValues(values);

@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.Abstractions.DataAccess.Generic
+namespace ActDim.Practix.Abstractions.DataAccess.Generic
 {
     public interface IDbEntityFactory<out TEntity>
     {

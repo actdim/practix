@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 {

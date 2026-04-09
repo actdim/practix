@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.Abstractions.Compression
+namespace ActDim.Practix.Abstractions.Compression
 {
     public interface IArchiveEntry
     {

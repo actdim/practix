@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ActDim.Practix.Disposal
 {
@@ -14,7 +14,7 @@ namespace ActDim.Practix.Disposal
 		/// it's disposal.
 		/// </summary>
 		void Dispose(Exception exception);
-		
+
 		/// <summary>
 		/// Gets the Exception that caused the dispose of this object, or null.
 		/// </summary>

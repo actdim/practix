@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -198,7 +198,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         // public static Task<TResult> TimeoutAfter<TResult>(this Task<TResult> task, TimeSpan timeout)
         // {
         //     // var completedTask = Task.Factory.WhenAny(task, Delay(timeout));
-        //     var completedTask = Task.Factory.ContinueWhenAny(new [] { task, Delay(timeout) },  _ => _);           
+        //     var completedTask = Task.Factory.ContinueWhenAny(new [] { task, Delay(timeout) },  _ => _);
         //     return completedTask.ContinueWith(_ =>
         //     {
         //         if (_ != task)

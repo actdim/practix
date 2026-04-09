@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Threading;
 
@@ -31,7 +31,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             private bool isDisposed = false; // To detect redundant calls
 
             /// <summary>
-            /// 
+            ///
             /// </summary>
             /// <param name="disposing"></param>
             protected virtual void Dispose(bool disposing)
@@ -52,7 +52,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             }
 
             /// <summary>
-            /// 
+            ///
             /// </summary>
             ~FactoryDictionary()
             {
@@ -60,7 +60,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             }
 
             /// <summary>
-            /// 
+            ///
             /// </summary>
             public void Dispose()
             {
@@ -85,11 +85,11 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         //     {
         //         cache = new ConcurrentDictionary<TArg, Lazy<TRetVal>>();
         //     }
-        //     return arg => cache.GetOrAdd(arg, new Lazy<TRetVal>(() => f(arg))).Value;            
+        //     return arg => cache.GetOrAdd(arg, new Lazy<TRetVal>(() => f(arg))).Value;
         // }
 
         public static Func<TArg, TRetVal> Memoize<TArg, TRetVal>(this Func<TArg, TRetVal> f, ConcurrentDictionary<TArg, TRetVal> cache = null)
-        {            
+        {
             if (cache == null)
             {
                 cache = new ConcurrentDictionary<TArg, TRetVal>();

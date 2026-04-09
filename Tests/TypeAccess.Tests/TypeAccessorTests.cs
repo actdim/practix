@@ -1,11 +1,11 @@
-﻿using ActDim.Practix.TypeAccess.Linq;
+using ActDim.Practix.TypeAccess.Linq;
 using ActDim.Practix.TypeAccess.Reflection;
 using System;
 using System.Diagnostics;
 using System.Linq;
 using Xunit;
 
-namespace OrthoBits.InterCode.Tests
+namespace ActDim.Practix.TypeAccess.Tests
 {
     public class TypeAccessorTests
     {

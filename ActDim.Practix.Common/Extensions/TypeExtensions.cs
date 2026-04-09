@@ -1,4 +1,4 @@
-﻿using Autofac;
+using Autofac;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

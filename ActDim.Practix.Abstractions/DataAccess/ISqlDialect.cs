@@ -1,13 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 
 namespace ActDim.Practix.Abstractions.DataAccess
 {
-    /// <summary>
-    /// 
-    /// </summary>
-	public interface ISqlDialect
+    public interface ISqlDialect
     {
         char ParameterNamePrefix { get; }
         string GetColumnName(string propertyName);

@@ -1,8 +1,8 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 
 namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
-{	
+{
     public static class EncodingExtensions
     {
         /// <summary>
