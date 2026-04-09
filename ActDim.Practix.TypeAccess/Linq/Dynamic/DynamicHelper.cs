@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq.Expressions;
@@ -58,7 +58,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic // ActDim.Practix.Dynamic
         //sourceType/itType/thisType/thatType/scopeType/contextType
         //resultType/valueType
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="sourceType"></param>
         /// <param name="expression"></param>
@@ -72,7 +72,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic // ActDim.Practix.Dynamic
         }
         //TResult/TValue
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TResult"></typeparam>
@@ -85,7 +85,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic // ActDim.Practix.Dynamic
             return DynamicExpression.ParseLambda<TSource, TResult>(expression, values).Compile();
         }
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="parameters"></param>
         /// <param name="expression"></param>
@@ -165,7 +165,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic // ActDim.Practix.Dynamic
 
                     //var value = CreateEvalGetter(new ParameterExpression[] { Expression.Parameter(type, string.Empty) }, property.Name, (Type)null).DynamicInvoke(parameters);
                     var value = EvalGet(property.Name, new Dictionary<string, object>() { { string.Empty, parameters } }, (Type)null);
-                    var propertyType = value.GetType(); //real property type (instead property.PropertyType)                
+                    var propertyType = value.GetType(); //real property type (instead property.PropertyType)
                     signatureParameters.Add(property.Name);
                     signatureParameters.Add(propertyType);
                     parameterValues.Add(value);
@@ -268,7 +268,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic // ActDim.Practix.Dynamic
             //    left = unaryLeft.Operand;
             //}
 
-            //var right = DynamicExpression.Parse(null, "@0." + rightExpression, new object[] { rightSource });            
+            //var right = DynamicExpression.Parse(null, "@0." + rightExpression, new object[] { rightSource });
             //var right = DynamicExpression.ParseLambda(rightSource.GetType(), resultType, rightExpression).Body;
 
             LambdaExpression right;

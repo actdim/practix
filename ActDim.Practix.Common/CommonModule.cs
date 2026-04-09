@@ -1,4 +1,4 @@
-﻿using ActDim.Practix.Abstractions.Compression;
+using ActDim.Practix.Abstractions.Compression;
 using ActDim.Practix.Abstractions.Json;
 using ActDim.Practix.Abstractions.Messaging;
 using ActDim.Practix.Common.Json;

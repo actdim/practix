@@ -34,7 +34,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
 
     /// <summary>
     /// Use this class for obtaining <see cref="ModuleBuilder"/> instances for dynamic code generation.
-    /// </summary>      
+    /// </summary>
     /// <seealso cref="ActDim.Practix.TypeAccess.Reflection.DynamicReflectionManager"/>
     public sealed class DynamicCodeManager
     {
@@ -104,7 +104,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
         /// </summary>
         /// <remarks>
         /// If the assembly does not exist yet, it will be created.<br/>
-        /// This factory caches any dynamic assembly it creates - calling GetModule() twice with 
+        /// This factory caches any dynamic assembly it creates - calling GetModule() twice with
         /// the same name will *not* create 2 distinct modules!
         /// </remarks>
         /// <param name="assemblyName">The assembly-name of the moduleBuilder to be returned</param>

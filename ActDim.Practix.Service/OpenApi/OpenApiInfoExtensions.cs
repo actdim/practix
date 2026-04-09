@@ -1,4 +1,4 @@
-﻿
+
 namespace ActDim.Practix.Service.OpenApi
 {
     // OpenApiInfoMetadataKeys

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using Xunit;
 using ActDim.Practix.TypeAccess.Linq.Dynamic;
 
-namespace OrthoBits.InterCode.Tests
+namespace ActDim.Practix.TypeAccess.Tests
 {
 	public class DynamicHelperTests
 	{

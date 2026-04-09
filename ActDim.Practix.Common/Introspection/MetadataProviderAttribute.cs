@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace SalientBits.Common.Reflection.Metadata
+namespace ActDim.Practix.Common.Introspection
 {
     // [AttributeUsage(AttributeTargets.Class | ...)]
     // MemberIntrospectionInfoProviderAttribute

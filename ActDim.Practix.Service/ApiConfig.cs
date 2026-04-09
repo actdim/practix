@@ -1,4 +1,4 @@
-﻿using Microsoft.OpenApi;
+using Microsoft.OpenApi;
 
 namespace ActDim.Practix.Service
 {
@@ -15,7 +15,7 @@ namespace ActDim.Practix.Service
         OpenApiInfo Info { get; set; }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         bool Explorable { get; set; } // ShowInExplorer
 

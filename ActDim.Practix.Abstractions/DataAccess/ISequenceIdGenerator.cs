@@ -1,4 +1,4 @@
-﻿using System.Data.Common;
+using System.Data.Common;
 
 namespace ActDim.Practix.Abstractions.DataAccess
 {
@@ -7,7 +7,7 @@ namespace ActDim.Practix.Abstractions.DataAccess
         DbProviderType ProviderType { get; }
 
         long GetNewId(string sequenceName);
-        
+
         /// <summary>
         /// GetNext
         /// </summary>

@@ -1,4 +1,4 @@
-﻿using ActDim.Practix.Abstractions.Patterns;
+using ActDim.Practix.Abstractions.Patterns;
 
 namespace ActDim.Practix.Abstractions.Messaging
 {

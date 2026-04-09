@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.Abstractions.Compression
+namespace ActDim.Practix.Abstractions.Compression
 {
     /// <summary>
     /// Archive container formats. These formats can store multiple files and directories, and support optional compression algorithms.

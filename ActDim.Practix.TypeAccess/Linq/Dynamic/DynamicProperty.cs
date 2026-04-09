@@ -1,4 +1,4 @@
-﻿using ActDim.Practix;
+using ActDim.Practix;
 using Ardalis.GuardClauses;
 using System;
 

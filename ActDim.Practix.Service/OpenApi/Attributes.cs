@@ -15,7 +15,7 @@ namespace ActDim.Practix.Service.OpenApi
         // Ignore
         // ExcludeFromApi
         public bool Exclude { get; init; }
-        
+
         public bool ExcludeFromExplorer { get; init; }
     }
 }

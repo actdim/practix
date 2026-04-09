@@ -1,5 +1,5 @@
 using System;
-using ActDim.Practix.Introspection;
+using ActDim.Practix.Common.Introspection;
 using Xunit;
 
 namespace ActDim.Practix.Common.Tests

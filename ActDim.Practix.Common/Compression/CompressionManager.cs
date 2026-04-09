@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.IO.Compression;
 using Ardalis.GuardClauses;
 using ActDim.Practix.Extensions;
@@ -138,7 +138,7 @@ namespace ActDim.Practix.Compression
 
         /*
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="data"></param>
         /// <param name="compressionType"></param>
@@ -259,7 +259,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="data"></param>
         /// <param name="callback"></param>
@@ -284,7 +284,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="data"></param>
         /// <param name="callback"></param>
@@ -338,7 +338,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="inputStream"></param>
         /// <param name="compressionType"></param>
@@ -351,7 +351,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="inputStream"></param>
         /// <param name="outputStream"></param>
@@ -434,7 +434,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="data"></param>
         /// <param name="compressionType"></param>
@@ -448,7 +448,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="data"></param>
         /// <param name="compressionType"></param>
@@ -461,7 +461,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="dataProvider">inputData</param>
         /// <param name="compressionType"></param>
@@ -477,7 +477,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="dataProvider"></param>
         /// <param name="outputStream"></param>
@@ -538,7 +538,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="data"></param>
         /// <param name="compressionType"></param>
@@ -554,7 +554,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="data"></param>
         /// <param name="compressionType"></param>
@@ -571,7 +571,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="data"></param>
         /// <param name="outputStream"></param>
@@ -590,7 +590,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="data"></param>
         /// <param name="outputStream"></param>
@@ -608,7 +608,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="stream">inputStream</param>
         /// <param name="compressionType"></param>
@@ -622,7 +622,7 @@ namespace ActDim.Practix.Compression
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="outputStream"></param>

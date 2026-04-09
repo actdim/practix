@@ -1,9 +1,6 @@
-﻿namespace ActDim.Practix.Abstractions.DataAccess
+namespace ActDim.Practix.Abstractions.DataAccess
 {
-    /// <summary>
-    /// 
-    /// </summary>
-	public enum DbProviderType
+    public enum DbProviderType
     {
         GenericSQL, // Unknown
         PostgreSQL,
@@ -11,7 +8,7 @@
         MySQL,
         MariaDB,
         MicrosoftSQLServer,
-        OracleDB,        
+        OracleDB,
         IBMDB2
     }
 }

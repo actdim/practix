@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.Abstractions.DataAccess.Sql
+namespace ActDim.Practix.Abstractions.DataAccess.Sql
 {
     public interface ISql
     {

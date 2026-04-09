@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ActDim.Practix.Abstractions.Logging
 {
@@ -11,11 +11,11 @@ namespace ActDim.Practix.Abstractions.Logging
 		{
 			_name = name;
 		}
-		
+
 		public string Name
 		{
 			get
-			{				
+			{
 				return _name;
 			}
 		}

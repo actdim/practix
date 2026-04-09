@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 namespace ActDim.Practix.Abstractions.Patterns // ActDim.Practix.Abstractions.DesignPatterns or ActDim.Practix.Abstractions.Core
 {

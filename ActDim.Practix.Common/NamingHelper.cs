@@ -9,7 +9,7 @@ namespace ActDim.Practix
     public static class NamingHelper
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="prefix">tag</param>
         /// <returns></returns>
@@ -27,7 +27,7 @@ namespace ActDim.Practix
         {
             // Compliant with item 2.4.2 of the C# specification
             var regex = new Regex(@"[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Nl}\p{Mn}\p{Mc}\p{Cf}\p{Pc}\p{Lm}]");
-            // @?[_\p{Lu}\p{Ll}\p{Lt}\p{Lm}\p{Lo}\p{Nl}][\p{Lu}\p{Ll}\p{Lt}\p{Lm}\p{Lo}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\p{Cf}]* 
+            // @?[_\p{Lu}\p{Ll}\p{Lt}\p{Lm}\p{Lo}\p{Nl}][\p{Lu}\p{Ll}\p{Lt}\p{Lm}\p{Lo}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\p{Cf}]*
             // cleanName
             // string result = regex.Replace(name, "");
             string result = regex.Replace(name, "_");

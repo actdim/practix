@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ActDim.Practix.Abstractions.Logging
 {
@@ -19,10 +19,10 @@ namespace ActDim.Practix.Abstractions.Logging
 		//     An IDisposable that ends the logical operation scope on dispose.
 
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <typeparam name="TState"></typeparam>
-		/// <param name="state"></param>		
+		/// <param name="state"></param>
 		/// <returns></returns>
 		IDisposable BeginScope<TState>(TState state, LogLevel logLevel = LogLevel.Information);
 

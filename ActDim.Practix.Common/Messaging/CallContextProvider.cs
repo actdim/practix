@@ -1,4 +1,4 @@
-﻿using ActDim.Practix.Abstractions.Messaging;
+using ActDim.Practix.Abstractions.Messaging;
 using System;
 using System.Threading;
 
@@ -27,7 +27,7 @@ namespace ActDim.Practix.Messaging // ActDim.Practix.CallContext
 		}
 
 		public ICallContext Get()
-		{			
+		{
 			// System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(DataSlotName) as ICallContext
 			var value = _contextStack.Value;
 			if (value == null) // don't need to lock here

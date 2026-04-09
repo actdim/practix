@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Text;
 
 namespace ActDim.Practix.Service.OpenApi
@@ -134,11 +134,7 @@ namespace ActDim.Practix.Service.OpenApi
         private static readonly Type BaseValueType = typeof(ValueType);
         private static readonly Type BaseObjectType = typeof(object);
         private static readonly IEnumerable<Type> EmptyTypeList = Enumerable.Empty<Type>();
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="baseType"></param>
-        /// <returns></returns>
+        
         public static IEnumerable<Type> GetOpenApiSubTypes(Type baseType)
         {
             if (BaseValueType.Equals(baseType) || BaseObjectType.Equals(baseType))

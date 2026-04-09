@@ -1,4 +1,4 @@
-﻿using ActDim.Practix.Abstractions.Json;
+using ActDim.Practix.Abstractions.Json;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Autofac.Util;

@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.Abstractions.Messaging // ActDim.Practix.Abstractions.CallContext
+namespace ActDim.Practix.Abstractions.Messaging // ActDim.Practix.Abstractions.CallContext
 {
     /// <summary>
     /// GlobalFlags

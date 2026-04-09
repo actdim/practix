@@ -125,7 +125,7 @@ namespace ActDim.Practix.Service
 
                 // IOptionsMonitor<MySettings> settingsMonitor
                 settingsMonitor.OnChange(settings =>
-                {                    
+                {
                 });
                 */
 
@@ -222,7 +222,7 @@ namespace ActDim.Practix.Service
 
             ConfigureAppConfiguration(builder.Configuration, builder.Environment.EnvironmentName, args);
 
-            ConfigureLogging(builder.Logging, config, serviceProvider); // instead of builder.Host.ConfigureLogging or builder.WebHost.ConfigureLogging            
+            ConfigureLogging(builder.Logging, config, serviceProvider); // instead of builder.Host.ConfigureLogging or builder.WebHost.ConfigureLogging
 
             builder.Host.UseServiceProviderFactory(serviceProviderFactory);
 
@@ -421,7 +421,7 @@ namespace ActDim.Practix.Service
             // we configure logging before configuring services
             // services.AddLogging(logBuilder =>
             // {
-            // 
+            //
             // });
 
             services.AddResponseCompression(options =>
@@ -465,7 +465,7 @@ namespace ActDim.Practix.Service
                     // .SetIsOriginAllowed(origin => IsOriginAllowed(origin, builder.Environment))
                     // .WithOrigins(...)
                     // .WithHeaders(...)
-                    // .WithMethods(...) 
+                    // .WithMethods(...)
                     // .AllowCredentials()
                     ;
                 });
@@ -522,8 +522,8 @@ namespace ActDim.Practix.Service
                                 ValidIssuer = jwtBearerConfig.Issuer,
                                 ValidAudience = jwtBearerConfig.Audience,
                                 IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtBearerConfig.Key)),
-                                // LifetimeValidator = 
-                                // ClockSkew = 
+                                // LifetimeValidator =
+                                // ClockSkew =
                                 // ValidateIssuer = true,
                                 // ValidateAudience = true,
                                 // ValidateLifetime = true,
@@ -673,7 +673,7 @@ namespace ActDim.Practix.Service
                 );
                 // HttpContext.GetRequestedApiVersion();
                 // options.UnsupportedApiVersionStatusCode
-                // options.ApiVersionSelector 
+                // options.ApiVersionSelector
             }).AddApiExplorer(options =>
             {
                 options.GroupNameFormat = "'v'VVV";
@@ -746,7 +746,7 @@ namespace ActDim.Practix.Service
             /*
             webHostBuilder.ConfigureAppConfiguration((builderContext, configBuilder) =>
             {
-                // builderContext.Configuration                
+                // builderContext.Configuration
                 // ConfigureAppConfiguration(configBuilder, builderContext.HostingEnvironment.EnvironmentName ?? GetEnvName(config));
             });
 
@@ -770,7 +770,7 @@ namespace ActDim.Practix.Service
             });
 
             // webHostBuilder.UseKestrel(options =>
-            // {                
+            // {
             // });
 
             // webHostBuilder.UseHttpSys(httpSysOptions =>
@@ -787,7 +787,7 @@ namespace ActDim.Practix.Service
 
             // var url = GetUrl(config);
 
-            // webHostBuilder.UseSetting(WebHostDefaults.ServerUrlsKey, url);            
+            // webHostBuilder.UseSetting(WebHostDefaults.ServerUrlsKey, url);
             // webHostBuilder.UseUrls(url);
 
             webHostBuilder.UseContentRoot(GetContentRoot(config));
@@ -856,7 +856,7 @@ namespace ActDim.Practix.Service
                         //     SubmitMethod.Put,
                         //     SubmitMethod.Delete,
                         //     SubmitMethod.Patch
-                        // ]);  
+                        // ]);
 
                         var appOptions = serviceProvider.GetRequiredService<IOptions<AppSettings>>();
                         var appSettings = appOptions.Value;

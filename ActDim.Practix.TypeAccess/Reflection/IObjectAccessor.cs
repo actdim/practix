@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 #if NET_2
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ namespace ActDim.Practix.TypeAccess.Reflection
 {
 	public interface IObjectAccessor<T> where T: class
 	{
-		T Instance { get; }		
+		T Instance { get; }
 
 		//Func<T, TOutput> GetPropertyOrFieldGetter<TOutput>(string name); // TODO
 

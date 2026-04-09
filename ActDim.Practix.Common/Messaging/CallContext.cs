@@ -1,4 +1,4 @@
-﻿using ActDim.Practix.Abstractions.Messaging;
+using ActDim.Practix.Abstractions.Messaging;
 using ActDim.Practix.Disposal;
 using System;
 using System.Collections.Generic;
@@ -29,7 +29,7 @@ namespace ActDim.Practix.Messaging // ActDim.Practix.CallContext
             var overwrite = _data.TryGetValue(name, out oldValue);
 
             if (overwrite) // existed/existing
-            {                
+            {
                 oldValue = value;
             }
 

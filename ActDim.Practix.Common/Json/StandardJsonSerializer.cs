@@ -118,7 +118,7 @@ namespace ActDim.Practix.Common.Json
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, // similar to Newtonsoft JSON defaults
                 UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
                 // ReferenceHandler = ReferenceHandler.Preserve, // strict
-                ReferenceHandler = ReferenceHandler.IgnoreCycles, // safe                
+                ReferenceHandler = ReferenceHandler.IgnoreCycles, // safe
                 UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow // [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
             };
 
@@ -130,7 +130,7 @@ namespace ActDim.Practix.Common.Json
             resolver.Modifiers.Add(EmptyCollectionIgnoreResolver.Apply);
             options.TypeInfoResolver = resolver;
 
-            // options.Converters.Add(new JsonStringEnumConverter(null));            
+            // options.Converters.Add(new JsonStringEnumConverter(null));
             // options.Converters.Add(new CustomDateTimeConverter());
 
             options.Converters.Add(new NewtonsoftCompatibleStringConverter());

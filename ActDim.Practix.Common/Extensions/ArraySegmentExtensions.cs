@@ -1,11 +1,11 @@
-﻿
+
 using System;
 namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 {
     public static class ArraySegmentExtensions
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="src"></param>
@@ -15,7 +15,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         {
             var count = src.Count;
 
-            var dst = dstFactory == default? new T[count]: dstFactory(count);            
+            var dst = dstFactory == default? new T[count]: dstFactory(count);
 
             Array.Copy(src.Array, src.Offset, dst, 0, count);
 
@@ -26,5 +26,5 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
             return dst;
         }
-    }    
+    }
 }

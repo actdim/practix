@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2012 Paul Borodaev
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -62,13 +62,13 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
     //         for (var i = 0; i < _partitionSize; ++i)
     //         {
     //             yield return enumerator.Current;
-    //             _hasMoreItems = enumerator.MoveNext();       
+    //             _hasMoreItems = enumerator.MoveNext();
     //             if (!_hasMoreItems)
     //             {
     //                 yield break;
     //             }
     //         }
-    //     }       
+    //     }
     //     IEnumerator IEnumerable.GetEnumerator()
     //     {
     //         return GetEnumerator();
@@ -83,10 +83,10 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         // http://blogs.msdn.com/b/pfxteam/archive/2012/11/16/plinq-and-int32-maxvalue.aspx
         // http://stackoverflow.com/questions/438188/split-a-collection-into-n-parts-with-linq
         // https://code.google.com/p/morelinq/source/browse/MoreLinq/Batch.cs?r=f85495b139a19bce7df2be98ad88754ba8932a28
-        // http://stackoverflow.com/questions/13709626/split-an-ienumerablet-into-fixed-sized-chunks-return-an-ienumerableienumerab        
+        // http://stackoverflow.com/questions/13709626/split-an-ienumerablet-into-fixed-sized-chunks-return-an-ienumerableienumerab
         // http://stackoverflow.com/questions/1349491/how-can-i-split-an-ienumerablestring-into-groups-of-ienumerablestring
         // https://www.codeproject.com/Articles/779344/Considerations-on-Efficient-use-of-LINQ-Extension
-        // https://github.com/tompazourek/Endless    
+        // https://github.com/tompazourek/Endless
 
         // public static ISet<T> ToHashSet<T>(this IEnumerable<T> source)
         // {
@@ -94,7 +94,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         // }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source">sequence</param>
@@ -180,7 +180,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         // 			d.Dispose();
         // 		}
         // 	}
-        // }		
+        // }
 
         // public static IEnumerable<TResult> Zip<TFirst, TSecond, TThird, TResult>(
         //     this IEnumerable<TFirst> first,
@@ -188,7 +188,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         //     IEnumerable<TThird> third,
         //     Func<TFirst, TSecond, TThird, TResult> resultSelector)
         // {
-        //     // Contract.Requires(first != null && second != null && third != null && resultSelector != null);           
+        //     // Contract.Requires(first != null && second != null && third != null && resultSelector != null);
         //     using (IEnumerator<TFirst> iterator1 = first.GetEnumerator())
         //     using (IEnumerator<TSecond> iterator2 = second.GetEnumerator())
         //     using (IEnumerator<TThird> iterator3 = third.GetEnumerator())
@@ -299,15 +299,15 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         {
             return source == null || !source.GetEnumerator().MoveNext();
         }
-        /// <summary> 
-        /// Invokes a transform function on each element of a sequence and returns the minimum Double value  
-        /// if the sequence is not empty; otherwise returns the specified default value.  
-        /// </summary> 
-        /// <typeparam name="TSource">The targetType of the elements of source.</typeparam> 
-        /// <param name="source">A sequence of values to determine the minimum value of.</param> 
-        /// <param name="selector">A transform function to apply to each element.</param> 
-        /// <param name="defaultValue">The default value.</param> 
-        /// <returns>The minimum value in the sequence or default value if sequence is empty.</returns> 
+        /// <summary>
+        /// Invokes a transform function on each element of a sequence and returns the minimum Double value
+        /// if the sequence is not empty; otherwise returns the specified default value.
+        /// </summary>
+        /// <typeparam name="TSource">The targetType of the elements of source.</typeparam>
+        /// <param name="source">A sequence of values to determine the minimum value of.</param>
+        /// <param name="selector">A transform function to apply to each element.</param>
+        /// <param name="defaultValue">The default value.</param>
+        /// <returns>The minimum value in the sequence or default value if sequence is empty.</returns>
         public static double MinOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector, double defaultValue)
         {
             if (source.Any())
@@ -318,15 +318,15 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             return defaultValue;
         }
 
-        /// <summary> 
-        /// Invokes a transform function on each element of a sequence and returns the maximum Double value  
-        /// if the sequence is not empty; otherwise returns the specified default value.  
-        /// </summary> 
-        /// <typeparam name="TSource">The targetType of the elements of source.</typeparam> 
-        /// <param name="source">A sequence of values to determine the maximum value of.</param> 
-        /// <param name="selector">A transform function to apply to each element.</param> 
-        /// <param name="defaultValue">The default value.</param> 
-        /// <returns>The maximum value in the sequence or default value if sequence is empty.</returns> 
+        /// <summary>
+        /// Invokes a transform function on each element of a sequence and returns the maximum Double value
+        /// if the sequence is not empty; otherwise returns the specified default value.
+        /// </summary>
+        /// <typeparam name="TSource">The targetType of the elements of source.</typeparam>
+        /// <param name="source">A sequence of values to determine the maximum value of.</param>
+        /// <param name="selector">A transform function to apply to each element.</param>
+        /// <param name="defaultValue">The default value.</param>
+        /// <returns>The maximum value in the sequence or default value if sequence is empty.</returns>
         public static double MaxOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector, double defaultValue)
         {
             if (source.Any())
@@ -508,7 +508,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// <typeparam name="T">Object type</typeparam>
         /// <param name="source">IEnumerable to iterate over</param>
         /// <param name="action">Action to do</param>
-        /// <returns>The original list</returns>        
+        /// <returns>The original list</returns>
         [DebuggerNonUserCode]
         public static IEnumerable<T> ForEach<T>(this IEnumerable<T> source, Action<T> action)
         {

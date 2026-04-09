@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.TypeAccess.Linq.Dynamic
+namespace ActDim.Practix.TypeAccess.Linq.Dynamic
 {
 	public static class Res
 	{

@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Options;
@@ -109,7 +109,7 @@ namespace ActDim.Practix.Service.OpenApi
                 //     {
                 //         apiDoc.Paths.Remove(key);
                 //     }
-                // }                
+                // }
             }
 
             foreach (var type in GetExtraTypes(context))

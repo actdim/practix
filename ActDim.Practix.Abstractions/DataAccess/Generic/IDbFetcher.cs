@@ -1,4 +1,4 @@
-﻿using ActDim.Practix.Abstractions.Json;
+using ActDim.Practix.Abstractions.Json;
 using ActDim.Practix.Abstractions.Mapping;
 using System.Collections.Generic;
 using System.Data.Common;

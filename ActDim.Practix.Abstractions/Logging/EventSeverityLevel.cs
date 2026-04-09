@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.Abstractions.Logging
+namespace ActDim.Practix.Abstractions.Logging
 {
     /// <summary>
     /// https://sysdig-docs-pr-1867.onrender.com/en/docs/sysdig-monitor/events/severity-and-status/
@@ -13,7 +13,7 @@
         Critical = 2, // Medium
         Error = 3, // Medium
         Warning = 4, // Low
-        Notice = 5, // Low 
+        Notice = 5, // Low
         Informational = 6, // None
         /// <summary>
         /// Trace/Verbose

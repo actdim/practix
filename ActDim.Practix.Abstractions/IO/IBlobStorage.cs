@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -8,7 +8,7 @@ namespace ActDim.Practix.Abstractions.IO
 {
     public interface IBlobStorage
     {
-        Task<IBlob> GetAsync(string key, CancellationToken cancellationToken = default);        
+        Task<IBlob> GetAsync(string key, CancellationToken cancellationToken = default);
 
         // IAsyncEnumerable<IBlob> FindAsync(string pattern, CancellationToken cancellationToken = default);
 
@@ -21,7 +21,7 @@ namespace ActDim.Practix.Abstractions.IO
         Task DeleteAsync(string key, CancellationToken cancellationToken = default);
 
         Task<int> DeleteExpiredAsync(CancellationToken cancellationToken = default);
-        
+
         Task<int> DeleteOlderThanAsync(DateTimeOffset cutoff, CancellationToken cancellationToken = default);
     }
 }

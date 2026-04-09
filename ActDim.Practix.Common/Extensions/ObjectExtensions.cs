@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
@@ -50,7 +50,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="target"></param>
         /// <param name="expression"></param>
@@ -61,7 +61,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="target"></param>
         /// <param name="expression"></param>
@@ -74,14 +74,14 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
         // QUOTENAME
         // http://msdn.microsoft.com/en-us/library/ms176114.aspx
-        // SqlCeCommand.Parameters Property 
+        // SqlCeCommand.Parameters Property
         // http://msdn.microsoft.com/en-us/library/system.data.sqlserverce.sqlcecommand.parameters.aspx
         // SQLify
         // Embedded single-quotes and backslashes are not properly escaped
         // Nullable?
         // AsSqlLiteral
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -108,7 +108,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
         // AsSqlIdentifier
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>

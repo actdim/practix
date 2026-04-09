@@ -1,4 +1,4 @@
-﻿namespace ActDim.Practix.Abstractions.DataAccess
+namespace ActDim.Practix.Abstractions.DataAccess
 {
 	public interface IColumnSerializer
 	{

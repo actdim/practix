@@ -1,4 +1,4 @@
-﻿using Xunit;
+using Xunit;
 using System.Diagnostics;
 using System.Dynamic;
 using System;
@@ -7,7 +7,7 @@ using System.Linq;
 using ActDim.Practix.TypeAccess.Linq.Dynamic;
 using ActDim.Practix.TypeAccess.Reflection;
 
-namespace OrthoBits.InterCode.Tests
+namespace ActDim.Practix.TypeAccess.Tests
 {
     public class DynamicExpressionTests
     {

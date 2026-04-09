@@ -1,4 +1,4 @@
-﻿using ActDim.Practix.Extensions;
+using ActDim.Practix.Extensions;
 using System.Collections;
 
 namespace ActDim.Practix
@@ -20,7 +20,7 @@ namespace ActDim.Practix
         ///// </param>
         ///// <returns>
         ///// A hash code for the specified array.
-        ///// </returns>        
+        ///// </returns>
         public static int CombineHashCode(this IEnumerable collection) //source
         {
             var result = 0;

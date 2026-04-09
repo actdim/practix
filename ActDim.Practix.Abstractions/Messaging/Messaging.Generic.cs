@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace ActDim.Practix.Abstractions.Messaging
 {
@@ -21,11 +21,11 @@ namespace ActDim.Practix.Abstractions.Messaging
     {
         /// <summary>
         /// Text
-        /// </summary>        
+        /// </summary>
         public string Message { get; set; }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public string Type { get; set; }
 
@@ -37,7 +37,7 @@ namespace ActDim.Practix.Abstractions.Messaging
 
         // Severity?
     }
-    
+
     public class BaseApiResult<TErrorCode>
     {
         public bool Ok { set; get; } // IsOk?

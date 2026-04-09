@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.OpenApi;
 using System.Text.Json.Nodes;
 

@@ -1,4 +1,4 @@
-﻿using ActDim.Practix.TypeAccess.Reflection;
+using ActDim.Practix.TypeAccess.Reflection;
 using System;
 using System.Linq;
 

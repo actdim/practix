@@ -1,4 +1,4 @@
-﻿
+
 using ActDim.Practix.Abstractions.Json;
 using System;
 using System.IO;
@@ -121,7 +121,7 @@ namespace ActDim.Practix.Config
             var schema = await LoadSchemaAsync(schemaPath);
             return await LoadInternalAsync<T>(path, json => ValidateSchema(json, schema));
         }
-        
+
         static async Task<JsonSchema> LoadSchemaAsync(string schemaPath)
         {
             var schema = await JsonSchema.FromFileAsync(schemaPath);
@@ -156,7 +156,7 @@ namespace ActDim.Practix.Config
                 errors.Select(x => $"Path: {x.Path}, Property: {x.Property}, Kind: {x.Kind}"));
                 throw new FormatException($"Invalid configuration format:\n{errorInfo}");
             }
-        
+
         */
     }
 }
