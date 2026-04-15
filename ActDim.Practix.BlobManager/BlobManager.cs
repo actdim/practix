@@ -18,47 +18,43 @@ namespace ActDim.Practix.BlobManager
 
         public IBlobDataStore DataStore => _dataStore;
 
-        public Task DeleteAsync(string key, CancellationToken ct = default)
-        {
-            return _registry.DeleteAsync(key, ct);
-        }
+        public Task DeleteAsync(string key, CancellationToken ct)
+            => _registry.DeleteAsync(key, ct);
 
-        public Task<int> DeleteExpiredAsync(CancellationToken ct = default)
-        {
-            return _registry.DeleteExpiredAsync(ct);
-        }
+        public Task<int> DeleteExpiredAsync(CancellationToken ct)
+            => _registry.DeleteExpiredAsync(ct);
 
-        public Task<int> DeleteOlderThanAsync(DateTimeOffset cutoff, CancellationToken ct = default)
-        {
-            return _registry.DeleteOlderThanAsync(cutoff, ct);
-        }
+        public Task<int> DeleteOlderThanAsync(DateTimeOffset cutoff, CancellationToken ct)
+            => _registry.DeleteOlderThanAsync(cutoff, ct);
 
-        public Task<BlobRecord> GetForReadingAsync(string key, CancellationToken ct)
-        {
-            return _registry.GetForReadingAsync(key, ct);
-        }
+        public Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetForReadingAsync(string key, CancellationToken ct)
+            => _registry.TryGetForReadingAsync(key, ct);
 
-        public Task<BlobRecord> GetForWritingAsync(string key, CancellationToken ct)
-        {
-            return _registry.GetForWritingAsync(key, ct);
-        }
+        public Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetForReadingAsync(string key, TimeSpan timeout, CancellationToken ct)
+            => _registry.TryGetForReadingAsync(key, timeout, ct);
 
-        public Task<BlobRecord> GetOrCreateAsync(string key, CancellationToken ct = default)
-        {
-            return _registry.GetOrCreateAsync(key, null, LockType.Write, ct);
-        }
+        public Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetForWritingAsync(string key, CancellationToken ct)
+            => _registry.TryGetForWritingAsync(key, ct);
 
-        public Task<BlobRecord> GetOrCreateAsync(string key, IBlobStoreOptions options, LockType lockType = LockType.Write, CancellationToken ct = default)
-        {
-            return _registry.GetOrCreateAsync(key, options, lockType, ct);
-        }
+        public Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetForWritingAsync(string key, TimeSpan timeout, CancellationToken ct)
+            => _registry.TryGetForWritingAsync(key, timeout, ct);
+
+        public Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetOrSetAsync(string key, CancellationToken ct)
+            => _registry.TryGetOrSetAsync(key, null, LockType.Write, ct);
+
+        public Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetOrSetAsync(string key, TimeSpan timeout, CancellationToken ct)
+            => _registry.TryGetOrSetAsync(key, null, LockType.Write, timeout, ct);
+
+        public Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetOrSetAsync(string key, IBlobStoreOptions options, LockType lockType, CancellationToken ct)
+            => _registry.TryGetOrSetAsync(key, options, lockType, ct);
+
+        public Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetOrSetAsync(string key, IBlobStoreOptions options, LockType lockType, TimeSpan timeout, CancellationToken ct)
+            => _registry.TryGetOrSetAsync(key, options, lockType, timeout, ct);
 
         public Task<IList<string>> QueryAsync(string pattern, CancellationToken ct)
-        {
-            return _registry.QueryAsync(pattern, ct);
-        }
+            => _registry.QueryAsync(pattern, ct);
 
-        public async Task CleanupAsync(CancellationToken ct = default)
+        public async Task CleanupAsync(CancellationToken ct)
         {
             await _registry.CleanupLocksAsync(ct);
             await _registry.DeleteExpiredAsync(ct);

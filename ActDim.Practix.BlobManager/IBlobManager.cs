@@ -9,22 +9,26 @@ namespace ActDim.Practix.BlobManager
     {
         IBlobDataStore DataStore { get; }
 
-        Task<BlobRecord> GetOrCreateAsync(string key, CancellationToken ct = default);
+        Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetOrSetAsync(string key, CancellationToken ct);
+        Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetOrSetAsync(string key, TimeSpan timeout, CancellationToken ct);
 
-        Task<BlobRecord> GetOrCreateAsync(string key, IBlobStoreOptions options, LockType lockType = LockType.Write, CancellationToken ct = default);
+        Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetOrSetAsync(string key, IBlobStoreOptions options, LockType lockType, CancellationToken ct);
+        Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetOrSetAsync(string key, IBlobStoreOptions options, LockType lockType, TimeSpan timeout, CancellationToken ct);
+
+        Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetForReadingAsync(string key, CancellationToken ct);
+        Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetForReadingAsync(string key, TimeSpan timeout, CancellationToken ct);
+
+        Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetForWritingAsync(string key, CancellationToken ct);
+        Task<(BlobErrorCode ErrorCode, BlobRecord Record)> TryGetForWritingAsync(string key, TimeSpan timeout, CancellationToken ct);
 
         Task<IList<string>> QueryAsync(string pattern, CancellationToken ct);
 
-        Task<BlobRecord> GetForReadingAsync(string key, CancellationToken ct);
+        Task DeleteAsync(string key, CancellationToken ct);
 
-        Task<BlobRecord> GetForWritingAsync(string key, CancellationToken ct);
+        Task<int> DeleteExpiredAsync(CancellationToken ct);
 
-        Task DeleteAsync(string key, CancellationToken ct = default);
+        Task<int> DeleteOlderThanAsync(DateTimeOffset cutoff, CancellationToken ct);
 
-        Task<int> DeleteExpiredAsync(CancellationToken ct = default);
-
-        Task<int> DeleteOlderThanAsync(DateTimeOffset cutoff, CancellationToken ct = default);
-
-        Task CleanupAsync(CancellationToken ct = default);
+        Task CleanupAsync(CancellationToken ct);
     }
 }

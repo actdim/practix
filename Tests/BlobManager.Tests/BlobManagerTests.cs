@@ -18,13 +18,13 @@ namespace ActDim.Practix.BlobManager.Tests
                 SlidingExpiration = TimeSpan.FromSeconds(30)
             };
 
-            await using (await env.Manager.GetOrCreateAsync("read-key", options, LockType.Read, ct))
-            {
-            }
+            var (_, created) = await env.Manager.TryGetOrSetAsync("read-key", options, LockType.Read, ct);
+            await using (created) { }
 
             DateTimeOffset accessedBefore;
             DateTimeOffset? expiresBefore;
-            await using (var first = await env.Manager.GetForReadingAsync("read-key", ct))
+            var (_, first) = await env.Manager.TryGetForReadingAsync("read-key", ct);
+            await using (first)
             {
                 accessedBefore = first.AccessedAt;
                 expiresBefore = first.ExpiresAt;
@@ -33,7 +33,8 @@ namespace ActDim.Practix.BlobManager.Tests
 
             DateTimeOffset accessedAfter;
             DateTimeOffset? expiresAfter;
-            await using (var second = await env.Manager.GetForReadingAsync("read-key", ct))
+            var (_, second) = await env.Manager.TryGetForReadingAsync("read-key", ct);
+            await using (second)
             {
                 accessedAfter = second.AccessedAt;
                 expiresAfter = second.ExpiresAt;
@@ -51,13 +52,13 @@ namespace ActDim.Practix.BlobManager.Tests
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
 
-            await using (await env.Manager.GetOrCreateAsync("write-key", ct))
-            {
-            }
+            var (_, created) = await env.Manager.TryGetOrSetAsync("write-key", ct);
+            await using (created) { }
 
             DateTimeOffset accessedBefore;
             DateTimeOffset updatedBefore;
-            await using (var first = await env.Manager.GetForWritingAsync("write-key", ct))
+            var (_, first) = await env.Manager.TryGetForWritingAsync("write-key", ct);
+            await using (first)
             {
                 accessedBefore = first.AccessedAt;
                 updatedBefore = first.UpdatedAt;
@@ -66,7 +67,8 @@ namespace ActDim.Practix.BlobManager.Tests
 
             DateTimeOffset accessedAfter;
             DateTimeOffset updatedAfter;
-            await using (var second = await env.Manager.GetForWritingAsync("write-key", ct))
+            var (_, second) = await env.Manager.TryGetForWritingAsync("write-key", ct);
+            await using (second)
             {
                 accessedAfter = second.AccessedAt;
                 updatedAfter = second.UpdatedAt;
@@ -82,19 +84,20 @@ namespace ActDim.Practix.BlobManager.Tests
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment(TimeSpan.FromMilliseconds(200));
 
-            await using (await env.Manager.GetOrCreateAsync("lock-key", ct))
+            var (_, setup) = await env.Manager.TryGetOrSetAsync("lock-key", ct);
+            await using (setup) { }
+
+            var (readEc, read) = await env.Manager.TryGetForReadingAsync("lock-key", ct);
+            Assert.Equal(BlobErrorCode.None, readEc);
+            await using (read)
             {
+                var (ec, _) = await env.Manager.TryGetForWritingAsync("lock-key", ct);
+                Assert.Equal(BlobErrorCode.Timeout, ec);
             }
 
-            await using (var read = await env.Manager.GetForReadingAsync("lock-key", ct))
-            {
-                await Assert.ThrowsAsync<TimeoutException>(async () =>
-                {
-                    await env.Manager.GetForWritingAsync("lock-key", ct);
-                });
-            }
-
-            await using (var write = await env.Manager.GetForWritingAsync("lock-key", ct))
+            var (writeEc, write) = await env.Manager.TryGetForWritingAsync("lock-key", ct);
+            Assert.Equal(BlobErrorCode.None, writeEc);
+            await using (write)
             {
                 Assert.NotNull(write);
             }
@@ -106,7 +109,8 @@ namespace ActDim.Practix.BlobManager.Tests
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
 
-            await using (var record = await env.Manager.GetOrCreateAsync("data-key", ct))
+            var (_, record) = await env.Manager.TryGetOrSetAsync("data-key", ct);
+            await using (record)
             {
                 record.Metadata = "data.txt";
 
@@ -117,7 +121,8 @@ namespace ActDim.Practix.BlobManager.Tests
                 }
             }
 
-            await using (var readRecord = await env.Manager.GetForReadingAsync("data-key", ct))
+            var (_, readRecord) = await env.Manager.TryGetForReadingAsync("data-key", ct);
+            await using (readRecord)
             {
                 await using var readStream = await env.Manager.DataStore.ReadAsync(readRecord, ct);
                 using var reader = new StreamReader(readStream, Encoding.UTF8, false, 1024, false);
@@ -132,7 +137,8 @@ namespace ActDim.Practix.BlobManager.Tests
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
 
-            await using (var record = await env.Manager.GetOrCreateAsync("loc-key", ct))
+            var (_, record) = await env.Manager.TryGetOrSetAsync("loc-key", ct);
+            await using (record)
             {
                 record.Metadata = "photo.png";
                 var location = await env.Manager.DataStore.ResolveLocationAsync(record, ct);
@@ -147,9 +153,8 @@ namespace ActDim.Practix.BlobManager.Tests
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
 
-            await using (await env.Manager.GetOrCreateAsync("no-lock-read", ct))
-            {
-            }
+            var (_, setup) = await env.Manager.TryGetOrSetAsync("no-lock-read", ct);
+            await using (setup) { }
 
             var record = new BlobRecord
             {
@@ -170,9 +175,8 @@ namespace ActDim.Practix.BlobManager.Tests
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
 
-            await using (await env.Manager.GetOrCreateAsync("no-lock-write", ct))
-            {
-            }
+            var (_, setup) = await env.Manager.TryGetOrSetAsync("no-lock-write", ct);
+            await using (setup) { }
 
             var record = new BlobRecord
             {
@@ -224,24 +228,16 @@ namespace ActDim.Practix.BlobManager.Tests
                 try
                 {
                     if (File.Exists(_dbPath))
-                    {
                         File.Delete(_dbPath);
-                    }
                 }
-                catch
-                {
-                }
+                catch { }
 
                 try
                 {
                     if (Directory.Exists(_dataPath))
-                    {
                         Directory.Delete(_dataPath, true);
-                    }
                 }
-                catch
-                {
-                }
+                catch { }
 
                 return ValueTask.CompletedTask;
             }

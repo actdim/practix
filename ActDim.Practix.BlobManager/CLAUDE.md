@@ -43,17 +43,29 @@ IBlobManager  (public)
 
 `BlobManager` (internal) is a thin wrapper; all logic lives in `SQLiteBlobRegistry`.
 
-### 2. Lock lifecycle — caller MUST `await using`
+### 2. `BlobErrorCode` — return values instead of exceptions
 
-Every method that returns a `BlobRecord` holds a lock. The lock is released in `DisposeAsync` via the `OnDisposeAsync` callback set by `SQLiteBlobRegistry`.
+All three lock-acquiring methods return `(BlobErrorCode ErrorCode, BlobRecord Record)`:
+
+| `BlobErrorCode` | Meaning |
+|-----------------|---------|
+| `None` | Success — `Record` is non-null and holds the lock |
+| `KeyNotFound` | No record with that key; `Record` is `null` |
+| `Timeout` | Lock acquisition timed out; `Record` is `null` |
+
+Always check `ErrorCode == BlobErrorCode.None` before using `Record`.
+
+### 3. Lock lifecycle — caller MUST `await using`
+
+Every successful call (ErrorCode == None) returns a `BlobRecord` that holds a lock. The lock is released in `DisposeAsync` via the `OnDisposeAsync` callback set by `SQLiteBlobRegistry`.
 
 | Method | Lock acquired | Lock released on dispose |
 |--------|--------------|--------------------------|
-| `GetOrCreateAsync` | Write | Updates `AccessedAt` + `UpdatedAt`, extends sliding expiry |
-| `GetForReadingAsync` | Read | Updates `AccessedAt`, extends sliding expiry |
-| `GetForWritingAsync` | Write | Updates `AccessedAt` + `UpdatedAt`, extends sliding expiry |
+| `TryGetOrSetAsync` | Write | Updates `AccessedAt` + `UpdatedAt`, extends sliding expiry |
+| `TryGetForReadingAsync` | Read | Updates `AccessedAt`, extends sliding expiry |
+| `TryGetForWritingAsync` | Write | Updates `AccessedAt` + `UpdatedAt`, extends sliding expiry |
 
-`GetForReadingAsync` and `GetForWritingAsync` throw `KeyNotFoundException` if the key does not exist — call `GetOrCreateAsync` first.
+`TryGetForReadingAsync` and `TryGetForWritingAsync` return `BlobErrorCode.KeyNotFound` if the key does not exist — call `TryGetOrSetAsync` first.
 
 Read lock: allows concurrent readers, blocks writers.  
 Write lock: exclusive — blocks all readers and writers.
@@ -94,22 +106,24 @@ public interface IBlobStoreOptions {
 
 Both `TryAcquireReadLockAsync` and `TryAcquireWriteLockAsync` use `BEGIN IMMEDIATE` + conditional `INSERT WHERE NOT EXISTS` + `changes()` to atomically acquire locks.
 
-- Retry loop: every 100 ms until `_defaultTimeout` is reached → `TimeoutException`.
-- Lock expiry stored in `resource_locks.expires_at`; stale locks are pruned at acquisition time.
-- `effectiveTimeout` for lock expiry: `max(_defaultTimeout, 1s)` — minimum lock TTL is 1 second.
+- Retry loop: every 100 ms until `_defaultTimeout` is reached → returns `BlobErrorCode.Timeout` to caller.
+- Lock expiry stored in `blob_locks.expires_at`; stale locks are pruned at acquisition time.
+- `effectiveTimeout` for lock expiry: `max(timeout, 1s)` — minimum lock TTL is 1 second.
+- `expires_at` is stored as **ceiling** of `(UtcNow + effectiveTimeout)` in unix seconds to prevent premature cleanup due to integer truncation.
 - All DB access is serialized via `SemaphoreSlim(1,1)` (`_dbSemaphore`).
 
 ### 6. SQLite schema
 
 **`blob_records`** — blob metadata  
-Columns: `key` TEXT (PK), `metadata` TEXT, `content_type` TEXT, `size` INTEGER, `hash` INTEGER, `created_at` INTEGER, `updated_at` INTEGER, `accessed_at` INTEGER, `sliding_expiration_seconds` INTEGER, `expires_at` INTEGER  
-Index: `idx_blob_records_expires_at`
+Columns: `blob_key` TEXT (PK), `metadata` TEXT, `content_type` TEXT, `size` INTEGER, `hash` TEXT, `created_at` INTEGER, `updated_at` INTEGER, `accessed_at` INTEGER, `sliding_expiration_seconds` INTEGER, `expires_at` INTEGER  
+Index: `idx_blob_records_expires_at`  
+`expires_at` stored with ceiling rounding to avoid early expiry.
 
-**`resource_locks`** — distributed lock entries  
-Columns: `id` INTEGER (PK AUTOINCREMENT), `resource_id` TEXT, `is_write_lock` INTEGER (0=read/1=write), `locked_by` TEXT (UUID), `locked_at` INTEGER, `expires_at` INTEGER  
-Index: `idx_resource_locks_resource_id`
+**`blob_locks`** — distributed lock entries  
+Columns: `blob_key` TEXT (FK → blob_records ON DELETE CASCADE), `is_write_lock` INTEGER (0=read/1=write), `locked_by` TEXT (UUID), `locked_at` INTEGER, `expires_at` INTEGER  
+Index: `idx_blob_locks_blob_key`
 
-All date columns in both tables are Unix timestamps (seconds, INTEGER). Comparisons pass `DateTimeOffset.UtcNow.ToUnixTimeSeconds()` as a parameter — no `CURRENT_TIMESTAMP` or string formatting.
+All date columns are Unix timestamps (seconds, INTEGER). `expires_at` in `blob_locks` uses ceiling rounding; all other timestamps use `ToUnixTimeSeconds()` (floor).
 
 ### 7. File path resolution (`FileSystemBlobDataStore`)
 
@@ -138,19 +152,27 @@ var dataStore     = new FileSystemBlobDataStore(filesPath);
 IBlobManager manager = new BlobManager(dataStore, metadataStore);
 
 // Create record (also write-locked while handle is open)
-await using (var record = await manager.GetOrCreateAsync("my-key", new MyOptions { Ttl = TimeSpan.FromHours(1) }, ct))
+var (ec, record) = await manager.TryGetOrSetAsync("my-key", new MyOptions { Ttl = TimeSpan.FromHours(1) }, LockType.Write, ct);
+if (ec == BlobErrorCode.None)
 {
-    record.Name = "report.pdf";
-    await using var stream = await manager.DataStore.WriteAsync(record, ct);
-    // write bytes to stream...
-}  // lock released, timestamps updated
+    await using (record)
+    {
+        record.Metadata = "report.pdf";
+        await using var stream = await manager.DataStore.WriteAsync(record, ct);
+        // write bytes to stream...
+    }  // lock released, timestamps updated
+}
 
 // Read
-await using var readRecord = await manager.GetForReadingAsync("my-key", ct);
-if (readRecord != null) {
-    await using var stream = await manager.DataStore.ReadAsync(readRecord, ct);
-    // read bytes...
-}  // lock released
+var (readEc, readRecord) = await manager.TryGetForReadingAsync("my-key", ct);
+if (readEc == BlobErrorCode.None)
+{
+    await using (readRecord)
+    {
+        await using var stream = await manager.DataStore.ReadAsync(readRecord, ct);
+        // read bytes...
+    }  // lock released
+}
 ```
 
 ---
@@ -177,8 +199,8 @@ if (readRecord != null) {
 ## Known Issues / Notes
 
 - **`BlobManager` is `internal`** — no public factory or DI wiring yet. Tests construct it directly (`new BlobManager(dataStore, metadataStore)`). A future `AddBlobManager(IServiceCollection, ...)` extension is needed.
-- **`GetForReadingAsync` / `GetForWritingAsync` throw `KeyNotFoundException`** if the key doesn't exist. Always `GetOrCreateAsync` first.
-- **`GetOrCreateAsync` always holds a write lock** while the returned handle is open. Don't hold it longer than necessary.
+- **`TryGetForReadingAsync` / `TryGetForWritingAsync` return `BlobErrorCode.KeyNotFound`** if the key doesn't exist. Always call `TryGetOrSetAsync` first.
+- **`TryGetOrSetAsync` always holds a write lock** while the returned handle is open. Don't hold it longer than necessary.
 - **`SQLiteBlobRegistry` constructor is synchronous** (`EnsureSchemaAsync().GetAwaiter().GetResult()`). Don't call from an async context that holds a sync lock.
 - **`ToSqliteInterval`** private helper is defined but never used — dead code.
 - **`StringFocus` project reference in tests** (`ActDim.Practix.StringFocus`) is declared in the `.csproj` but not used in `BlobManagerTests.cs` — likely a leftover.
@@ -193,7 +215,7 @@ if (readRecord != null) {
 - **Namespace**: `ActDim.Practix.BlobManager` (all files)
 - **Assembly**: `ActDim.Practix.BlobManager`
 - **Target framework**: `net10.0`
-- **Public surface**: `IBlobManager`, `IBlobDataStore`, `IBlobStoreOptions`, `BlobRecord`, `BlobLockType`, `FileSystemBlobDataStore`
+- **Public surface**: `IBlobManager`, `IBlobDataStore`, `IBlobStoreOptions`, `BlobRecord`, `BlobErrorCode`, `LockType`, `FileSystemBlobDataStore`
 - **Internal**: `BlobManager`, `IBlobRegistry`, `SQLiteBlobRegistry`
 - `InternalsVisibleTo("ActDim.Practix.BlobManager.Tests")` enables direct test construction
 - Always `await using` a `BlobRecord` — sync `Dispose()` only fires `OnDispose`, not `OnDisposeAsync`; prefer `DisposeAsync`
