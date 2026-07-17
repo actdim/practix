@@ -2,7 +2,7 @@ using ActDim.Practix.Abstractions.Json;
 using ActDim.Practix.Abstractions.Logging;
 using ActDim.Practix.Abstractions.Messaging;
 using ActDim.Practix.Abstractions.Patterns;
-using ActDim.Practix.Introspection;
+using ActDim.Practix.Common.Introspection;
 using System.Reflection;
 
 namespace ActDim.Practix.Logging

@@ -63,9 +63,9 @@ namespace ActDim.Practix.StringFocus.Tests
 		}
 
 		[Fact]
-		public void IsFastestOnMarket()
+		public void IsFastest()
 		{
-			return; // TODO: optimize
+			// return; // TODO: optimize
 			var nIterations = 10000;
 			var timings = new List<long>();
 			string s;

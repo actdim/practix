@@ -1,70 +1,75 @@
+using Microsoft.Extensions.Caching.Memory;
 using System;
-using System.Runtime.Caching;
 
 namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 {
 	public static partial class MemoryCacheExtensions
     {
-		/// <summary>Improved version of MemoryCache.AddOrGetExisting method.</summary>
+		/// <summary>Improved version of IMemoryCache "add or get existing" behavior.</summary>
 		/// <typeparam name="TValue">Type of the value.</typeparam>
 		/// <param name="cache">The cache to act on.</param>
 		/// <param name="key">The key.</param>
 		/// <param name="value">The value.</param>
 		/// <returns>A TValue.</returns>
-		public static TValue AddOrGetExisting<TValue>(this MemoryCache cache, string key, TValue value)
+		public static TValue AddOrGetExisting<TValue>(this IMemoryCache cache, object key, TValue value)
 		{
-			object item = cache.AddOrGetExisting(key, value, new CacheItemPolicy()) ?? value;
-
-			return (TValue)item;
+			return cache.AddOrGetExisting(key, _ => value, (MemoryCacheEntryOptions)null);
 		}
 
-		/// <summary>Improved version of MemoryCache.AddOrGetExisting method.</summary>
+		/// <summary>Improved version of IMemoryCache "add or get existing" behavior.</summary>
 		/// <typeparam name="TValue">Type of the value.</typeparam>
 		/// <param name="cache">The cache to act on.</param>
 		/// <param name="key">The key.</param>
 		/// <param name="valueFactory">The value factory.</param>
 		/// <returns>A TValue.</returns>
-		public static TValue AddOrGetExisting<TValue>(this MemoryCache cache, string key, Func<string, TValue> valueFactory)
+		public static TValue AddOrGetExisting<TValue>(this IMemoryCache cache, object key, Func<object, TValue> valueFactory)
 		{
-			var lazy = new Lazy<TValue>(() => valueFactory(key));
-
-			Lazy<TValue> item = (Lazy<TValue>)cache.AddOrGetExisting(key, lazy, new CacheItemPolicy()) ?? lazy;
-
-			return item.Value;
+			return cache.AddOrGetExisting(key, valueFactory, (MemoryCacheEntryOptions)null);
 		}
 
-		/// <summary>Improved version of MemoryCache.AddOrGetExisting method.</summary>
+		/// <summary>Improved version of IMemoryCache "add or get existing" behavior.</summary>
 		/// <typeparam name="TValue">Type of the value.</typeparam>
 		/// <param name="cache">The cache to act on.</param>
 		/// <param name="key">The key.</param>
 		/// <param name="valueFactory">The value factory.</param>
-		/// <param name="policy">The policy.</param>
-		/// <param name="regionName">(Optional) name of the region.</param>
+		/// <param name="options">The cache entry options.</param>
 		/// <returns>A TValue.</returns>
-		public static TValue AddOrGetExisting<TValue>(this MemoryCache cache, string key, Func<string, TValue> valueFactory, CacheItemPolicy policy, string regionName = null)
+		public static TValue AddOrGetExisting<TValue>(this IMemoryCache cache, object key, Func<object, TValue> valueFactory, MemoryCacheEntryOptions options)
 		{
+			if (cache.TryGetValue(key, out object existing))
+			{
+				return ((Lazy<TValue>)existing).Value;
+			}
+
 			var lazy = new Lazy<TValue>(() => valueFactory(key));
 
-			Lazy<TValue> item = (Lazy<TValue>)cache.AddOrGetExisting(key, lazy, policy, regionName) ?? lazy;
+			using (ICacheEntry entry = cache.CreateEntry(key))
+			{
+				if (options != null)
+				{
+					entry.SetOptions(options);
+				}
 
-			return item.Value;
+				entry.Value = lazy;
+			}
+
+			// In a race another thread may have overwritten our Lazy; use whichever
+			// one is actually cached so the factory runs at most once per surviving entry.
+			return cache.TryGetValue(key, out object winner)
+				? ((Lazy<TValue>)winner).Value
+				: lazy.Value;
 		}
 
-		/// <summary>Improved version of MemoryCache.AddOrGetExisting method.</summary>
+		/// <summary>Improved version of IMemoryCache "add or get existing" behavior.</summary>
 		/// <typeparam name="TValue">Type of the value.</typeparam>
 		/// <param name="cache">The cache to act on.</param>
 		/// <param name="key">The key.</param>
 		/// <param name="valueFactory">The value factory.</param>
-		/// <param name="absoluteExpiration">The policy.</param>
-		/// <param name="regionName">(Optional) name of the region.</param>
+		/// <param name="absoluteExpiration">The absolute expiration.</param>
 		/// <returns>A TValue.</returns>
-		public static TValue AddOrGetExisting<TValue>(this MemoryCache cache, string key, Func<string, TValue> valueFactory, DateTimeOffset absoluteExpiration, string regionName = null)
+		public static TValue AddOrGetExisting<TValue>(this IMemoryCache cache, object key, Func<object, TValue> valueFactory, DateTimeOffset absoluteExpiration)
 		{
-			var lazy = new Lazy<TValue>(() => valueFactory(key));
-
-			Lazy<TValue> item = (Lazy<TValue>)cache.AddOrGetExisting(key, lazy, absoluteExpiration, regionName) ?? lazy;
-
-			return item.Value;
+			return cache.AddOrGetExisting(key, valueFactory, new MemoryCacheEntryOptions { AbsoluteExpiration = absoluteExpiration });
 		}
 	}
 }

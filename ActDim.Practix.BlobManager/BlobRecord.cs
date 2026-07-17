@@ -41,6 +41,8 @@ namespace ActDim.Practix.BlobManager
             }
 
             LockType = LockType.None;
+
+            GC.SuppressFinalize(this);
         }
 
         public async ValueTask DisposeAsync()
@@ -62,6 +64,8 @@ namespace ActDim.Practix.BlobManager
             }
 
             LockType = LockType.None;
+
+            GC.SuppressFinalize(this);
         }
     }
 }

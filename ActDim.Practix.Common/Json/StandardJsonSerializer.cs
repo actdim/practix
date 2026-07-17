@@ -1,6 +1,5 @@
 using ActDim.Practix.Abstractions.Json;
-using ActDim.Practix.Extensions;
-using ActDim.Practix.Memory;
+using ActDim.Practix.Abstractions.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +15,7 @@ using System.Threading.Tasks;
 namespace ActDim.Practix.Common.Json
 {
     // TODO: check [EnumeratorCancellation], JsonExtensionData, JsonSerializerContext
-    internal class StandardJsonSerializer : IJsonSerializer
+    internal class StandardJsonSerializer : IJsonSerializer, IStringSerializer, IBinarySerializer, IStreamSerializer
     {
         private JsonSerializerOptions _options;
         private JsonMergeOptions _mergeOptions;
@@ -599,27 +598,7 @@ namespace ActDim.Practix.Common.Json
                     }
                     break;
             }
-        }
-
-        public Task<T> CloneAsync<T>(T source)
-        {
-            return CloneAsync(source, _options);
-        }
-
-        public async Task<T> CloneAsync<T>(T source, JsonSerializerOptions options, CancellationToken cancellationToken = default)
-        {
-            if (source is null)
-            {
-                return default;
-            }
-
-            using (var ms = MemoryManager.Default.GetContextStream())
-            {
-                await SerializeAsync(source, ms, options, cancellationToken);
-                ms.Position = 0L;
-                return await DeserializeAsync<T>(ms, options, cancellationToken);
-            }
-        }
+        }        
 
         public byte[] SerializeToBytes(object value)
         {
@@ -633,7 +612,7 @@ namespace ActDim.Practix.Common.Json
 
         public byte[] SerializeToBytes(object value, JsonSerializerOptions options, Encoding encoding = default)
         {
-            if (encoding == null || encoding == Encoding.UTF8)
+            if (IsUtf8(encoding))
             {
                 return JsonSerializer.SerializeToUtf8Bytes(value, options);
             }
@@ -642,6 +621,206 @@ namespace ActDim.Practix.Common.Json
                 var str = Serialize(value, options);
                 return encoding.GetBytes(str);
             }
+        }
+
+        // ══ IStringSerializer ════════════════════════════════════════════════
+
+        string IStringSerializer.Serialize(object value)
+            => Serialize(value);
+
+        string IStringSerializer.Serialize(object value, Type type)
+            => JsonSerializer.Serialize(value, type, _options);
+
+        string IStringSerializer.Serialize<T>(T value)
+            => JsonSerializer.Serialize(value, _options);
+
+        object IStringSerializer.Deserialize(string data, Type type)
+            => Deserialize(data, type);
+
+        T IStringSerializer.Deserialize<T>(string data)
+            => Deserialize<T>(data);
+
+        // ══ IBinarySerializer ════════════════════════════════════════════════
+        // UTF-8 goes through the fast JsonSerializer.SerializeToUtf8Bytes path;
+        // any other encoding round-trips through the string representation.
+
+        byte[] IBinarySerializer.Serialize(object value, Encoding encoding)
+        {
+            return IsUtf8(encoding)
+                ? JsonSerializer.SerializeToUtf8Bytes(value, _options)
+                : encoding.GetBytes(Serialize(value));
+        }
+
+        byte[] IBinarySerializer.Serialize(object value, Type type, Encoding encoding)
+        {
+            return IsUtf8(encoding)
+                ? JsonSerializer.SerializeToUtf8Bytes(value, type, _options)
+                : encoding.GetBytes(JsonSerializer.Serialize(value, type, _options));
+        }
+
+        byte[] IBinarySerializer.Serialize<T>(T value, Encoding encoding)
+        {
+            return IsUtf8(encoding)
+                ? JsonSerializer.SerializeToUtf8Bytes(value, _options)
+                : encoding.GetBytes(JsonSerializer.Serialize(value, _options));
+        }
+
+        object IBinarySerializer.Deserialize(byte[] data, Type type, Encoding encoding)
+        {
+            return IsUtf8(encoding)
+                ? JsonSerializer.Deserialize(data, type, _options)
+                : Deserialize(encoding.GetString(data), type);
+        }
+
+        T IBinarySerializer.Deserialize<T>(byte[] data, Encoding encoding)
+        {
+            return IsUtf8(encoding)
+                ? JsonSerializer.Deserialize<T>(data, _options)
+                : Deserialize<T>(encoding.GetString(data));
+        }
+
+        // ══ IStreamSerializer ════════════════════════════════════════════════
+        // UTF-8 uses the native stream (de)serialization; any other encoding
+        // transcodes through the string representation.
+
+        void IStreamSerializer.Serialize(object value, Stream stream, Encoding encoding)
+        {
+            if (IsUtf8(encoding))
+            {
+                Serialize(value, stream);
+                return;
+            }
+
+            WriteEncoded(stream, encoding, Serialize(value));
+        }
+
+        void IStreamSerializer.Serialize(object value, Type type, Stream stream, Encoding encoding)
+        {
+            if (IsUtf8(encoding))
+            {
+                JsonSerializer.Serialize(stream, value, type, _options);
+                return;
+            }
+
+            WriteEncoded(stream, encoding, JsonSerializer.Serialize(value, type, _options));
+        }
+
+        void IStreamSerializer.Serialize<T>(T value, Stream stream, Encoding encoding)
+        {
+            if (IsUtf8(encoding))
+            {
+                JsonSerializer.Serialize(stream, value, _options);
+                return;
+            }
+
+            WriteEncoded(stream, encoding, JsonSerializer.Serialize(value, _options));
+        }
+
+        async Task IStreamSerializer.SerializeAsync(object value, Stream stream, Encoding encoding, CancellationToken cancellationToken)
+        {
+            if (IsUtf8(encoding))
+            {
+                await SerializeAsync(value, stream, _options, cancellationToken);
+                return;
+            }
+
+            await WriteEncodedAsync(stream, encoding, Serialize(value), cancellationToken);
+        }
+
+        async Task IStreamSerializer.SerializeAsync(object value, Type type, Stream stream, Encoding encoding, CancellationToken cancellationToken)
+        {
+            if (IsUtf8(encoding))
+            {
+                await JsonSerializer.SerializeAsync(stream, value, type, _options, cancellationToken);
+                return;
+            }
+
+            await WriteEncodedAsync(stream, encoding, JsonSerializer.Serialize(value, type, _options), cancellationToken);
+        }
+
+        async Task IStreamSerializer.SerializeAsync<T>(T value, Stream stream, Encoding encoding, CancellationToken cancellationToken)
+        {
+            if (IsUtf8(encoding))
+            {
+                await JsonSerializer.SerializeAsync(stream, value, _options, cancellationToken);
+                return;
+            }
+
+            await WriteEncodedAsync(stream, encoding, JsonSerializer.Serialize(value, _options), cancellationToken);
+        }
+
+        object IStreamSerializer.Deserialize(Stream stream, Type type, Encoding encoding)
+        {
+            if (IsUtf8(encoding))
+            {
+                return Deserialize(stream, type);
+            }
+
+            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, leaveOpen: true))
+            {
+                return Deserialize(reader.ReadToEnd(), type);
+            }
+        }
+
+        T IStreamSerializer.Deserialize<T>(Stream stream, Encoding encoding)
+        {
+            if (IsUtf8(encoding))
+            {
+                return Deserialize<T>(stream);
+            }
+
+            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, leaveOpen: true))
+            {
+                return Deserialize<T>(reader.ReadToEnd());
+            }
+        }
+
+        async ValueTask<object> IStreamSerializer.DeserializeAsync(Stream stream, Type type, Encoding encoding, CancellationToken cancellationToken)
+        {
+            if (IsUtf8(encoding))
+            {
+                return await DeserializeAsync(stream, type, _options, cancellationToken);
+            }
+
+            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, leaveOpen: true))
+            {
+                return Deserialize(await reader.ReadToEndAsync(cancellationToken), type);
+            }
+        }
+
+        async ValueTask<T> IStreamSerializer.DeserializeAsync<T>(Stream stream, Encoding encoding, CancellationToken cancellationToken)
+        {
+            if (IsUtf8(encoding))
+            {
+                return await DeserializeAsync<T>(stream, _options, cancellationToken);
+            }
+
+            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, leaveOpen: true))
+            {
+                return Deserialize<T>(await reader.ReadToEndAsync(cancellationToken));
+            }
+        }
+
+        // ── Encoding helpers ─────────────────────────────────────────────────
+
+        private static bool IsUtf8(Encoding encoding)
+        {
+            // Compare by code page so every UTF-8 instance (custom UTF8Encoding,
+            // Encoding.GetEncoding("utf-8"), …) takes the fast path, not just the
+            // Encoding.UTF8 singleton.
+            return encoding == null || encoding.CodePage == 65001;
+        }
+
+        private static void WriteEncoded(Stream stream, Encoding encoding, string json)
+        {
+            var bytes = encoding.GetBytes(json);
+            stream.Write(bytes, 0, bytes.Length);
+        }
+
+        private static Task WriteEncodedAsync(Stream stream, Encoding encoding, string json, CancellationToken cancellationToken)
+        {
+            var bytes = encoding.GetBytes(json);
+            return stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
         }
     }
 }

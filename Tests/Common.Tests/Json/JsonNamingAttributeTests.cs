@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Xunit;
 
-namespace ActDim.Practix.Common.Json;
+namespace ActDim.Practix.Common.Tests.Json;
 
 public class JsonNamingAttributeTests
 {

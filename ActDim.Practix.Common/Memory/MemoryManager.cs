@@ -27,21 +27,6 @@ namespace ActDim.Practix.Memory
                 UseExponentialLargeBuffer = true,
                 MaximumStreamCapacity = maximumStreamCapacity
             });
-
-            /*
-            Default.StreamCreated += (_, args) =>
-            {
-                Console.WriteLine($"Stream created: {args.Id}");
-            };
-            Default.StreamDisposed += (_, args) =>
-            {
-                Console.WriteLine($"Stream disposed: {args.Id}");
-            };
-            Default.StreamFinalized += (_, args) =>
-            {
-                Console.WriteLine($"Stream finalized without dispose: {args.Id}");
-            };
-            */
         }
 #pragma warning restore S3963 // "static" fields should be initialized inline
     }

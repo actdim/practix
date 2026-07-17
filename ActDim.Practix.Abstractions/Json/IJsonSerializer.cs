@@ -111,10 +111,6 @@ namespace ActDim.Practix.Abstractions.Json
 
         T Patch<T>(T obj, string patch);
 
-        Task<T> CloneAsync<T>(T source);
-
-        Task<T> CloneAsync<T>(T source, JsonSerializerOptions options, CancellationToken cancellationToken = default);
-
         // ── Serialize to bytes ─────────────────────────────────────────────────
 
         byte[] SerializeToBytes(object value);
