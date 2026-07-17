@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace ActDim.Practix.Common.Json;
+namespace ActDim.Practix.Common.Tests.Json;
 
 public class StandardJsonSerializerTests
 {
@@ -741,25 +741,6 @@ public class StandardJsonSerializerTests
         var clone = _ser.Clone(original);
         clone.Name = "Bob";
         Assert.Equal("Alice", original.Name);
-    }
-
-    [Fact]
-    public async Task CloneAsync_ReturnsDeepCopy()
-    {
-        var original = new MutablePerson { Name = "Async", Age = 5 };
-        var clone = await _ser.CloneAsync(original);
-        Assert.Multiple(() =>
-        {
-            Assert.Equal("Async", clone.Name);
-            Assert.NotSame(original, clone);
-        });
-    }
-
-    [Fact]
-    public async Task CloneAsync_Null_ReturnsDefault()
-    {
-        var result = await _ser.CloneAsync<MutablePerson>(null!);
-        Assert.Null(result);
     }
 
     [Fact]

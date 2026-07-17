@@ -1,4 +1,5 @@
 using ActDim.Practix;
+using ActDim.Practix.Collections;
 using ActDim.Practix.TypeAccess.Reflection;
 using Ardalis.GuardClauses;
 using System;
@@ -12,10 +13,11 @@ using System.Runtime.Serialization.Formatters;
 using System.Security;
 using System.Security.Permissions;
 
+// Replaces the former DynamicProperty class - it was essentially a (name, type) pair.
+using DynamicProperty = (string Name, System.Type Type);
+
 namespace ActDim.Practix.TypeAccess.Linq.Dynamic
 {
-    using Signature = TupleSignature;
-
     // DynamicClassFactory
     public class DynamicTypeFactory // sealed
     {
@@ -30,16 +32,16 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
 
         private readonly ModuleBuilder _moduleBuilder;
 
-        private readonly ConcurrentDictionary<Signature, Type> _typeCache;
+        private readonly ConcurrentDictionary<CompositeKey, Type> _typeCache;
 
-        private readonly ConcurrentDictionary<Signature, Delegate> _delegateCache;
+        private readonly ConcurrentDictionary<CompositeKey, Delegate> _delegateCache;
 
         [SecurityCritical]
         private DynamicTypeFactory()
         {
             _moduleBuilder = DynamicCodeManager.GetModuleBuilder((DYNAMIC_ASSEMBLY_NAME, DYNAMIC_MODULE_NAME));
-            _typeCache = new ConcurrentDictionary<Signature, Type>();
-            _delegateCache = new ConcurrentDictionary<Signature, Delegate>();
+            _typeCache = new ConcurrentDictionary<CompositeKey, Type>();
+            _delegateCache = new ConcurrentDictionary<CompositeKey, Delegate>();
         }
 
         // CreateDynamicType
@@ -50,14 +52,14 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
 
         public Type CreateType(IDictionary<string, Type> propertyTypeMap)
         {
-            return CreateType(propertyTypeMap.Select(pt => new DynamicProperty(pt.Key, pt.Value)).ToArray());
+            return CreateType(propertyTypeMap.Select(pt => (DynamicProperty)(pt.Key, pt.Value)).ToArray());
         }
 
         internal Type CreateType(DynamicProperty[] properties)
         {
             // argument must contain at least 1 property definition
             Guard.Against.NullOrEmpty(properties, nameof(properties));
-            var signature = new Signature([.. properties]);
+            var signature = new CompositeKey([.. properties.Cast<object>()]);
             return _typeCache.GetOrAdd(signature, s =>
             {
                 var type = CreateType(s, properties);
@@ -65,7 +67,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
             });
         }
 
-        private Type CreateType(Signature signature, DynamicProperty[] properties)
+        private Type CreateType(CompositeKey signature, DynamicProperty[] properties)
         {
             //className
             //"DynamicType"?
@@ -224,8 +226,8 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
             //return obj;
 
             // fastest solution in this particular case
-            var signature = new Signature(new Signature(propertyTypeMap.Cast<object>().Concat(new[] { type }).ToArray()));
-            //var signature = new Signature(new Signature(propertyValues.Select(pair => pair.Key).Cast<object>().Concat(new[] { type }).ToArray()));
+            var signature = new CompositeKey([.. propertyTypeMap.Cast<object>(), type]);
+            //var signature = new CompositeKey([.. propertyValues.Select(pair => pair.Key).Cast<object>(), type]);
 
             var multiSetter = _delegateCache.GetOrAdd(signature, s =>
             {

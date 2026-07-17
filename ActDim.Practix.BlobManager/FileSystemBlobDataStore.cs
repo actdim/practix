@@ -16,48 +16,23 @@ namespace ActDim.Practix.BlobManager
             Directory.CreateDirectory(_basePath);
         }
 
-        public Stream Append(BlobRecord blobRecord, Stream stream, long offset)
+        public Task<Stream> CreateAsync(BlobRecord blobRecord, CancellationToken ct)
         {
             EnsureWriteLock(blobRecord);
 
             var path = BuildPath(blobRecord);
             Directory.CreateDirectory(_basePath);
-
-            var file = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
-            file.Seek(offset, SeekOrigin.Begin);
-            if (stream != null)
-            {
-                stream.CopyTo(file);
-                file.Flush();
-            }
-
-            return file;
+            Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, 81920, true);
+            return Task.FromResult(stream);
         }
 
-        public async Task<Stream> AppendAsync(BlobRecord blobRecord, Stream stream, long offset, CancellationToken ct)
+        public Task<Stream> WriteAsync(BlobRecord blobRecord, CancellationToken ct)
         {
             EnsureWriteLock(blobRecord);
 
             var path = BuildPath(blobRecord);
-            Directory.CreateDirectory(_basePath);
-
-            var file = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read, 81920, true);
-            file.Seek(offset, SeekOrigin.Begin);
-            if (stream != null)
-            {
-                await stream.CopyToAsync(file, 81920, ct);
-                await file.FlushAsync(ct);
-            }
-
-            return file;
-        }
-
-        public Stream Read(BlobRecord blobRecord)
-        {
-            EnsureReadLock(blobRecord);
-
-            var path = BuildPath(blobRecord);
-            return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            Stream stream = new FileStream(path, FileMode.Truncate, FileAccess.Write, FileShare.Read, 81920, true);
+            return Task.FromResult(stream);
         }
 
         public Task<Stream> ReadAsync(BlobRecord blobRecord, CancellationToken ct)
@@ -69,74 +44,69 @@ namespace ActDim.Practix.BlobManager
             return Task.FromResult(stream);
         }
 
+        public Task<Stream> AppendAsync(BlobRecord blobRecord, long offset, CancellationToken ct)
+        {
+            EnsureWriteLock(blobRecord);
+
+            var path = BuildPath(blobRecord);
+            Stream file = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.Read, 81920, true);
+            file.Seek(offset, SeekOrigin.Begin);
+            return Task.FromResult(file);
+        }
+
         public Task<string> ResolveLocationAsync(BlobRecord blobRecord, CancellationToken ct)
         {
             if (blobRecord == null)
-            {
                 throw new ArgumentNullException(nameof(blobRecord));
+
+            var location = BuildPath(blobRecord);
+            if (!File.Exists(location))
+            {
+                return Task.FromResult((string)null);
             }
-
-            return Task.FromResult(BuildPath(blobRecord));
+            return Task.FromResult(location);
         }
 
-        public Stream Write(BlobRecord blobRecord)
+        public Task<bool> ExistsAsync(BlobRecord blobRecord, CancellationToken ct)
         {
-            EnsureWriteLock(blobRecord);
-
-            var path = BuildPath(blobRecord);
-            Directory.CreateDirectory(_basePath);
-            return new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read);
-        }
-
-        public Task<Stream> WriteAsync(BlobRecord blobRecord, CancellationToken ct)
-        {
-            EnsureWriteLock(blobRecord);
-
-            var path = BuildPath(blobRecord);
-            Directory.CreateDirectory(_basePath);
-            Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, 81920, true);
-            return Task.FromResult(stream);
+            if (blobRecord == null)
+                throw new ArgumentNullException(nameof(blobRecord));
+            var location = BuildPath(blobRecord);
+            if (!File.Exists(location))
+            {
+                return Task.FromResult(false);
+            }
+            return Task.FromResult(true);
         }
 
         private static void EnsureReadLock(BlobRecord blobRecord)
         {
             if (blobRecord == null)
-            {
                 throw new ArgumentNullException(nameof(blobRecord));
-            }
 
             if (blobRecord.LockType != LockType.Read && blobRecord.LockType != LockType.Write)
-            {
                 throw new InvalidOperationException("Read requires a read or write lock on the blob record.");
-            }
         }
 
         private static void EnsureWriteLock(BlobRecord blobRecord)
         {
             if (blobRecord == null)
-            {
                 throw new ArgumentNullException(nameof(blobRecord));
-            }
 
             if (blobRecord.LockType != LockType.Write)
-            {
                 throw new InvalidOperationException("Write requires a write lock on the blob record.");
-            }
         }
 
         private string BuildPath(BlobRecord blobRecord)
         {
-            var safeKey = SanitizeFileName(blobRecord.Key);
-            var extension = Path.GetExtension(blobRecord.Metadata ?? string.Empty);
-            return Path.Combine(_basePath, safeKey + extension);
+            var fileName = SanitizeFileName(blobRecord.Key);
+            return Path.Combine(_basePath, fileName);
         }
 
         private static string SanitizeFileName(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
-            {
                 return "blob";
-            }
 
             var invalid = Path.GetInvalidFileNameChars();
             var sb = new StringBuilder(input.Length);
@@ -146,19 +116,11 @@ namespace ActDim.Practix.BlobManager
                 var isInvalid = false;
                 for (var j = 0; j < invalid.Length; j++)
                 {
-                    if (invalid[j] == ch)
-                    {
-                        isInvalid = true;
-                        break;
-                    }
+                    if (invalid[j] == ch) { isInvalid = true; break; }
                 }
-
                 sb.Append(isInvalid ? '_' : ch);
             }
-
             return sb.ToString();
         }
     }
 }
-
-

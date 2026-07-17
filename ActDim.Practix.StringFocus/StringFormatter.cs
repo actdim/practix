@@ -65,7 +65,7 @@ namespace ActDim.Practix.StringFocus
             using (var reader = new StringReader(format))
             {
                 var expressionBuilder = new StringBuilder();
-                var @char = -1;
+                var ch = -1;
 
                 State state = State.OutsideExpression;
                 do
@@ -73,8 +73,8 @@ namespace ActDim.Practix.StringFocus
                     switch (state)
                     {
                         case State.OutsideExpression:
-                            @char = reader.Read();
-                            switch (@char)
+                            ch = reader.Read();
+                            switch (ch)
                             {
                                 case -1:
                                     state = State.End;
@@ -86,13 +86,13 @@ namespace ActDim.Practix.StringFocus
                                     state = State.OnCloseBracket;
                                     break;
                                 default:
-                                    sb.Append((char)@char);
+                                    sb.Append((char)ch);
                                     break;
                             }
                             break;
                         case State.OnOpenBracket:
-                            @char = reader.Read();
-                            switch (@char)
+                            ch = reader.Read();
+                            switch (ch)
                             {
                                 case -1:
                                     throw new FormatException();
@@ -101,14 +101,14 @@ namespace ActDim.Practix.StringFocus
                                     state = State.OutsideExpression;
                                     break;
                                 default:
-                                    expressionBuilder.Append((char)@char);
+                                    expressionBuilder.Append((char)ch);
                                     state = State.InsideExpression;
                                     break;
                             }
                             break;
                         case State.InsideExpression:
-                            @char = reader.Read();
-                            switch (@char)
+                            ch = reader.Read();
+                            switch (ch)
                             {
                                 case -1:
                                     throw new FormatException();
@@ -132,13 +132,13 @@ namespace ActDim.Practix.StringFocus
                                     state = State.OutsideExpression;
                                     break;
                                 default:
-                                    expressionBuilder.Append((char)@char);
+                                    expressionBuilder.Append((char)ch);
                                     break;
                             }
                             break;
                         case State.OnCloseBracket:
-                            @char = reader.Read();
-                            switch (@char)
+                            ch = reader.Read();
+                            switch (ch)
                             {
                                 case '}':
                                     sb.Append("}}");

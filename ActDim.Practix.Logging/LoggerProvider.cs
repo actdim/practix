@@ -143,7 +143,7 @@ namespace ActDim.Practix.Logging
                 if (state != null)
                 {
                     // new { State = state, Id = corrId, ParentId = parentCorrId }
-                    scopeName = _jsonSerializer.SerializeObject(state).Replace(Environment.NewLine, string.Empty);
+                    scopeName = _jsonSerializer.Serialize(state).Replace(Environment.NewLine, string.Empty);
                 }
 
                 if (IsEnabled(logLevel))
@@ -268,7 +268,7 @@ namespace ActDim.Practix.Logging
                     }
                 }
 
-                return _jsonSerializer.SerializeObject(combinedState);
+                return _jsonSerializer.Serialize(combinedState);
             }
         }
     }

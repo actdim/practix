@@ -5,6 +5,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using ActDim.Practix.TypeAccess.Reflection;
 
+// Replaces the former DynamicProperty class - it was essentially a (name, type) pair.
+using DynamicProperty = (string Name, System.Type Type);
+
 //http://www.codeproject.com/Articles/110065/Quickly-Generate-and-Use-Dynamic-Class
 
 //http://dblinq2007.googlecode.com/svn/trunk/lib/DynamicLinq.cs
@@ -775,7 +778,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
                     propertyName = me.Member.Name;
                 }
                 expressions.Add(expr);
-                properties.Add(new DynamicProperty(propertyName, expr.Type));
+                properties.Add((propertyName, expr.Type));
                 if (_token.Id != TokenId.Comma) break;
                 NextToken();
             }

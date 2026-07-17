@@ -63,7 +63,7 @@ namespace ActDim.Practix.Logging
             {
                 return _jsonSerializer
                     // <JObject>?
-                    .DeserializeObject<Dictionary<string, object>>(_jsonSerializer.MergeAndSerializeObject(sources));
+                    .Deserialize<Dictionary<string, object>>(_jsonSerializer.MergeAndSerialize(sources));
             }
             return default;
         }
@@ -92,7 +92,7 @@ namespace ActDim.Practix.Logging
             {
                 return _jsonSerializer
                 // <JObject>?
-                .DeserializeObject<Dictionary<string, object>>(_jsonSerializer.MergeAndSerializeObject(sources));
+                .Deserialize<Dictionary<string, object>>(_jsonSerializer.MergeAndSerialize(sources));
             }
             return default;
         }
