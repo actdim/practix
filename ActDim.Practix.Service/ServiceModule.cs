@@ -6,7 +6,9 @@ namespace ActDim.Practix
     {
         protected override void Load(ContainerBuilder builder)
         {
-
+            // builder.RegisterType<>()
+            //   .As<>()
+            //   .SingleInstance();
         }
     }
 }

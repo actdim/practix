@@ -3,13 +3,22 @@ using System.Collections.Generic;
 
 namespace ActDim.Practix.Abstractions.IO
 {
-    public interface IBlobEntry // IBlobMetadata
+    /// <summary>
+    /// IBlobMetadata
+    /// </summary>
+    public interface IBlobEntry
     {
         public DateTimeOffset CreatedAt { get; set; }
 
-        // public DateTimeOffset UpdatedAt { get; set; } // LastModified
+        // /// <summary>
+        // /// LastModified
+        // /// </summary>
+        // public DateTimeOffset UpdatedAt { get; set; }
 
-        public DateTimeOffset AccessedAt { get; set; } // LastAccessed/LastAccessTime
+        /// <summary>
+        /// LastAccessed/LastAccessTime
+        /// </summary>
+        public DateTimeOffset AccessedAt { get; set; }
 
         public TimeSpan? SlidingExpiration { get; set; }
 
@@ -23,6 +32,5 @@ namespace ActDim.Practix.Abstractions.IO
         public long? Size { get; set; }
 
         public Dictionary<string, string> Tags { get; set; }
-
     }
 }

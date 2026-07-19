@@ -1,4 +1,5 @@
 using ActDim.Practix.Abstractions.Json;
+using ActDim.Practix.Service.Settings;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Autofac.Util;
@@ -140,12 +141,12 @@ namespace ActDim.Practix.Service.OpenApi
             return apiVersionDescription?.GroupName;
         }
 
-        public static IApiConfig GetApiConfig(this ApiVersionDescription apiVersionDescription, IConfiguration config, ApiVersion defaultApiVersion = default)
+        public static ApiConfig GetApiConfig(this ApiVersionDescription apiVersionDescription, IConfiguration config, ApiVersion defaultApiVersion = default)
         {
             return apiVersionDescription.GetApiConfig(config.Get<AppSettings>(), defaultApiVersion);
         }
 
-        public static IApiConfig GetApiConfig(this ApiVersionDescription apiVersionDescription, AppSettings appSettings, ApiVersion defaultApiVersion = default)
+        public static ApiConfig GetApiConfig(this ApiVersionDescription apiVersionDescription, AppSettings appSettings, ApiVersion defaultApiVersion = default)
         {
             var version = apiVersionDescription.ApiVersion;
             if (version == default)

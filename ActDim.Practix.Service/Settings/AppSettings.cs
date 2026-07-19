@@ -1,4 +1,4 @@
-namespace ActDim.Practix.Service
+namespace ActDim.Practix.Service.Settings
 {
     public class AppSettings
     {
