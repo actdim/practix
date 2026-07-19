@@ -20,8 +20,6 @@ namespace ActDim.Practix.Collections
 
         public bool Equals(CompositeKey other)
         {
-            // Быстрый путь: если хеши разные — точно не равны,
-            // не нужно даже начинать поэлементное сравнение
             if (_hashCode != other._hashCode)
                 return false;
 
@@ -42,5 +40,15 @@ namespace ActDim.Practix.Collections
         public override int GetHashCode() => _hashCode;
 
         public static implicit operator CompositeKey(object[] items) => new(items);
+
+        public static bool operator ==(CompositeKey left, CompositeKey right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(CompositeKey left, CompositeKey right)
+        {
+            return !(left == right);
+        }
     }
 }

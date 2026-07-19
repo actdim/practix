@@ -1,5 +1,6 @@
 
 using ActDim.Practix.Service.OpenApi;
+using ActDim.Practix.Service.Settings;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Autofac;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using SmartFormat;
 using Swashbuckle.AspNetCore.Swagger;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -477,7 +479,14 @@ namespace ActDim.Practix.Service
                 // var jwtBearerConfig = config.GetSection("AuthSchemes:Default:JwtBearer").Get<JwtBearerConfig>();
 
                 // var defaultSchemeName = JwtBearerDefaults.AuthenticationScheme;
-                var defaultSchemeName = appSettings.AuthSchemes.First(x => x.Value.JwtBearer != default).Key;
+                var defaultScheme = appSettings.AuthSchemes.FirstOrDefault(x => x.Value.IsDefault);
+                if (defaultScheme.Equals(default))
+                {
+                    defaultScheme = appSettings.AuthSchemes.FirstOrDefault(x => x.Value.LocalJwt != null || x.Value.Oidc != null);
+                }
+
+                var defaultSchemeName = defaultScheme.Equals(default) ? null : defaultScheme.Key;
+
                 var authenticationBuilder = services.AddAuthentication(authenticationOptions =>
                 {
                     authenticationOptions.DefaultAuthenticateScheme = defaultSchemeName;
@@ -485,60 +494,74 @@ namespace ActDim.Practix.Service
                     authenticationOptions.DefaultScheme = defaultSchemeName;
                 });
 
-                foreach (var authScheme in appSettings.AuthSchemes)
+                foreach (var kv in appSettings.AuthSchemes)
                 {
-                    if (authScheme.Value.JwtBearer != default)
+                    var authConfig = kv.Value;
+                    if (authConfig.LocalJwt != default)
                     {
-                        var jwtBearerConfig = authScheme.Value.JwtBearer;
-                        authenticationBuilder.AddJwtBearer(authScheme.Key, jwtBearerOptions =>
+                        var localJwt = authConfig.LocalJwt;
+                        authenticationBuilder.AddJwtBearer(kv.Key, jwtBearerOptions =>
                         {
-                            // jwtBearerOptions.EventsType?
+                            jwtBearerOptions.MapInboundClaims = false;
+
                             jwtBearerOptions.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
                             {
                                 OnMessageReceived = context =>
                                 {
-                                    // resolve token manually
+                                    // curl -v -X "GET" "<URL>" -H "accept: text/plain" -H "Authorization: Bearer <TOKEN>"
                                     var accessToken = context.Request.Query["access_token"];
                                     if (!string.IsNullOrEmpty(accessToken))
                                     {
                                         context.Token = accessToken;
                                     }
+                                    // var prefix = "Bearer ";
+                                    // var authHeader = context.Request.Headers["Authorization"].ToString();
+                                    // if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                                    // {
+                                    //     throw new UnauthorizedAccessException($"No {prefix} token found");
+                                    // }
+                                    // var token = authHeader[prefix.Length..].Trim();
+                                    // context.Token = token;
                                     return Task.CompletedTask;
                                 },
-                                OnTokenValidated = context =>
+                                OnTokenValidated = async context =>
                                 {
-                                    // add claims and logs
-                                    return Task.CompletedTask;
+                                    // TODO: log
+                                    // var appContext = serviceProviderFactory().GetRequiredService<IAppContext>();
+                                    var appContext = context.HttpContext.RequestServices.GetRequiredService<IAppContext>();
+                                    try
+                                    {
+                                        await appContext.SetIdentityAsync(context.Principal, authConfig);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        context.Fail(ex.Message);
+                                    }
                                 },
                                 OnAuthenticationFailed = context =>
                                 {
-                                    // log
+                                    // TODO: log
                                     return Task.CompletedTask;
                                 }
                             };
 
                             jwtBearerOptions.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
                             {
-                                ValidIssuer = jwtBearerConfig.Issuer,
-                                ValidAudience = jwtBearerConfig.Audience,
-                                IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtBearerConfig.Key)),
+                                ValidIssuer = localJwt.Issuer,
+                                ValidAudience = localJwt.DefaultAudience,
+                                IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.UTF8.GetBytes(localJwt.IssuerSigningKey)),
+                                ValidateIssuer = localJwt.Validation.ValidateIssuer,
+                                ValidateAudience = localJwt.Validation.ValidateAudience,
+                                ValidateLifetime = localJwt.Validation.ValidateLifetime,
+                                ValidateIssuerSigningKey = localJwt.Validation.ValidateSigningKey,
+                                ClockSkew = TimeSpan.FromSeconds(localJwt.Validation.ClockSkewSeconds)
                                 // LifetimeValidator =
-                                // ClockSkew =
-                                // ValidateIssuer = true,
-                                // ValidateAudience = true,
-                                // ValidateLifetime = true,
-                                // ValidateIssuerSigningKey = true,
-                                ValidateIssuer = false,
-                                ValidateAudience = false,
-                                ValidateLifetime = false,
-                                ValidateIssuerSigningKey = false
                             };
                         });
                     }
                 }
 
-                // services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme);
-                // AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+                // TODO: OAuth/OIDC, Azure, Session, ApiKey
             }
 
             services.AddAuthorization(authorizationOptions =>
