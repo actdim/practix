@@ -25,7 +25,7 @@ namespace ActDim.AppRegistry.Repo
         {
             if (!id.Equals(Id))
             {
-                return default;
+                return null;
             }
 
             return new User()
