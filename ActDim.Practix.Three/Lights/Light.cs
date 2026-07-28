@@ -19,13 +19,13 @@ namespace THREE.Lights
         /// <summary>
         /// Light color.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "color")]
         public int Color { get; set; }
 
         /// <summary>
         /// Light intensity.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "intensity")]
         public float Intensity { get; set; }
     }
 }

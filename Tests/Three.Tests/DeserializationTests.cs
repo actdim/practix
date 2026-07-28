@@ -1,10 +1,9 @@
-using System.Linq;
-using System.Text;
 using Xunit;
 using THREE;
 using THREE.Core;
+using THREE.Core.Buffers;
 using THREE.Materials;
-using THREE.Utility;
+using THREE.Objects;
 
 namespace ThreeLib.Tests
 {
@@ -19,9 +18,7 @@ namespace ThreeLib.Tests
 		[Fact]
 		public void CanDeserializeObject3D()
 		{
-			var bytes = Encoding.UTF8.GetBytes(Object3DJson);
-
-			var adapter = Utilities.Deserialize<Object3DSerializationAdapter>(bytes);
+			var adapter = ThreeJson.Deserialize(Object3DJson);
 
 			Assert.NotNull(adapter);
 
@@ -38,19 +35,29 @@ namespace ThreeLib.Tests
 			Assert.Equal(3, geometry.Attributes["position"].ItemSize);
 			Assert.Equal("Float32Array", geometry.Attributes["position"].Type);
 
+			// no-boxing guard: the payload is a typed float[] buffer, never object[].
+			var position = Assert.IsType<Float32Array>(geometry.Attributes["position"].Values);
+			Assert.IsType<float[]>(position.Data);
+			Assert.Equal(36 * 3, position.Data.Length);
+
 			// materials
 			Assert.Single(adapter.Materials);
 			var material = Assert.IsType<MeshStandardMaterial>(adapter.Materials[0]);
 			Assert.Equal("5547acca-f070-495a-a0b5-7c89b55a5e37", material.Uuid.ToString());
 
-			// object graph: Scene -> Group -> Mesh
-			Assert.Equal("Scene", adapter.Object.Type);
-			Assert.Equal("1145e8a6-39ba-4710-b4b8-86bc799ed278", adapter.Object.Uuid.ToString());
-			var group = Assert.Single(adapter.Object.Children);
-			Assert.Equal("Group", group.Type);
-			var mesh = Assert.Single(group.Children);
-			Assert.Equal("Mesh", mesh.Type);
+			// object graph rebuilt into CONCRETE node types: Scene -> Group -> Mesh
+			var scene = Assert.IsType<Scene>(adapter.Object);
+			Assert.Equal("16e78082-8839-4eb5-bf59-f0e2ee56ab36", scene.Uuid.ToString());
+			Assert.Equal("1145e8a6-39ba-4710-b4b8-86bc799ed278", scene.Name);
+			var group = Assert.IsType<Group>(Assert.Single(scene.Children));
+			var mesh = Assert.IsType<Mesh>(Assert.Single(group.Children));
 			Assert.Equal("3680d032-861c-4d44-a752-a94368706763", mesh.Uuid.ToString());
+			Assert.Equal(scene, group.Parent); // Parent wired
+			Assert.Equal(group, mesh.Parent);
+
+			// uuid references resolved back to the pooled objects (same instances)
+			Assert.Same(adapter.Geometries[0], mesh.Geometry);
+			Assert.Same(adapter.Materials[0], mesh.Material);
 		}
 	}
 }

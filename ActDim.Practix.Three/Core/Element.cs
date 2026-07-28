@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
-using THREE.Utility;
 
 namespace THREE.Core
 {
@@ -9,26 +8,6 @@ namespace THREE.Core
 		Guid Uuid { get; set; }
 
 		string Name { get; set; }
-
-        // /// <summary>
-        // /// 
-        // /// </summary>
-        // string Type { get; set; }
-
-        // /// <summary>
-        // /// 
-        // /// </summary>
-        // IElement Copy(IElement other);
-
-        // /// <summary>
-        // /// 
-        // /// </summary>
-        // IElement Clone();
-
-        // /// <summary>
-        // /// 
-        // /// </summary>
-        // string ToJSON();
     }
 
     /// <summary>
@@ -38,21 +17,22 @@ namespace THREE.Core
     public class Element : IElement
     {
         /// <summary>
-        /// Unique Guid.
-        /// </summary>		
-        [DataMember]
+        /// Unique Guid. Defaults to <see cref="Guid.Empty"/>; the document layer assigns one during
+        /// serialization if still empty (see refactor plan §11).
+        /// </summary>
+        [DataMember(Name = "uuid")]
         public Guid Uuid { get; set; }
 
         /// <summary>
         /// Name.
-        /// </summary>		
-        [DataMember]
+        /// </summary>
+        [DataMember(Name = "name")]
         public string Name { get; set; }
 
         /// <summary>
         /// Type of object.
-        /// </summary>		
-        [DataMember]
+        /// </summary>
+        [DataMember(Name = "type")]
         public string Type { get; set; }
 
         /// <summary>
@@ -60,18 +40,7 @@ namespace THREE.Core
         /// </summary>
         public Element()
         {
-            Uuid = Guid.NewGuid();
             Type = GetType().Name;
-        }
-
-        /// <summary>
-        /// Convert the object to JSON format. 
-        /// </summary>
-        /// <returns>A byte[] representation of this object, serialized to JSON.</returns>
-        /// <returns>JSON String.</returns>
-        public virtual byte[] ToJSON() // bool format
-        {
-            return Utilities.Serialize(this);
         }
     }
 }

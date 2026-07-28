@@ -17,7 +17,8 @@ namespace THREE.Utility
             {
                 DefaultValueHandling = DefaultValueHandling.Ignore,
                 NullValueHandling = NullValueHandling.Ignore,
-                ContractResolver = new CamelCaseCustomResolver()
+                ContractResolver = new CamelCaseCustomResolver(),
+                Converters = { new BufferAttributeConverter(), new ElementConverter() }
             };
 
             // var jsonString = Encoding.UTF8.GetString(buffer);
@@ -41,7 +42,8 @@ namespace THREE.Utility
                 Formatting = format ? Formatting.Indented : Formatting.None,
                 DefaultValueHandling = DefaultValueHandling.Ignore,
                 NullValueHandling = NullValueHandling.Ignore,
-                ContractResolver = new CamelCaseCustomResolver()
+                ContractResolver = new CamelCaseCustomResolver(),
+                Converters = { new BufferAttributeConverter(), new ElementConverter() }
             };
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj, serializerSettings));
         }

@@ -1,7 +1,44 @@
 # Refactor plan — serialization & BufferAttribute
 
-> Living design doc. **Plan only — no implementation yet.** Consolidates the decisions made while
-> discussing how the three.js format is (de)serialized. Delete once the work lands.
+> Living design doc. Consolidates the decisions made while discussing how the three.js format is
+> (de)serialized. Delete once the work lands.
+
+## Progress
+
+- ✅ **Milestone 1 — typed buffers + no-boxing BufferAttribute + deserialization** (§1, §1b, §2, §8-core):
+  `Core/Buffers/TypedArrays.cs` (`ITypedArray`/`TypedArray<T>` + 10 concrete types + registry);
+  `BufferAttribute` reworked to hold `ITypedArray Values` (no `System.Array`, no `object[]`), with the
+  raw-`Array` copy ctor + typed factories; `BufferAttributeConverter` (typed read via `ReadAsDouble`,
+  typed write); `ElementConverter` (`type`-discriminator for `IElement` pools). Both converters wired
+  into `Utilities` **temporarily**. `CanDeserializeObject3D` now **passes** (+ boxing-regression guard);
+  `CanSerializeComplexScene` still green. Deferred within this milestone: exact-presize streaming read
+  (TODO in converter), and the `ElementConverter` still buffers via `JObject` (boxes transiently on read
+  — real fix in §8/§12 streaming converter).
+- ✅ **Milestone 2 (slice A) — `SceneDocument` + document converter + §11** (§3, §11, §9-UserData, part of §4/§8):
+  `Serialization/SceneDocument.cs` (`SceneDocument` format type + `ToSceneDocument()` extension +
+  `ThreeJson` serializer entry) and `SceneDocumentConverter` (hybrid: hand-writes structure — metadata,
+  pools, uuid refs, dedup by identity, uuid assignment — and delegates resource/node bodies to the
+  serializer + camelCase resolver). Adapters (`SerializationAdapter`, `Object3D/SceneSerializationAdapter`)
+  and `Object3D.ProcessChildren` + all `ToJSON` overrides **deleted**. `Guid.NewGuid()` removed from
+  `Element`/`BufferAttribute` ctors (§11) — the converter assigns uuids during свёртка. `Object3D.UserData`
+  → `Dictionary<string, object>` (§9). Tests migrated to `ThreeJson`/`ToSceneDocument`; added
+  `Document.ToSceneDocument_FlattensGraphIntoPools_AndAssignsUuids`. 3 tests green.
+- ✅ **Milestone 2 (slice B) — §8 full read + byte round-trip**: `SceneDocumentConverter` read now
+  rebuilds **concrete** node types (`Scene`/`Group`/`Mesh`/… via a reflected `type→Type` map),
+  resolves `geometry`/`material` uuid references back to the pooled instances (`Assert.Same`), reads the
+  `matrix`, and wires `Parent`. Type-specific scalars via `Populate`; structure by hand. Unresolvable
+  references throw (§12); unmodeled node types fall back to base `Object3D` (subset policy). New tests:
+  concrete-type + reference-resolution asserts, and `Document_IsByteStable_AcrossRoundTrip`
+  (`json → doc → json` identical). 4 tests green.
+- ⏳ Remaining:
+  - **§4** — delete `Utilities` fully (still used by `Font.Equals`/`Matrix4`/legacy `Geometry`; tied to §5).
+  - **§5** — equality/dedup + drop `CombineHashCodes`.
+  - **§3a explicit names** — ✅ core types annotated (`Element`, `Object3D`, `Scene`, `Metadata`,
+    `Light` base, `BufferGeometry`/`Data`/`BoundingSphere`; `Mesh`/`Line`/`Points`/`LineSegments` already
+    had `geometry`/`material`). ⏳ Remaining mechanical pass: material subclasses, concrete lights,
+    cameras, textures, `Font`, legacy `Geometry` — still resolver-driven (correct camelCase) until
+    annotated; then drop `CamelCaseCustomResolver`.
+  - **§10** — `index`/`groups`/`morphAttributes`/`drawRange`; **§12** — streaming (avoid `JObject` buffering on read).
 
 ## Goals
 
@@ -81,20 +118,23 @@ normal callers never touch `System.Array`/`object[]` at all.
 Drop the abstract `SerializationAdapter` / `ObjectSerializationAdapter` /
 `Object3DSerializationAdapter` / `SceneSerializationAdapter` chain. Replace with a clean split:
 
-### 3a. Core objects are attribute-free POCOs; the format lives in converters (DECIDED)
-`Scene`, `Object3D`, `Mesh`, `BufferGeometry`, `Material`, `BufferAttribute`, lights, etc. carry **NO
-serialization metadata at all** — no `[JsonProperty]`, no `[DataMember]`, no field-name hints, no
-`[JsonConverter]`. They are plain POCOs. Rationale: a core object can be used and serialized **on its
-own**, and we must not constrain that — the consumer may serialize it with **any naming policy or
-settings**. Default Newtonsoft reflection just works for generic standalone use; the three.js document
-shape must **not** be baked into the types.
+### 3a. Explicit `[DataMember(Name=...)]` names on core types (REVISED — supersedes the earlier "attribute-free" idea)
+The three.js field names ARE a fixed contract with the client lib, so they are declared **explicitly on
+the types** via `[DataMember(Name="...")]` rather than derived by a resolver. Rationale: explicit,
+self-describing, and portable (Newtonsoft honors `[DataMember]` natively).
 
-- Therefore all three.js-format rules (explicit lowercase/camelCase field names, pools, uuid references,
-  the exact `data`/attribute/material shapes) are **not on the types** — they live entirely in the
-  converter layer (§3b). The old idea of moving settings onto types via `[JsonProperty]` is **dropped**.
-- Consequence: a standalone object is **not** forced into the pooled/uuid-reference shape. Today `Mesh`
-  writes `[DataMember(Name="geometry")]` = `Geometry.Uuid` (a pool reference) — that behavior belongs to
-  the `SceneDocument` converter, **not** to `Mesh` itself. Strip such attributes from the core types.
+- Serialized members: `[DataMember(Name="threejsName")]` with the exact three.js name.
+- Excluded members (`Parent`, `Matrix`, helper `Position`/`Rotation`/`Quaternion`/`Scale`): keep
+  `[IgnoreDataMember]` **for readability** (explicit "this is not serialized"), even though opt-in
+  `[DataContract]` types would exclude them anyway.
+- The `SceneDocument` converter still owns document STRUCTURE (pools, uuid refs, dedup — §3b); member
+  bodies serialize by reflection honoring these `[DataMember]` names.
+- **STJ caveat**: System.Text.Json does **not** honor `[DataMember]`/`[DataContract]` natively. If STJ
+  support is wanted later, add a small DataContract-aware `IJsonTypeInfoResolver` (one-time); do NOT
+  expect STJ to read these attributes out of the box.
+- The `CamelCaseCustomResolver` stays for now (explicit `[DataMember(Name)]` overrides it per-property;
+  it still yields correct names for the not-yet-annotated tail). Drop it once every serialized type has
+  explicit names.
 
 ### 3b. `SceneDocument` — separate type for the three.js "Object" document
 `SceneDocument` (name DECIDED) is its **own case**: the flat wire document, mirroring the format 1:1.
