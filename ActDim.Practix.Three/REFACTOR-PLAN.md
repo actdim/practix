@@ -53,8 +53,18 @@
   `new`-hidden `Camera` makes `[DataMember]` awkward) and `Material` base (never serialized — subclasses
   are opt-in). The private `CamelCaseCustomResolver` inside `SceneDocumentConverter` is **kept as a
   safety net** for those few attribute-less opt-out props; drop it only if they get annotated.
+- ✅ **B — full read-side reference resolution**: `SceneDocumentConverter` read keeps each pool element's
+  source `JObject` and wires cross-references — **texture → image** (`Texture.Image`) and
+  **material → texture** (`map`/`bumpMap`/… via reflection over the `<Name>Uuid` ↔ internal `<Name>`
+  Texture properties). Also fixed a latent bug: `textures`/`images`/`fonts` pools have no `type`
+  discriminator (they don't derive `Element`), so they're now read as concrete `Texture`/`Image`/`FontData`
+  instead of via `ElementConverter`. Legacy `Geometry.GeometryData.Vertices`/`Normals` made settable so
+  legacy geometry round-trips on read. Tests: `ReferenceResolution.*` (texture/image via round-trip pool
+  survival; legacy geometry vertices/normals). 9 tests green.
 - ⏳ Remaining:
-  - **§10** — `groups`/`morphAttributes`/`drawRange` (`index` done); **§12** — streaming (avoid `JObject` buffering on read).
+  - **geometry → font** reference resolution (`TextGeometry` → `Font`) — still not wired on read (niche, untested).
+  - **§10** — `groups`/`morphAttributes`/`drawRange` (+ multi-material `Mesh.Material[]`); `index` done.
+  - **§12** — streaming (avoid `JObject` buffering on read).
 
 ## Goals
 

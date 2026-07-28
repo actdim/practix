@@ -344,7 +344,7 @@ namespace THREE.Core
         internal List<float> RawVertices { get; set; }
 
         [DataMember(Name = "vertices")]
-        public List<float> Vertices => RawVertices;
+        public List<float> Vertices { get => RawVertices; set => RawVertices = value; }
 
         [DataMember(Name = "colors")]
         public List<int> Colors { get; set; }
@@ -365,7 +365,7 @@ namespace THREE.Core
         internal List<float> RawNormals { get; set; }
 
         [DataMember(Name = "normals")]
-        public List<float> Normals => RawNormals;
+        public List<float> Normals { get => RawNormals; set => RawNormals = value; }
 
         internal GeometryData()
         {
