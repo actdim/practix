@@ -200,17 +200,117 @@ namespace THREE.Core.Buffers
         private static readonly Dictionary<string, Func<IReadOnlyList<double>, ITypedArray>> FromDoublesMap =
             new Dictionary<string, Func<IReadOnlyList<double>, ITypedArray>>(StringComparer.Ordinal)
         {
-            { Int8Array,         s => { var a = new sbyte[s.Count];  for (var i = 0; i < a.Length; i++) { a[i] = (sbyte)s[i]; }  return new Int8Array { Data = a }; } },
-            { Uint8Array,        s => { var a = new byte[s.Count];   for (var i = 0; i < a.Length; i++) { a[i] = (byte)s[i]; }   return new Uint8Array { Data = a }; } },
-            { Uint8ClampedArray, s => { var a = new byte[s.Count];   for (var i = 0; i < a.Length; i++) { a[i] = (byte)s[i]; }   return new Uint8ClampedArray { Data = a }; } },
-            { Int16Array,        s => { var a = new short[s.Count];  for (var i = 0; i < a.Length; i++) { a[i] = (short)s[i]; }  return new Int16Array { Data = a }; } },
-            { Uint16Array,       s => { var a = new ushort[s.Count]; for (var i = 0; i < a.Length; i++) { a[i] = (ushort)s[i]; } return new Uint16Array { Data = a }; } },
-            { Int32Array,        s => { var a = new int[s.Count];    for (var i = 0; i < a.Length; i++) { a[i] = (int)s[i]; }    return new Int32Array { Data = a }; } },
-            { Uint32Array,       s => { var a = new uint[s.Count];   for (var i = 0; i < a.Length; i++) { a[i] = (uint)s[i]; }   return new Uint32Array { Data = a }; } },
-            { Float16Array,      s => { var a = new Half[s.Count];   for (var i = 0; i < a.Length; i++) { a[i] = (Half)(float)s[i]; } return new Float16Array { Data = a }; } },
-            { Float32Array,      s => { var a = new float[s.Count];  for (var i = 0; i < a.Length; i++) { a[i] = (float)s[i]; }  return new Float32Array { Data = a }; } },
-            { Float64Array,      s => { var a = new double[s.Count]; for (var i = 0; i < a.Length; i++) { a[i] = s[i]; }         return new Float64Array { Data = a }; } },
+            { Int8Array, FromDoublesInt8 },
+            { Uint8Array, FromDoublesUint8 },
+            { Uint8ClampedArray, FromDoublesUint8Clamped },
+            { Int16Array, FromDoublesInt16 },
+            { Uint16Array, FromDoublesUint16 },
+            { Int32Array, FromDoublesInt32 },
+            { Uint32Array, FromDoublesUint32 },
+            { Float16Array, FromDoublesFloat16 },
+            { Float32Array, FromDoublesFloat32 },
+            { Float64Array, FromDoublesFloat64 },
         };
+
+        private static ITypedArray FromDoublesInt8(IReadOnlyList<double> values)
+        {
+            var data = new sbyte[values.Count];
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = (sbyte)values[i];
+            }
+            return new Int8Array { Data = data };
+        }
+
+        private static ITypedArray FromDoublesUint8(IReadOnlyList<double> values)
+        {
+            var data = new byte[values.Count];
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = (byte)values[i];
+            }
+            return new Uint8Array { Data = data };
+        }
+
+        private static ITypedArray FromDoublesUint8Clamped(IReadOnlyList<double> values)
+        {
+            var data = new byte[values.Count];
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = (byte)values[i];
+            }
+            return new Uint8ClampedArray { Data = data };
+        }
+
+        private static ITypedArray FromDoublesInt16(IReadOnlyList<double> values)
+        {
+            var data = new short[values.Count];
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = (short)values[i];
+            }
+            return new Int16Array { Data = data };
+        }
+
+        private static ITypedArray FromDoublesUint16(IReadOnlyList<double> values)
+        {
+            var data = new ushort[values.Count];
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = (ushort)values[i];
+            }
+            return new Uint16Array { Data = data };
+        }
+
+        private static ITypedArray FromDoublesInt32(IReadOnlyList<double> values)
+        {
+            var data = new int[values.Count];
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = (int)values[i];
+            }
+            return new Int32Array { Data = data };
+        }
+
+        private static ITypedArray FromDoublesUint32(IReadOnlyList<double> values)
+        {
+            var data = new uint[values.Count];
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = (uint)values[i];
+            }
+            return new Uint32Array { Data = data };
+        }
+
+        private static ITypedArray FromDoublesFloat16(IReadOnlyList<double> values)
+        {
+            var data = new Half[values.Count];
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = (Half)(float)values[i];
+            }
+            return new Float16Array { Data = data };
+        }
+
+        private static ITypedArray FromDoublesFloat32(IReadOnlyList<double> values)
+        {
+            var data = new float[values.Count];
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = (float)values[i];
+            }
+            return new Float32Array { Data = data };
+        }
+
+        private static ITypedArray FromDoublesFloat64(IReadOnlyList<double> values)
+        {
+            var data = new double[values.Count];
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = values[i];
+            }
+            return new Float64Array { Data = data };
+        }
 
         public static bool IsKnown(string type) => type != null && FromDoublesMap.ContainsKey(type);
 

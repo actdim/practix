@@ -18,7 +18,7 @@ namespace THREE.Core
     {
         /// <summary>
         /// Unique Guid. Defaults to <see cref="Guid.Empty"/>; the document layer assigns one during
-        /// serialization if still empty (see refactor plan §11).
+        /// serialization if still empty.
         /// </summary>
         [DataMember(Name = "uuid")]
         public Guid Uuid { get; set; }

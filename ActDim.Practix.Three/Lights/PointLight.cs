@@ -1,4 +1,6 @@
-﻿namespace THREE.Lights
+﻿using System.Runtime.Serialization;
+
+namespace THREE.Lights
 {
     /// <summary>
     /// A light that gets emitted from a single point in all directions. A common use case for this is to replicate the light emitted from a bare lightbulb.
@@ -10,11 +12,13 @@
         /// <summary>
         /// Light distance.
         /// </summary>
+        [DataMember(Name = "distance")]
         public float Distance { get; set; }
 
         /// <summary>
         /// Light decay.
         /// </summary>
+        [DataMember(Name = "decay")]
         public float Decay { get; set; }
     }
 }

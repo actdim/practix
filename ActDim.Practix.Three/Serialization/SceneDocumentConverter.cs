@@ -11,16 +11,15 @@ using THREE.Textures;
 namespace THREE.Serialization
 {
     /// <summary>
-    /// Owns all three.js document rules. On write it walks the (attribute-free) core graph, builds the
-    /// flat resource pools with identity dedup, assigns missing uuids, and emits
+    /// Owns all three.js document rules. On write it walks the core graph, builds the flat resource
+    /// pools with identity dedup, assigns missing uuids, and emits
     /// <c>{ metadata, geometries, materials, textures?, images?, fonts?, object }</c>. Resource and node
-    /// bodies are delegated to the serializer (reflection + the camelCase resolver) — the converter only
-    /// controls document structure.
+    /// bodies are delegated to the serializer (reflection over the <c>[DataMember]</c> names) — the
+    /// converter only controls document structure.
     /// <para>
-    /// Read is currently shallow (plan §8): pools are resolved polymorphically via
-    /// <see cref="ElementConverter"/>, the node tree is materialized as base <see cref="Object3D"/> nodes
-    /// (type string preserved). Full node polymorphism + uuid reference resolution + matrix read are a
-    /// later milestone.
+    /// On read it resolves the pools polymorphically (via <see cref="ElementConverter"/>), rebuilds the
+    /// node tree into concrete types, resolves the <c>geometry</c>/<c>material</c> uuid references back
+    /// to the pooled instances, reads the matrix, and wires parents.
     /// </para>
     /// </summary>
     public class SceneDocumentConverter : JsonConverter

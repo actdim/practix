@@ -11,7 +11,7 @@ namespace THREE.Materials
         /// <summary>
         /// Material diffuse color.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "color")]
         public int Color { get; set; }
 
         /// <summary>

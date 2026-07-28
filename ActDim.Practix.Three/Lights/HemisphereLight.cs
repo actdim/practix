@@ -1,4 +1,6 @@
-﻿namespace THREE.Lights
+﻿using System.Runtime.Serialization;
+
+namespace THREE.Lights
 {
     /// <summary>
     /// A light source positioned directly above the scene, with color fading from the sky color to the ground color.
@@ -11,11 +13,13 @@
         /// <summary>
         /// Color of the ground.
         /// </summary>
+        [DataMember(Name = "groundColor")]
         public int GroundColor { get; set; }
 
         /// <summary>
         /// Color of the sky.
         /// </summary>
+        [DataMember(Name = "skyColor")]
         public int SkyColor { get; set; }
     }
 }

@@ -15,16 +15,16 @@ namespace THREE.Textures
         /// <summary>
         /// Object Id.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "uuid")]
         public Guid Uuid { get; set; }
 
-        [DataMember]
+        [DataMember(Name = "name")]
         public string Name { get; set; }
 
         /// <summary>
         /// Image url. This can be the path to the image resource (.jpg, .png, etc), or a base64 encoded asset.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "url")]
         public string Url { get; set; }
 
         /// <summary>

@@ -13,19 +13,19 @@ namespace THREE.Materials
         /// <summary>
         /// Material color.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "color")]
         public int Color { get; set; }
 
         /// <summary>
         /// Point size.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "size")]
         public double Size { get; set; }
 
         /// <summary>
         /// Size attenuation flag.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "sizeAttenuation")]
         public bool SizeAttenuation { get; set; }
 
         /// <summary>

@@ -12,10 +12,9 @@ namespace THREE.Serialization
     /// heterogeneous pools of a document (<c>geometries</c>, <c>materials</c>, …). Writing is left to the
     /// default serializer.
     /// <para>
-    /// NOTE (plan §8/§12): this buffers each pool element via <see cref="JObject"/> because the three.js
-    /// <c>type</c> field trails the payload (e.g. <c>data</c> comes first). That transiently boxes large
-    /// numeric arrays during load; the final storage is still a typed buffer. A fully streaming document
-    /// converter is a later milestone.
+    /// NOTE: this buffers each pool element via <see cref="JObject"/> because the three.js <c>type</c>
+    /// field trails the payload (e.g. <c>data</c> comes first). That transiently boxes large numeric
+    /// arrays during load; the final storage is still a typed buffer.
     /// </para>
     /// </summary>
     public class ElementConverter : JsonConverter

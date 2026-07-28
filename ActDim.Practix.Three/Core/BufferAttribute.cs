@@ -37,7 +37,7 @@ namespace THREE.Core
 
         public BufferAttribute()
         {
-            // uuid defaults to Guid.Empty; the document layer assigns one if needed (plan §11).
+            // uuid defaults to Guid.Empty; the document layer assigns one if needed.
         }
 
         /// <summary>
