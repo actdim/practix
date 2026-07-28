@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Xunit;
 using THREE;
 using THREE.Core;
@@ -185,7 +186,6 @@ namespace ThreeLib.Tests
 					{ "uv", new BufferAttribute("Float32Array", Utilities.Flatten(uv2).ToArray(), 2) },
 					{ "color", new BufferAttribute("Float32Array", Utilities.Flatten(color2).ToArray(), 3) }
 
-
 				},
 				BoundingSphere = new BufferGeometryBoundingSphere
 				{
@@ -254,7 +254,6 @@ namespace ThreeLib.Tests
 					{ "normal", new BufferAttribute("Float32Array", norms3, 3) },
 					{ "uv", new BufferAttribute("Float32Array", uv3, 2) },
 					{ "color", new BufferAttribute("Float32Array", color3, 3) }
-
 
 				},
 				BoundingSphere = new BufferGeometryBoundingSphere
@@ -342,8 +341,6 @@ namespace ThreeLib.Tests
 
 			scene.Add(sphereMesh);
 
-			#region Lights
-
 			var pointLight = new PointLight
 			{
 				Color = new Color(100, 100, 100).ToInt(),
@@ -394,9 +391,7 @@ namespace ThreeLib.Tests
 
 			scene.Add(hemiLight);
 
-			#endregion
-
-			var json = ThreeJson.Serialize(scene.ToSceneDocument());
+			var json = JsonConvert.SerializeObject(scene.ToSceneDocument());
 			Assert.False(string.IsNullOrEmpty(json));
 		}
 	}

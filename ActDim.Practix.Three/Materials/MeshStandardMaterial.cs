@@ -13,7 +13,6 @@ namespace THREE.Materials
     public class MeshStandardMaterial : Material, IEquatable<MeshStandardMaterial>
     {
         // TODO: use map type constants
-        #region Properties
 
         /// <summary>
         /// Material diffuse color.
@@ -530,10 +529,6 @@ namespace THREE.Materials
 		[IgnoreDataMember]
         internal Dictionary<string, Texture> Textures { get; set; }
 
-        #endregion
-
-        #region Constructors
-
         public MeshStandardMaterial()
         {
             Textures = new Dictionary<string, Texture>();
@@ -555,10 +550,6 @@ namespace THREE.Materials
                 Emissive = 0
             };
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Returns material textures as a dictionary.
@@ -602,8 +593,6 @@ namespace THREE.Materials
                 return false;
             }
         }
-
-        #endregion
 
     }
 }

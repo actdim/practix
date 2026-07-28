@@ -11,7 +11,6 @@ namespace THREE.Materials
     public class Material : Element, IMaterial, IEquatable<Material>
     {
 
-        #region Properties
         /// <summary>
         /// Sets the alpha value to be used when running an alpha test. The material will not be renderered if the opacity is lower than this value.
         /// </summary>
@@ -111,10 +110,6 @@ namespace THREE.Materials
         /// </summary>
         public Dictionary<string, Dictionary<string, object>> UserData { get; set; }
 
-        #endregion
-
-        #region Methods
-
         public virtual bool Equals(Material other)
         {
             if (other == null)
@@ -143,8 +138,6 @@ namespace THREE.Materials
                    ClippingPlanes == other.ClippingPlanes &&
                    string.Equals(Precision, other.Precision);
         }
-
-        #endregion
 
     }
 }

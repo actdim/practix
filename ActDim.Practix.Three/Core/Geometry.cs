@@ -134,7 +134,7 @@ namespace THREE.Core
                 VertexNormals = true
             };
 
-            List<int> facesIndex = new List<int>();
+            List<int> facesIndex = new();
 
             if (faces != null)
             {
@@ -426,7 +426,7 @@ namespace THREE.Core
         {
             bool[] faceBits = new bool[] { Topology, FaceMaterial, FaceUVs, FaceVertexUVs,
                                            FaceNormals, VertexNormals, FaceColor, VertexColors };
-            System.Collections.BitArray bits = new System.Collections.BitArray(faceBits);
+            System.Collections.BitArray bits = new(faceBits);
 
             byte b = 0;
             if (bits.Get(0)) b++;

@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Xunit;
 using THREE;
 using THREE.Core;
@@ -18,7 +19,7 @@ namespace ThreeLib.Tests
 		[Fact]
 		public void CanDeserializeObject3D()
 		{
-			var adapter = ThreeJson.Deserialize(Object3DJson);
+			var adapter = JsonConvert.DeserializeObject<SceneDocument>(Object3DJson);
 
 			Assert.NotNull(adapter);
 

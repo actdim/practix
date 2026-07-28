@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using Xunit;
 using THREE;
 using THREE.Core;
@@ -23,12 +24,12 @@ namespace ThreeLib.Tests
 			// resources still without a uuid get one assigned during serialization.
 			Assert.Equal(Guid.Empty, geometry.Uuid);
 
-			var json = ThreeJson.Serialize(scene.ToSceneDocument());
+			var json = JsonConvert.SerializeObject(scene.ToSceneDocument());
 
 			Assert.NotEqual(Guid.Empty, geometry.Uuid);
 			Assert.NotEqual(Guid.Empty, material.Uuid);
 
-			var doc = ThreeJson.Deserialize(json);
+			var doc = JsonConvert.DeserializeObject<SceneDocument>(json);
 
 			// pools reconstructed polymorphically by the type discriminator
 			Assert.Single(doc.Geometries);
@@ -60,9 +61,9 @@ namespace ThreeLib.Tests
 
 			// serialize -> deserialize -> serialize again; the second output must equal the first
 			// (uuids assigned once are preserved, never regenerated).
-			var json1 = ThreeJson.Serialize(scene.ToSceneDocument());
-			var doc = ThreeJson.Deserialize(json1);
-			var json2 = ThreeJson.Serialize(doc);
+			var json1 = JsonConvert.SerializeObject(scene.ToSceneDocument());
+			var doc = JsonConvert.DeserializeObject<SceneDocument>(json1);
+			var json2 = JsonConvert.SerializeObject(doc);
 
 			Assert.Equal(json1, json2);
 		}
