@@ -30,6 +30,16 @@
   references throw (§12); unmodeled node types fall back to base `Object3D` (subset policy). New tests:
   concrete-type + reference-resolution asserts, and `Document_IsByteStable_AcrossRoundTrip`
   (`json → doc → json` identical). 4 tests green.
+- ✅ **No wrapper class — plain `JsonConvert`**: `ThreeJson` deleted. The format settings (converters,
+  camelCase resolver, null/default omission) now live **inside** `SceneDocumentConverter` as a private
+  `JsonSerializer`. Public API is `JsonConvert.SerializeObject(scene.ToSceneDocument())` /
+  `JsonConvert.DeserializeObject<SceneDocument>(json)` — `SceneDocument`'s `[JsonConverter]` routes to
+  the converter, so no settings or helper class is needed.
+- ✅ **STJ support** — `Serialization/DataContractResolver.cs`: a System.Text.Json
+  `IJsonTypeInfoResolver` honoring `[DataContract]` (opt-in) / `[DataMember(Name)]` /
+  `[IgnoreDataMember]`, so STJ produces the same names/member set as Newtonsoft. Tests: `Stj.*`
+  (names, opt-in exclusion, ignore). Note: STJ *document* (de)serialization (pools/refs/typed buffers)
+  would still need STJ ports of the three converters — not done; the resolver covers type-level STJ.
 - ⏳ Remaining:
   - **§4** — delete `Utilities` fully (still used by `Font.Equals`/`Matrix4`/legacy `Geometry`; tied to §5).
   - **§5** — equality/dedup + drop `CombineHashCodes`.

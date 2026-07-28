@@ -6,7 +6,6 @@ using THREE.Core;
 using THREE.Materials;
 using THREE.Math;
 using THREE.Objects;
-using THREE.Textures;
 
 namespace THREE.Serialization
 {
@@ -26,7 +25,17 @@ namespace THREE.Serialization
     {
         public override bool CanConvert(Type objectType) => objectType == typeof(SceneDocument);
 
-        #region Write (свёртка)
+        // Format settings live here — the converter owns the three.js rules: typed buffers
+        // (BufferAttributeConverter), element polymorphism (ElementConverter), camelCase for members
+        // without an explicit [DataMember(Name)], and null/default omission. Consumers just call plain
+        // JsonConvert on SceneDocument; its [JsonConverter] routes here, so no settings/wrapper is needed.
+        private static readonly JsonSerializer Inner = JsonSerializer.Create(new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            DefaultValueHandling = DefaultValueHandling.Ignore,
+            ContractResolver = new CamelCaseCustomResolver(),
+            Converters = { new BufferAttributeConverter(), new ElementConverter() },
+        });
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
@@ -41,39 +50,39 @@ namespace THREE.Serialization
             writer.WriteStartObject();
 
             writer.WritePropertyName("metadata");
-            serializer.Serialize(writer, document.Metadata ?? new Metadata { Version = 4.5, Type = "Object", Generator = "ThreeLib-Object3D.toJSON" });
+            Inner.Serialize(writer, document.Metadata ?? new Metadata { Version = 4.5, Type = "Object", Generator = "ThreeLib-Object3D.toJSON" });
 
-            WritePool(writer, serializer, "geometries", pools.Geometries);
-            WritePool(writer, serializer, "materials", pools.Materials);
+            WritePool(writer, "geometries", pools.Geometries);
+            WritePool(writer, "materials", pools.Materials);
             if (pools.Textures.Count > 0)
             {
-                WritePool(writer, serializer, "textures", pools.Textures);
+                WritePool(writer, "textures", pools.Textures);
             }
             if (pools.Images.Count > 0)
             {
-                WritePool(writer, serializer, "images", pools.Images);
+                WritePool(writer, "images", pools.Images);
             }
             if (pools.Fonts.Count > 0)
             {
-                WritePool(writer, serializer, "fonts", pools.Fonts);
+                WritePool(writer, "fonts", pools.Fonts);
             }
 
             if (document.Object != null)
             {
                 writer.WritePropertyName("object");
-                serializer.Serialize(writer, document.Object);
+                Inner.Serialize(writer, document.Object);
             }
 
             writer.WriteEndObject();
         }
 
-        private static void WritePool(JsonWriter writer, JsonSerializer serializer, string name, List<IElement> pool)
+        private static void WritePool(JsonWriter writer, string name, List<IElement> pool)
         {
             writer.WritePropertyName(name);
             writer.WriteStartArray();
             foreach (var element in pool)
             {
-                serializer.Serialize(writer, element);
+                Inner.Serialize(writer, element);
             }
             writer.WriteEndArray();
         }
@@ -106,7 +115,7 @@ namespace THREE.Serialization
 
         private static void CollectTextures(IMaterial material, PoolContext pools)
         {
-            if (!(material is MeshStandardMaterial standard))
+            if (material is not MeshStandardMaterial standard)
             {
                 return;
             }
@@ -150,13 +159,13 @@ namespace THREE.Serialization
 
         private sealed class PoolContext
         {
-            public readonly List<IElement> Geometries = new List<IElement>();
-            public readonly List<IElement> Materials = new List<IElement>();
-            public readonly List<IElement> Textures = new List<IElement>();
-            public readonly List<IElement> Images = new List<IElement>();
-            public readonly List<IElement> Fonts = new List<IElement>();
+            public readonly List<IElement> Geometries = new();
+            public readonly List<IElement> Materials = new();
+            public readonly List<IElement> Textures = new();
+            public readonly List<IElement> Images = new();
+            public readonly List<IElement> Fonts = new();
 
-            private readonly HashSet<object> _seen = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            private readonly HashSet<object> _seen = new(ReferenceEqualityComparer.Instance);
 
             /// <summary>Adds by reference identity; returns true if newly added.</summary>
             public bool AddUnique(List<IElement> pool, IElement element)
@@ -169,10 +178,6 @@ namespace THREE.Serialization
                 return true;
             }
         }
-
-        #endregion
-
-        #region Read (развёртка)
 
         private static readonly Dictionary<string, Type> NodeTypes = BuildNodeTypes();
 
@@ -205,12 +210,12 @@ namespace THREE.Serialization
 
             var document = new SceneDocument
             {
-                Metadata = jo["metadata"]?.ToObject<Metadata>(serializer),
-                Geometries = ReadPool(jo, "geometries", serializer),
-                Materials = ReadPool(jo, "materials", serializer),
-                Textures = ReadPool(jo, "textures", serializer),
-                Images = ReadPool(jo, "images", serializer),
-                Fonts = ReadPool(jo, "fonts", serializer),
+                Metadata = jo["metadata"]?.ToObject<Metadata>(Inner),
+                Geometries = ReadPool(jo, "geometries"),
+                Materials = ReadPool(jo, "materials"),
+                Textures = ReadPool(jo, "textures"),
+                Images = ReadPool(jo, "images"),
+                Fonts = ReadPool(jo, "fonts"),
             };
 
             var geometries = ToUuidMap(document.Geometries);
@@ -218,20 +223,20 @@ namespace THREE.Serialization
 
             if (jo["object"] is JObject root)
             {
-                document.Object = ReadNode(root, geometries, materials, serializer);
+                document.Object = ReadNode(root, geometries, materials);
             }
 
             return document;
         }
 
-        private static List<IElement> ReadPool(JObject jo, string name, JsonSerializer serializer)
+        private static List<IElement> ReadPool(JObject jo, string name)
         {
             var token = jo[name];
             if (token == null || token.Type != JTokenType.Array)
             {
                 return new List<IElement>();
             }
-            return token.ToObject<List<IElement>>(serializer);
+            return token.ToObject<List<IElement>>(Inner);
         }
 
         private static Dictionary<Guid, IElement> ToUuidMap(List<IElement> pool)
@@ -244,7 +249,7 @@ namespace THREE.Serialization
             return map;
         }
 
-        private static Object3D ReadNode(JObject node, Dictionary<Guid, IElement> geometries, Dictionary<Guid, IElement> materials, JsonSerializer serializer)
+        private static Object3D ReadNode(JObject node, Dictionary<Guid, IElement> geometries, Dictionary<Guid, IElement> materials)
         {
             var type = (string)node["type"];
             var obj = CreateNode(type);
@@ -255,7 +260,7 @@ namespace THREE.Serialization
             node.Remove("children");
             using (var subReader = node.CreateReader())
             {
-                serializer.Populate(subReader, obj);
+                Inner.Populate(subReader, obj);
             }
 
             if (node["matrix"] is JArray matrix && matrix.Count == 16)
@@ -276,7 +281,7 @@ namespace THREE.Serialization
                 {
                     if (child is JObject childObject)
                     {
-                        obj.Add(ReadNode(childObject, geometries, materials, serializer));
+                        obj.Add(ReadNode(childObject, geometries, materials));
                     }
                 }
             }
@@ -328,6 +333,5 @@ namespace THREE.Serialization
             }
         }
 
-        #endregion
     }
 }

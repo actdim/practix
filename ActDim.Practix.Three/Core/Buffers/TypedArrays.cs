@@ -198,7 +198,7 @@ namespace THREE.Core.Buffers
         public const string Float64Array = "Float64Array";
 
         private static readonly Dictionary<string, Func<IReadOnlyList<double>, ITypedArray>> FromDoublesMap =
-            new Dictionary<string, Func<IReadOnlyList<double>, ITypedArray>>(StringComparer.Ordinal)
+            new(StringComparer.Ordinal)
         {
             { Int8Array, FromDoublesInt8 },
             { Uint8Array, FromDoublesUint8 },

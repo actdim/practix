@@ -55,32 +55,4 @@ namespace THREE
             return container.ToSceneDocument();
         }
     }
-
-    /// <summary>
-    /// Entry point for three.js document (de)serialization. Replaces the old <c>Utilities</c> wrappers.
-    /// </summary>
-    public static class ThreeJson
-    {
-        public static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
-        {
-            DefaultValueHandling = DefaultValueHandling.Ignore,
-            NullValueHandling = NullValueHandling.Ignore,
-            ContractResolver = new Serialization.CamelCaseCustomResolver(),
-            Converters =
-            {
-                new Serialization.BufferAttributeConverter(),
-                new Serialization.ElementConverter(),
-            },
-        };
-
-        public static string Serialize(SceneDocument document, bool indented = false)
-        {
-            return JsonConvert.SerializeObject(document, indented ? Formatting.Indented : Formatting.None, Settings);
-        }
-
-        public static SceneDocument Deserialize(string json)
-        {
-            return JsonConvert.DeserializeObject<SceneDocument>(json, Settings);
-        }
-    }
 }

@@ -13,7 +13,6 @@ namespace THREE.Textures
     [DataContract]
     public class Texture : ITexture, IEquatable<Texture>
     {
-        #region Properties
 
         /// <summary>
         /// Object Id.
@@ -70,10 +69,6 @@ namespace THREE.Textures
         [DataMember(Name = "repeat")]
         public float[] Repeat { get; set; }
 
-        #endregion
-
-        #region Constructors
-
         /// <summary>
         /// Default constructor.
         /// </summary>
@@ -81,10 +76,6 @@ namespace THREE.Textures
         {
             Uuid = Guid.NewGuid();
         }
-
-        #endregion
-
-        #region Methods
 
         public bool Equals(Texture other)
         {
@@ -155,6 +146,5 @@ namespace THREE.Textures
             return !(a == b);
         }
 
-        #endregion
     }
 }

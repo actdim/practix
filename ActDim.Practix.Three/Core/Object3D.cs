@@ -10,7 +10,6 @@ namespace THREE.Core
     [DataContract]
     public class Object3D : Element
     {
-        #region Properties
 
         /// <summary>
         /// Object visibility.
@@ -72,10 +71,6 @@ namespace THREE.Core
 
         public static Vector3 DefaultUp { get; set; }
 
-        #endregion
-
-        #region Constructors
-
         static Object3D()
         {
             DefaultUp = new Vector3(0, 1, 0);
@@ -94,10 +89,6 @@ namespace THREE.Core
             Scale = new Vector3 { X = 1, Y = 1, Z = 1 };
             Parent = null;
         }
-
-        #endregion
-
-        #region Methods
 
         public void UpdateMatrix()
         {
@@ -127,6 +118,5 @@ namespace THREE.Core
             Children.AddRange(objects);
         }
 
-        #endregion
     }
 }
