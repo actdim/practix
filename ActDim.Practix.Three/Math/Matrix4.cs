@@ -23,6 +23,23 @@ namespace THREE.Math
             Elements = new float[16];
         }
 
+        /// <summary>
+        /// Builds a Matrix4 from a <see cref="System.Numerics.Matrix4x4"/>.
+        /// <para>
+        /// three.js stores a column-major matrix with translation in the last column (te[12..14]);
+        /// System.Numerics is row-major with row-vector convention and translation in the last row
+        /// (M41..M43). Copying the M?? fields in order into the column-major <see cref="Elements"/>
+        /// array performs the required transpose implicitly, so the represented transform is preserved.
+        /// </para>
+        /// </summary>
+        public Matrix4(System.Numerics.Matrix4x4 m) : this()
+        {
+            Elements[0] = m.M11; Elements[1] = m.M12; Elements[2] = m.M13; Elements[3] = m.M14;
+            Elements[4] = m.M21; Elements[5] = m.M22; Elements[6] = m.M23; Elements[7] = m.M24;
+            Elements[8] = m.M31; Elements[9] = m.M32; Elements[10] = m.M33; Elements[11] = m.M34;
+            Elements[12] = m.M41; Elements[13] = m.M42; Elements[14] = m.M43; Elements[15] = m.M44;
+        }
+
         public static Matrix4 Identity()
         {
             return new Matrix4()
@@ -32,6 +49,52 @@ namespace THREE.Math
                                            0, 0, 1, 0,
                                            0, 0, 0, 1 }
             };
+        }
+
+        /// <summary>
+        /// A scaling matrix. Mirrors <see cref="System.Numerics.Matrix4x4.CreateScale(System.Numerics.Vector3)"/>.
+        /// </summary>
+        public static Matrix4 CreateScale(Vector3 scale)
+        {
+            return new Matrix4(System.Numerics.Matrix4x4.CreateScale(scale.X, scale.Y, scale.Z));
+        }
+
+        /// <summary>
+        /// A scaling matrix from component scales.
+        /// </summary>
+        public static Matrix4 CreateScale(float x, float y, float z)
+        {
+            return new Matrix4(System.Numerics.Matrix4x4.CreateScale(x, y, z));
+        }
+
+        /// <summary>
+        /// A rotation matrix. Mirrors <see cref="System.Numerics.Matrix4x4.CreateFromQuaternion"/>.
+        /// </summary>
+        public static Matrix4 CreateFromQuaternion(Quaternion rotation)
+        {
+            return new Matrix4(System.Numerics.Matrix4x4.CreateFromQuaternion(
+                new System.Numerics.Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)));
+        }
+
+        /// <summary>
+        /// A translation matrix. Mirrors <see cref="System.Numerics.Matrix4x4.CreateTranslation(System.Numerics.Vector3)"/>.
+        /// </summary>
+        public static Matrix4 CreateTranslation(Vector3 position)
+        {
+            return new Matrix4(System.Numerics.Matrix4x4.CreateTranslation(position.X, position.Y, position.Z));
+        }
+
+        /// <summary>
+        /// Matrix product, delegating to System.Numerics so composition matches .NET semantics:
+        /// <code>
+        /// var m = Matrix4.CreateScale(scale)
+        ///       * Matrix4.CreateFromQuaternion(rotation)
+        ///       * Matrix4.CreateTranslation(position);
+        /// </code>
+        /// </summary>
+        public static Matrix4 operator *(Matrix4 a, Matrix4 b)
+        {
+            return new Matrix4(a.ToMatrix4x4() * b.ToMatrix4x4());
         }
 
         public void SetPosition(Vector3 vector)
@@ -126,6 +189,20 @@ namespace THREE.Math
         }
 
 		public float[] ToArray() { return Elements; }
+
+        /// <summary>
+        /// Converts back to a <see cref="System.Numerics.Matrix4x4"/> (inverse of the
+        /// <see cref="Matrix4(System.Numerics.Matrix4x4)"/> constructor).
+        /// </summary>
+        public System.Numerics.Matrix4x4 ToMatrix4x4()
+        {
+            var e = Elements;
+            return new System.Numerics.Matrix4x4(
+                e[0], e[1], e[2], e[3],
+                e[4], e[5], e[6], e[7],
+                e[8], e[9], e[10], e[11],
+                e[12], e[13], e[14], e[15]);
+        }
 
 		internal IEnumerable<object> ToObjectList()
         {

@@ -59,10 +59,11 @@ namespace THREE.Core
         public IEnumerable<object> MatrixArray { get { return Matrix.ToObjectList(); } }
 
         /// <summary>
-        /// The object's local position.
+        /// The object's local position. Independent of <see cref="Matrix"/>: the two are not kept in
+        /// sync automatically; compose a matrix explicitly via <see cref="Matrix4"/> when needed.
         /// </summary>
         [IgnoreDataMember]
-        public Vector3 Position { get { return Position; } set { Matrix.SetPosition(value); } }
+        public Vector3 Position { get; set; }
 
         [IgnoreDataMember]
         public Euler Rotation { get; set; }
@@ -106,7 +107,7 @@ namespace THREE.Core
 
         public void UpdateMatrix()
         {
-            Matrix.Compose(Matrix.GetPosition(), Quaternion, Scale);
+            Matrix.Compose(Position, Quaternion, Scale);
         }
 
         /// <summary>

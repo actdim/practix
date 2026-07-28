@@ -83,6 +83,61 @@ settings.
 **Geometry helpers:** `Utilities.Flatten(...)` unrolls nested arrays into a flat stream;
 `Utilities.OptimizeFloats(...)` collapses integer-valued floats to `int` (more compact JSON).
 
+## How the client (three.js / JS) consumes this data
+
+The JSON we emit is loaded on the client by three.js `ObjectLoader` (which delegates geometry to
+`BufferGeometryLoader`, materials to `MaterialLoader`). What matters for *us* is that the **data** we
+write must map cleanly onto what the client reconstructs. Refs:
+[format 4 wiki](https://github.com/mrdoob/three.js/wiki/JSON-Object-Scene-format-4),
+[BufferAttribute docs](https://threejs.org/docs/#api/en/core/BufferAttribute).
+
+**Reconstruction is by UUID.** Pools (`geometries`, `materials`, `textures`, `images`) are loaded
+first into lookup maps; then `object.children` are rebuilt and their `"geometry": "<uuid>"` /
+`"material": "<uuid>"` string fields are resolved against those maps. So a mesh's `geometry`/`material`
+in JSON is a **uuid reference**, never an inline object — this is exactly what `ProcessChildren` +
+`AddIfNew` produce on the C# side.
+
+**Buffer attributes are the critical payload.** Each entry under `data.attributes` (and `data.index`)
+becomes a `THREE.BufferAttribute` on the client, built from:
+
+- `array` — flat list of numbers, laid out per-vertex (vertex *i* occupies `array[i*itemSize .. +itemSize]`).
+  On the client it is wrapped in a **JS TypedArray whose class is chosen from the `type` string**.
+- `itemSize` — values per vertex (3 = position/normal, 2 = uv, 4 = rgba, 1 = index/scalar).
+- `count` — vertex count; on the client it is `array.length / itemSize` (informational in JSON).
+- `normalized` — for **integer** arrays only: `true` means the client remaps values at shader time —
+  unsigned → `[0,1]`, signed → `[-1,1]` (e.g. color stored as `Uint8Array` normalized). Ignored for floats.
+- `name` / `uuid` — carried through; three.js keys the attribute by its dictionary name (`position`,
+  `normal`, `uv`, `color`, `index`, …), so the **dictionary key is what the renderer binds**, not `name`.
+
+**`type` MUST be a valid JS TypedArray name** — the client picks both the TypedArray and the
+`*BufferAttribute` subclass from it. Emitting a wrong/empty `type` (see the `// TODO: Type = ...`
+spots in `CommonTests.cs`) means the client cannot reconstruct the attribute. Mapping:
+
+| `type` in JSON | JS TypedArray | Client `THREE.*BufferAttribute` |
+|----------------|---------------|---------------------------------|
+| `Int8Array`         | `Int8Array`         | `Int8BufferAttribute` |
+| `Uint8Array`        | `Uint8Array`        | `Uint8BufferAttribute` |
+| `Uint8ClampedArray` | `Uint8ClampedArray` | `Uint8ClampedBufferAttribute` |
+| `Int16Array`        | `Int16Array`        | `Int16BufferAttribute` |
+| `Uint16Array`       | `Uint16Array`       | `Uint16BufferAttribute` (typical for `index` ≤ 65535 verts) |
+| `Int32Array`        | `Int32Array`        | `Int32BufferAttribute` |
+| `Uint32Array`       | `Uint32Array`       | `Uint32BufferAttribute` (`index` > 65535 verts) |
+| `Float16Array`      | `Float16Array`      | `Float16BufferAttribute` |
+| `Float32Array`      | `Float32Array`      | `Float32BufferAttribute` (default for `position`/`normal`/`uv`) |
+| `Float64Array`      | `Float64Array`      | base `BufferAttribute` (no dedicated subclass) |
+
+Notes:
+- `BigInt64Array` / `BigUint64Array` are valid JS TypedArrays but three.js has **no** matching
+  `*BufferAttribute` and its loader will not build them — do not emit these as attribute `type`.
+- Non-standard attribute keys are fine as long as `type` is a valid TypedArray: the sample payload in
+  `DeserializationTests.cs` carries custom `colorCompact` (`Uint32Array`, itemSize 1) and `id`
+  (`Uint32Array`) attributes — the client will create real `Uint32BufferAttribute`s, but only a shader
+  / consumer that knows those keys will use them.
+- Choose the smallest type that fits the data: `index` as `Uint16Array` unless the geometry exceeds
+  65535 vertices (then `Uint32Array`); colors as normalized `Uint8Array` instead of `Float32Array` to
+  cut payload size. `Utilities.OptimizeFloats` compresses integer-valued floats, but the declared
+  `type` is what the client actually honors.
+
 ## Conventions
 
 - Public properties exposed to JSON are marked `[DataMember]` / `[IgnoreDataMember]`; outbound names
