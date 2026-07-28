@@ -51,7 +51,7 @@ namespace THREE.Core
         public Matrix4 Matrix { get; set; }
 
         [DataMember(Name = "matrix")]
-        public IEnumerable<object> MatrixArray { get { return Matrix.ToObjectList(); } }
+        public float[] MatrixArray => Matrix.ToArray();
 
         /// <summary>
         /// The object's local position. Independent of <see cref="Matrix"/>: the two are not kept in

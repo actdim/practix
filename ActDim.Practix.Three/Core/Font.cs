@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using THREE.Utility;
+using Newtonsoft.Json;
 
 namespace THREE.Core
 {
@@ -14,13 +14,13 @@ namespace THREE.Core
         /// <summary>
         /// String of text.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "text")]
         public string Text { get; set; }
 
         /// <summary>
         /// (optional) Scale for the Shapes. Default is 100.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "size")]
         public float Size { get; set; }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace THREE.Core
         /// <summary>
         /// font data Uuid.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "data")]
         public Guid? Data {
             get {
                 if (FontData != null)
@@ -88,8 +88,8 @@ namespace THREE.Core
             // var nameOther = ((JObject)other.Data).Property("familyName").Value.ToString();
             // return name == nameOther;
             return string.Equals(
-                System.Text.Encoding.UTF8.GetString(Utilities.Serialize(Data)),
-                System.Text.Encoding.UTF8.GetString(Utilities.Serialize(other.Data)),
+                JsonConvert.SerializeObject(Data),
+                JsonConvert.SerializeObject(other.Data),
                 StringComparison.OrdinalIgnoreCase
             );
         }

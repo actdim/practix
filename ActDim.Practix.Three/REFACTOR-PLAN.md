@@ -40,18 +40,21 @@
   `[IgnoreDataMember]`, so STJ produces the same names/member set as Newtonsoft. Tests: `Stj.*`
   (names, opt-in exclusion, ignore). Note: STJ *document* (de)serialization (pools/refs/typed buffers)
   would still need STJ ports of the three converters — not done; the resolver covers type-level STJ.
+- ✅ **§4 — `Utilities` deleted**: `OptimizeFloats` removed (`Object3D.MatrixArray` now returns
+  `float[]` = `Matrix.ToArray()`; `GeometryData.Vertices`/`Normals` return the raw `List<float>`),
+  `Flatten` removed (tests use `SelectMany`), `Serialize` removed (`Font.FontData.Equals` uses
+  `JsonConvert` directly). File `Utility/Utilities.cs` gone.
+- ✅ **§5 — `CombineHashCodes` dropped**: `Geometry`/`BufferGeometry`/`Texture` `GetHashCode` now use
+  `System.HashCode.Combine`. Dedup is identity-based in the converter (content equality no longer drives it).
+- ✅ **§3a — every `[DataMember]` has an explicit `Name`**: all of nodes, `Metadata`,
+  `BufferGeometry`/`Data`/`BoundingSphere`, all materials, all lights, cameras, `Texture`, `Image`,
+  legacy `Geometry`/`GeometryData`/`GeometryFace`, `Font`/`FontData`, `Sphere*`/`Text*` geometry params.
+  `[IgnoreDataMember]` kept for readability. Not annotated: `LightShadow`/`*Shadow` (opt-out plain props,
+  `new`-hidden `Camera` makes `[DataMember]` awkward) and `Material` base (never serialized — subclasses
+  are opt-in). The private `CamelCaseCustomResolver` inside `SceneDocumentConverter` is **kept as a
+  safety net** for those few attribute-less opt-out props; drop it only if they get annotated.
 - ⏳ Remaining:
-  - **§4** — delete `Utilities` fully (still used by `Font.Equals`/`Matrix4`/legacy `Geometry`; tied to §5).
-  - **§5** — equality/dedup + drop `CombineHashCodes`.
-  - **§3a explicit names** — ✅ annotated: nodes (`Element`, `Object3D`, `Scene`, `Mesh`/`Line`/
-    `LineSegments`/`Points`), `Metadata`, `BufferGeometry`/`Data`/`BoundingSphere`, all materials
-    (`MeshStandard`/`MeshBasic`/`MeshPhong`/`MeshLambert`/`Points`/`LineBasic`), all lights
-    (`Light` base + `Point`/`Spot`/`Directional`/`Hemisphere`/`RectArea`), cameras (`Camera` base +
-    `Perspective`/`Orthographic`), `Texture`, `Image`. `[IgnoreDataMember]` kept for readability.
-    ⏳ Still resolver-covered (rare/untested; annotate to finish): `LightShadow`/`*Shadow`, `Font`/
-    `FontData`, legacy `Geometry`/`GeometryData`/`GeometryFace`, `Material` base (inert — subclasses are
-    opt-in). `CamelCaseCustomResolver` **kept as a safety net**; drop only after the tail is annotated.
-  - **§10** — `index`/`groups`/`morphAttributes`/`drawRange`; **§12** — streaming (avoid `JObject` buffering on read).
+  - **§10** — `groups`/`morphAttributes`/`drawRange` (`index` done); **§12** — streaming (avoid `JObject` buffering on read).
 
 ## Goals
 
