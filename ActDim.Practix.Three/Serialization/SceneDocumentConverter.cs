@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using THREE.Core;
 using THREE.Materials;
 using THREE.Math;
 using THREE.Objects;
+using THREE.Textures;
 
 namespace THREE.Serialization
 {
@@ -208,35 +211,120 @@ namespace THREE.Serialization
 
             var jo = JObject.Load(reader);
 
+            // Keep the source JObject alongside each pooled element so cross-references (which are
+            // uuid strings and often exposed as get-only properties) can be resolved afterwards.
+            // geometries/materials are heterogeneous and carry a `type` discriminator (ElementConverter);
+            // textures/images/fonts are homogeneous and have no `type`, so read them as concrete types.
+            var geometryPairs = ReadPool<IElement>(jo, "geometries");
+            var materialPairs = ReadPool<IElement>(jo, "materials");
+            var texturePairs = ReadPool<Texture>(jo, "textures");
+            var imagePairs = ReadPool<Image>(jo, "images");
+            var fontPairs = ReadPool<FontData>(jo, "fonts");
+
             var document = new SceneDocument
             {
                 Metadata = jo["metadata"]?.ToObject<Metadata>(Inner),
-                Geometries = ReadPool(jo, "geometries"),
-                Materials = ReadPool(jo, "materials"),
-                Textures = ReadPool(jo, "textures"),
-                Images = ReadPool(jo, "images"),
-                Fonts = ReadPool(jo, "fonts"),
+                Geometries = Elements(geometryPairs),
+                Materials = Elements(materialPairs),
+                Textures = Elements(texturePairs),
+                Images = Elements(imagePairs),
+                Fonts = Elements(fontPairs),
             };
 
-            var geometries = ToUuidMap(document.Geometries);
-            var materials = ToUuidMap(document.Materials);
+            var geometriesById = ToUuidMap(document.Geometries);
+            var materialsById = ToUuidMap(document.Materials);
+            var texturesById = ToUuidMap(document.Textures);
+            var imagesById = ToUuidMap(document.Images);
+
+            ResolveResourceReferences(materialPairs, texturePairs, texturesById, imagesById);
 
             if (jo["object"] is JObject root)
             {
-                document.Object = ReadNode(root, geometries, materials);
+                document.Object = ReadNode(root, geometriesById, materialsById);
             }
 
             return document;
         }
 
-        private static List<IElement> ReadPool(JObject jo, string name)
+        private static List<(JObject Json, IElement Element)> ReadPool<T>(JObject jo, string name) where T : IElement
         {
-            var token = jo[name];
-            if (token == null || token.Type != JTokenType.Array)
+            var result = new List<(JObject, IElement)>();
+            if (jo[name] is JArray array)
             {
-                return new List<IElement>();
+                foreach (var item in array)
+                {
+                    if (item is JObject element)
+                    {
+                        result.Add((element, element.ToObject<T>(Inner)));
+                    }
+                }
             }
-            return token.ToObject<List<IElement>>(Inner);
+            return result;
+        }
+
+        private static List<IElement> Elements(List<(JObject Json, IElement Element)> pairs)
+        {
+            return pairs.ConvertAll(pair => pair.Element);
+        }
+
+        // Wires uuid string references between pooled resources: texture -> image, material -> textures.
+        private static void ResolveResourceReferences(
+            List<(JObject Json, IElement Element)> materials,
+            List<(JObject Json, IElement Element)> textures,
+            Dictionary<Guid, IElement> texturesById,
+            Dictionary<Guid, IElement> imagesById)
+        {
+            foreach (var (json, element) in textures)
+            {
+                if (element is Texture texture && TryUuid(json, "image", out var id) && imagesById.TryGetValue(id, out var image))
+                {
+                    texture.Image = (Image)image;
+                }
+            }
+
+            foreach (var (json, element) in materials)
+            {
+                ResolveMaterialTextures(element, json, texturesById);
+            }
+        }
+
+        // Each texture slot is a Guid? "<name>Uuid" property (its JSON name from [DataMember]) paired with
+        // an internal Texture "<name>" property. Resolve the pooled texture and assign it back.
+        private static void ResolveMaterialTextures(IElement material, JObject json, Dictionary<Guid, IElement> textures)
+        {
+            var type = material.GetType();
+            foreach (var uuidProperty in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                if (uuidProperty.PropertyType != typeof(Guid?) || !uuidProperty.Name.EndsWith("Uuid", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var textureName = uuidProperty.Name[..^"Uuid".Length];
+                var textureProperty = type.GetProperty(textureName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (textureProperty == null || textureProperty.PropertyType != typeof(Texture) || !textureProperty.CanWrite)
+                {
+                    continue;
+                }
+
+                var dataMember = uuidProperty.GetCustomAttribute<DataMemberAttribute>();
+                var key = !string.IsNullOrEmpty(dataMember?.Name)
+                    ? dataMember.Name
+                    : char.ToLowerInvariant(uuidProperty.Name[0]) + uuidProperty.Name[1..];
+
+                if (TryUuid(json, key, out var id) && textures.TryGetValue(id, out var texture))
+                {
+                    textureProperty.SetValue(material, texture);
+                }
+            }
+        }
+
+        private static bool TryUuid(JObject json, string key, out Guid id)
+        {
+            id = Guid.Empty;
+            return json[key] is JValue value
+                && value.Type == JTokenType.String
+                && Guid.TryParse((string)value, out id);
         }
 
         private static Dictionary<Guid, IElement> ToUuidMap(List<IElement> pool)
