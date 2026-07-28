@@ -10,8 +10,6 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
     // target - source/value/instance
     public static class ObjectExtensions
     {
-        #region IsNull
-
         /// <summary>
         /// Determines if the object is null
         /// </summary>
@@ -19,13 +17,13 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// <returns>True if it is null, false otherwise</returns>
         public static bool IsNull(this object obj)
         {
-            // obj == null
-            return ReferenceEquals(obj, null) || Convert.IsDBNull(obj);
-            // obj.GetType() == typeof(DBNull)
-            // obj == DBNull.Value
+            return obj is null;
         }
 
-        #endregion
+        public static bool IsDefault<T>(this T value)
+        {
+            return EqualityComparer<T>.Default.Equals(value, default);
+        }
 
         /// <summary>
         /// Turns a single item into an enumerable
