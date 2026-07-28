@@ -9,7 +9,7 @@ namespace THREE.Materials
         /// <summary>
         /// The material color.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "color")]
         public int Color { get; set; }
 
         /// <summary>

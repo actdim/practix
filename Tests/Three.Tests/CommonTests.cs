@@ -24,30 +24,30 @@ namespace ThreeLib.Tests
 				Name = "My Scene"
 			};
 
-			var verts = new List<float[]>
-			{
-				new float[] { 0, 0, 0 },
-				new float[] { 0, 0, 10.1234f },
-				new float[] { 10, 0, 10 },
-				new float[] { 10, 0, 0 }
-			};
+			List<float[]> verts =
+			[
+				[0, 0, 0],
+				[0, 0, 10.1234f],
+				[10, 0, 10],
+				[10, 0, 0]
+			];
 
-			var norms = new List<float[]>
-			{
-				new float[] { 0, 1, 0 },
-				new float[] { 0, 1, 0 },
-				new float[] { 0, 1, 0 },
-				new float[] { 0, 1, 0 }
-			};
+			List<float[]> norms =
+			[
+				[0, 1, 0],
+				[0, 1, 0],
+				[0, 1, 0],
+				[0, 1, 0]
+			];
 
 			var vertices = Utilities.Flatten(verts).Cast<float>().ToList(); // Geometry.ProcessVertexArray(verts);
 
 			var normals = Utilities.Flatten(norms).Cast<float>().ToList();
 
-			var face1 = new int[] { 0, 1, 2 };
-			var face2 = new int[] { 0, 2, 3 };
+			int[] face1 = [0, 1, 2];
+			int[] face2 = [0, 2, 3];
 
-			var faces = Geometry.ProcessFaceArray(new List<int[]> { { face1 }, { face2 } }, false, false);
+			var faces = Geometry.ProcessFaceArray([face1, face2], false, false);
 
 			var geometry = new Geometry(vertices, faces, normals);
 			var geometry2 = new Geometry(vertices, faces, normals);
@@ -96,13 +96,13 @@ namespace ThreeLib.Tests
 
 			scene.Add(line);
 
-			var colors = new List<int>
-			{
-				255,0,0,
-				255,255,0,
-				255,0,255,
-				0,255,0
-			};
+			List<int> colors =
+			[
+				255, 0, 0,
+				255, 255, 0,
+				255, 0, 255,
+				0, 255, 0
+			];
 
 			var pointsGeometry = new BufferGeometry
 			{
@@ -113,7 +113,7 @@ namespace ThreeLib.Tests
 				},
 				BoundingSphere = new BufferGeometryBoundingSphere
 				{
-					Center = new float[] { 0, 0, 0 },
+					Center = [0, 0, 0],
 					Radius = 4
 				}
 			};
@@ -136,46 +136,45 @@ namespace ThreeLib.Tests
 
 			scene.Add(points2);
 
-			var verts2 = new List<float[]>
-			{
-				new float[] { 0, 0, 0 },
-				new float[] { 0, 0, 10 },
-				new float[] { 10, 0, 10 },
-				new float[] { 0, 0, 0 },
-				new float[] { 10, 0, 10 },
-				new float[] { 10, 0, 0 }
-			};
+			List<float[]> verts2 =
+			[
+				[0, 0, 0],
+				[0, 0, 10],
+				[10, 0, 10],
+				[0, 0, 0],
+				[10, 0, 10],
+				[10, 0, 0]
+			];
 
-			var norms2 = new List<float[]>
-			{
-				new float[] { 0, 1, 0 },
-				new float[] { 0, 1, 0 },
-				new float[] { 0, 1, 0 },
-				new float[] { 0, 1, 0 },
-				new float[] { 0, 1, 0 },
-				new float[] { 0, 1, 0 }
-			};
+			List<float[]> norms2 =
+			[
+				[0, 1, 0],
+				[0, 1, 0],
+				[0, 1, 0],
+				[0, 1, 0],
+				[0, 1, 0],
+				[0, 1, 0]
+			];
 
-			var color2 = new List<float[]>
-			{
-				new float[] { 0, 0, 255 },
-				new float[] { 0, 0, 255 },
-				new float[] { 0, 0, 255 },
-				new float[] { 255, 0, 0 },
-				new float[] { 255, 0, 0 },
-				new float[] { 255, 0, 0 },
+			List<float[]> color2 =
+			[
+				[0, 0, 255],
+				[0, 0, 255],
+				[0, 0, 255],
+				[255, 0, 0],
+				[255, 0, 0],
+				[255, 0, 0],
+			];
 
-			};
-
-			var uv2 = new List<float[]>
-			{
-				new float[] { 0, 0 },
-				new float[] { 1, 0.5f },
-				new float[] { 1, 0 },
-				new float[] { 0, 0 },
-				new float[] { 0.5f, 1 },
-				new float[] { 1, 0.5f }
-			};
+			List<float[]> uv2 =
+			[
+				[0, 0],
+				[1, 0.5f],
+				[1, 0],
+				[0, 0],
+				[0.5f, 1],
+				[1, 0.5f]
+			];
 
 			var meshBG = new BufferGeometry
 			{
@@ -190,7 +189,7 @@ namespace ThreeLib.Tests
 				},
 				BoundingSphere = new BufferGeometryBoundingSphere
 				{
-					Center = new float[] { 0, 0, 0 },
+					Center = [0, 0, 0],
 					Radius = 5
 				}
 			};
@@ -206,45 +205,45 @@ namespace ThreeLib.Tests
 
 			scene.Add(mesh6);
 
-			var verts3 = new object[]
-			{
-				0, 0, 0 ,
-				0, 0, 10 ,
-				10, 0, 10 ,
+			object[] verts3 =
+			[
+				0, 0, 0,
+				0, 0, 10,
+				10, 0, 10,
 				10, 0, 0
-			};
+			];
 
-			var indexes = new object[] { 0, 1, 2, 0, 2, 3 };
+			object[] indexes = [0, 1, 2, 0, 2, 3];
 
-			var norms3 = new object[]
-			{
+			object[] norms3 =
+			[
 				0, 1, 0,
 				0, 1, 0,
 				0, 1, 0,
 				0, 1, 0,
 				0, 1, 0,
 				0, 1, 0
-			};
+			];
 
-			var color3 = new object[]
-			{
+			object[] color3 =
+			[
 				0, 0, 255,
 				0, 0, 255,
 				0, 0, 255,
 				255, 0, 0,
 				255, 0, 0,
 				255, 0, 0,
-			};
+			];
 
-			var uv3 = new object[]
-			{
+			object[] uv3 =
+			[
 				0, 0,
 				1, 0.5,
 				1, 0,
 				0, 0,
-				0.5, 1 ,
+				0.5, 1,
 				1, 0.5
-			};
+			];
 
 			var meshIBG = new BufferGeometry
 			{
@@ -260,7 +259,7 @@ namespace ThreeLib.Tests
 				},
 				BoundingSphere = new BufferGeometryBoundingSphere
 				{
-					Center = new float[] { 0, 0, 0 },
+					Center = [0, 0, 0],
 					Radius = 5
 				}
 			};

@@ -1,4 +1,6 @@
-﻿namespace THREE.Lights
+﻿using System.Runtime.Serialization;
+
+namespace THREE.Lights
 {
     /// <summary>
     /// This light gets emitted uniformly across the face a rectangular plane. This can be used to simulate things like bright windows or strip lighting.
@@ -10,11 +12,13 @@
         /// <summary>
         /// Height of the light.
         /// </summary>
+        [DataMember(Name = "height")]
         public float Height { get; set; }
 
         /// <summary>
         /// Width of the light.
         /// </summary>
+        [DataMember(Name = "width")]
         public float Width { get; set; }
     }
 }

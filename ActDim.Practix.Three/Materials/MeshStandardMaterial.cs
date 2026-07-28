@@ -18,31 +18,31 @@ namespace THREE.Materials
         /// <summary>
         /// Material diffuse color.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "color")]
         public int Color { get; set; }
 
         /// <summary>
         /// Material roughness.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "roughness")]
         public double Roughness { get; set; }
 
         /// <summary>
         /// Material metalness.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "metalness")]
         public double Metalness { get; set; }
 
         /// <summary>
         /// Material ambient color.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "ambient")]
         public int Ambient { get; set; }
 
         /// <summary>
         /// Material emissive color.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "emissive")]
         public int Emissive { get; set; }
 
         /// <summary>

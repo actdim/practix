@@ -33,11 +33,14 @@
 - ⏳ Remaining:
   - **§4** — delete `Utilities` fully (still used by `Font.Equals`/`Matrix4`/legacy `Geometry`; tied to §5).
   - **§5** — equality/dedup + drop `CombineHashCodes`.
-  - **§3a explicit names** — ✅ core types annotated (`Element`, `Object3D`, `Scene`, `Metadata`,
-    `Light` base, `BufferGeometry`/`Data`/`BoundingSphere`; `Mesh`/`Line`/`Points`/`LineSegments` already
-    had `geometry`/`material`). ⏳ Remaining mechanical pass: material subclasses, concrete lights,
-    cameras, textures, `Font`, legacy `Geometry` — still resolver-driven (correct camelCase) until
-    annotated; then drop `CamelCaseCustomResolver`.
+  - **§3a explicit names** — ✅ annotated: nodes (`Element`, `Object3D`, `Scene`, `Mesh`/`Line`/
+    `LineSegments`/`Points`), `Metadata`, `BufferGeometry`/`Data`/`BoundingSphere`, all materials
+    (`MeshStandard`/`MeshBasic`/`MeshPhong`/`MeshLambert`/`Points`/`LineBasic`), all lights
+    (`Light` base + `Point`/`Spot`/`Directional`/`Hemisphere`/`RectArea`), cameras (`Camera` base +
+    `Perspective`/`Orthographic`), `Texture`, `Image`. `[IgnoreDataMember]` kept for readability.
+    ⏳ Still resolver-covered (rare/untested; annotate to finish): `LightShadow`/`*Shadow`, `Font`/
+    `FontData`, legacy `Geometry`/`GeometryData`/`GeometryFace`, `Material` base (inert — subclasses are
+    opt-in). `CamelCaseCustomResolver` **kept as a safety net**; drop only after the tail is annotated.
   - **§10** — `index`/`groups`/`morphAttributes`/`drawRange`; **§12** — streaming (avoid `JObject` buffering on read).
 
 ## Goals

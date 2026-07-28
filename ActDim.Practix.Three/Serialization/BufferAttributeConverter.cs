@@ -143,7 +143,7 @@ namespace THREE.Serialization
 
             var attr = new BufferAttribute
             {
-                Uuid = uuid, // preserved from JSON; never regenerated (plan §11)
+                Uuid = uuid, // preserved from JSON; never regenerated
                 Name = name,
                 ItemSize = itemSize,
                 Normalized = normalized,
@@ -152,8 +152,8 @@ namespace THREE.Serialization
 
             if (array != null)
             {
-                // TODO(plan §1a): stream straight into the exact-sized T[] when `type` precedes `array`,
-                // instead of buffering doubles then converting.
+                // TODO: when `type` precedes `array`, stream straight into an exact-sized T[] instead of
+                // buffering doubles then converting.
                 attr.Values = TypedArrays.FromDoubles(type, array);
             }
 

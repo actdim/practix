@@ -18,10 +18,10 @@ namespace THREE.Textures
         /// <summary>
         /// Object Id.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "uuid")]
         public Guid Uuid { get; set; }
 
-        [DataMember]
+        [DataMember(Name = "name")]
         public string Name { get; set; }
 
         // public int Type { get; set; }
@@ -55,19 +55,19 @@ namespace THREE.Textures
         /// <summary>
         /// Texture mapping.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "mapping")]
         public int Mapping { get; set; }
 
         /// <summary>
         /// Texture wrapping.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "wrap")]
         public int[] Wrap { get; set; }
 
         /// <summary>
         /// Texture repetition.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "repeat")]
         public float[] Repeat { get; set; }
 
         #endregion

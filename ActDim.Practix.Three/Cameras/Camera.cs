@@ -12,10 +12,10 @@ namespace THREE.Cameras
     [DataContract]
     public abstract class Camera : Object3D
     {
-        [DataMember]
+        [DataMember(Name = "matrixWorldInverse")]
         public Matrix4 MatrixWorldInverse { get; set; }
 
-        [DataMember]
+        [DataMember(Name = "projectionMatrix")]
         public Matrix4 ProjectionMatrix { get; set; }
 
 		public Camera()

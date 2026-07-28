@@ -14,13 +14,13 @@ namespace ThreeLib.Tests
 		public void ToSceneDocument_FlattensGraphIntoPools_AndAssignsUuids()
 		{
 			var geometry = new BufferGeometry();
-			geometry.Attributes.Add("position", BufferAttribute.Float32(new float[] { 0, 0, 0, 1, 1, 1 }, 3));
+			geometry.Attributes.Add("position", BufferAttribute.Float32([0, 0, 0, 1, 1, 1], 3));
 			var material = MeshStandardMaterial.Default();
 
 			var scene = new Scene { Name = "s" };
 			scene.Add(new Mesh { Geometry = geometry, Material = material, Name = "m" });
 
-			// свёртка assigns uuids to resources that are still empty (plan §11).
+			// resources still without a uuid get one assigned during serialization.
 			Assert.Equal(Guid.Empty, geometry.Uuid);
 
 			var json = ThreeJson.Serialize(scene.ToSceneDocument());
@@ -50,7 +50,7 @@ namespace ThreeLib.Tests
 		public void Document_IsByteStable_AcrossRoundTrip()
 		{
 			var geometry = new BufferGeometry();
-			geometry.Attributes.Add("position", BufferAttribute.Float32(new float[] { 0, 0, 0, 1, 1, 1, 2, 2, 2 }, 3));
+			geometry.Attributes.Add("position", BufferAttribute.Float32([0, 0, 0, 1, 1, 1, 2, 2, 2], 3));
 
 			var scene = new Scene { Name = "round-trip" };
 			var mesh = new Mesh { Geometry = geometry, Material = MeshStandardMaterial.Default(), Name = "m" };
@@ -59,7 +59,7 @@ namespace ThreeLib.Tests
 			scene.Add(mesh);
 
 			// serialize -> deserialize -> serialize again; the second output must equal the first
-			// (uuids assigned once are preserved, never regenerated — plan §11).
+			// (uuids assigned once are preserved, never regenerated).
 			var json1 = ThreeJson.Serialize(scene.ToSceneDocument());
 			var doc = ThreeJson.Deserialize(json1);
 			var json2 = ThreeJson.Serialize(doc);

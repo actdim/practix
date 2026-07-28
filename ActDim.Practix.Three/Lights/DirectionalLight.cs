@@ -1,4 +1,5 @@
-﻿using THREE.Core;
+﻿using System.Runtime.Serialization;
+using THREE.Core;
 
 namespace THREE.Lights
 {
@@ -12,11 +13,13 @@ namespace THREE.Lights
         /// <summary>
         /// The directional light shadow object.
         /// </summary>
+        [DataMember(Name = "shadow")]
         public DirectionalLightShadow Shadow { get; set; }
 
         /// <summary>
         /// The directional light points from its position to target.position.
         /// </summary>
+        [DataMember(Name = "target")]
         public Object3D Target { get; set; }
 
 		public DirectionalLight()
