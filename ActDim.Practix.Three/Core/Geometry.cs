@@ -336,14 +336,6 @@ namespace THREE.Core
             return Utilities.CombineHashCodes(Vertices, Colors, Faces, Uvs, Normals);
         }
 
-        /// <summary>
-        /// Convert this geometry to json format.
-        /// </summary>		
-        /// <returns>The geometry as json.</returns>
-        public override byte[] ToJSON() // bool format // True will result in formatted json, false will result in an unformatted json .
-        {
-            return Utilities.Serialize(this);
-        }
     }
 
     [DataContract]

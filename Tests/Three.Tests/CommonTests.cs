@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Xunit;
 using THREE;
 using THREE.Core;
@@ -109,20 +108,8 @@ namespace ThreeLib.Tests
 			{
 				Attributes =
 				{
-					{ "position", new BufferAttribute
-						{
-							Array = vertices.Cast<object>().ToArray(),
-							ItemSize = 3,
-							Type = "Float32Array"
-						}
-					},
-					{ "color", new BufferAttribute
-						{
-							Array = colors.Cast<object>().ToArray(),
-							ItemSize = 3,
-							Type = "Uint8Array"
-						}
-					}
+					{ "position", new BufferAttribute("Float32Array", vertices.Cast<object>().ToArray(), 3) },
+					{ "color", new BufferAttribute("Uint8Array", colors.Cast<object>().ToArray(), 3) }
 				},
 				BoundingSphere = new BufferGeometryBoundingSphere
 				{
@@ -194,34 +181,10 @@ namespace ThreeLib.Tests
 			{
 				Attributes =
 				{
-					{ "position", new BufferAttribute
-						{
-							Array = Utilities.OptimizeFloats(Utilities.Flatten(verts2).Cast<float>()).ToArray(),
-							ItemSize = 3,
-							// TODO: Type = BufferAttributeType.Float32Array.ToString()
-						}
-					},
-					{ "normal", new BufferAttribute
-						{
-							Array = Utilities.Flatten(norms2).ToArray(),
-							ItemSize = 3,
-							// TODO: Type = BufferAttributeType.Float32Array.ToString()
-						}
-					},
-					{ "uv", new BufferAttribute
-						{
-							Array = Utilities.Flatten(uv2).ToArray(),
-							ItemSize = 2,
-							// TODO: Type = BufferAttributeType.Float32Array.ToString()
-						}
-					},
-					{ "color", new BufferAttribute
-						{
-							Array = Utilities.Flatten(color2).ToArray(),
-							ItemSize = 3,
-							// TODO: Type = BufferAttributeType.Float32Array.ToString()
-						}
-					}
+					{ "position", new BufferAttribute("Float32Array", Utilities.Flatten(verts2).Cast<float>().ToArray(), 3) },
+					{ "normal", new BufferAttribute("Float32Array", Utilities.Flatten(norms2).ToArray(), 3) },
+					{ "uv", new BufferAttribute("Float32Array", Utilities.Flatten(uv2).ToArray(), 2) },
+					{ "color", new BufferAttribute("Float32Array", Utilities.Flatten(color2).ToArray(), 3) }
 
 
 				},
@@ -287,41 +250,11 @@ namespace ThreeLib.Tests
 			{
 				Attributes =
 				{
-					{ "position", new BufferAttribute
-						{
-							Array = verts3,
-							ItemSize = 3,
-							// TODO: Type = BufferAttributeType.Float32Array.ToString()
-						}
-					},
-					{ "index", new BufferAttribute
-						{
-							Array = indexes,
-							ItemSize = 1,
-							// TODO: Type = BufferAttributeType.Int8Array.ToString()
-						}
-					},
-					{ "normal", new BufferAttribute
-						{
-							Array = norms3,
-							ItemSize = 3,
-							// TODO: Type = BufferAttributeType.Float32Array.ToString()
-						}
-					},
-					{ "uv", new BufferAttribute
-						{
-							Array = uv3,
-							ItemSize = 2,
-							// TODO: Type = BufferAttributeType.Float32Array.ToString()
-						}
-					},
-					{ "color", new BufferAttribute
-						{
-							Array = color3,
-							ItemSize = 3,
-							// TODO: Type = BufferAttributeType.Float32Array.ToString()
-						}
-					}
+					{ "position", new BufferAttribute("Float32Array", verts3, 3) },
+					{ "index", new BufferAttribute("Uint32Array", indexes, 1) },
+					{ "normal", new BufferAttribute("Float32Array", norms3, 3) },
+					{ "uv", new BufferAttribute("Float32Array", uv3, 2) },
+					{ "color", new BufferAttribute("Float32Array", color3, 3) }
 
 
 				},
@@ -464,7 +397,7 @@ namespace ThreeLib.Tests
 
 			#endregion
 
-			var json = Encoding.UTF8.GetString(scene.ToJSON());
+			var json = ThreeJson.Serialize(scene.ToSceneDocument());
 			Assert.False(string.IsNullOrEmpty(json));
 		}
 	}

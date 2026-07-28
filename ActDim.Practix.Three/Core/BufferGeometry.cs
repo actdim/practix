@@ -9,7 +9,7 @@ namespace THREE.Core
     [DataContract]
     public class BufferGeometry : Element, IGeometry, IEquatable<BufferGeometry>
     {
-		[DataMember]
+		[DataMember(Name = "data")]
         public BufferGeometryData Data { get; set; }
 
         [IgnoreDataMember]
@@ -32,16 +32,6 @@ namespace THREE.Core
         public BufferGeometry()
         {
             Data = new BufferGeometryData();
-        }
-
-        /// <summary>
-        /// Convert this BufferGeometry to json format.
-        /// </summary>
-
-        /// <returns>The geometry as json.</returns>
-        public override byte[] ToJSON() // bool format
-        {
-            return Utilities.Serialize(this);
         }
 
 		public bool Equals(BufferGeometry other)
@@ -119,13 +109,13 @@ namespace THREE.Core
     [DataContract]
     public class BufferGeometryData
     {
-		[DataMember]
+		[DataMember(Name = "attributes")]
         public IDictionary<string, BufferAttribute> Attributes { get; private set; }
 
-		[DataMember]
+		[DataMember(Name = "index")]
         public BufferAttribute Index { get; set; }
 
-		[DataMember]
+		[DataMember(Name = "boundingSphere")]
         internal BufferGeometryBoundingSphere BoundingSphere { get; set; }
 
 		public BufferGeometryData()
@@ -142,13 +132,13 @@ namespace THREE.Core
         /// <summary>
         /// Center position of the bounding sphere.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "center")]
         public float[] Center { get; set; }
 
         /// <summary>
         /// Radius of the bounding sphere.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "radius")]
         public float Radius { get; set; }
 
     }
