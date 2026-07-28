@@ -10,49 +10,49 @@ namespace THREE.Geometries
         /// <summary>
         /// An instance of THREE.Font.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "font")]
         public Font Font { get; set; }
 
         /// <summary>
         /// Size of the text. Default is 100.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "size")]
         public float Size { get; set; }
 
         /// <summary>
         /// Thickness to extrude text. Default is 50.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "height")]
         public float Height { get; set; }
 
         /// <summary>
         /// Number of points on the curves. Default is 12.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "curveSegments")]
         public int CurveSegments { get; set; }
 
         /// <summary>
         /// Turn on bevel. Default is False.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "bevelEnabled")]
         public bool BevelEnabled { get; set; }
 
         /// <summary>
         /// How deep into text bevel goes. Default is 10.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "bevelThickness")]
         public float BevelThickness { get; set; }
 
         /// <summary>
         /// How far from text outline is bevel. Default is 8.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "bevelSize")]
         public float BevelSize { get; set; }
 
         /// <summary>
         /// Number of bevel segments. Default is 3.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "bevelSegments")]
         public int BevelSegments { get; set; }
 
 		public bool Equals(TextGeometryParameters other)
@@ -88,7 +88,7 @@ namespace THREE.Geometries
     [DataContract]
     public class TextGeometry : Geometry, ITextGeometry, IEquatable<TextGeometry>
     {
-        [DataMember]
+        [DataMember(Name = "parameters")]
         public TextGeometryParameters Parameters { get; set; }
 
         bool IEquatable<TextGeometry>.Equals(TextGeometry other)
@@ -107,7 +107,7 @@ namespace THREE.Geometries
     [DataContract]
     public class TextBufferGeometry : Geometry, ITextGeometry, IEquatable<TextBufferGeometry>
     {
-        [DataMember]
+        [DataMember(Name = "parameters")]
         public TextGeometryParameters Parameters { get; set; }
 
 		public TextBufferGeometry(TextGeometryParameters parameters)

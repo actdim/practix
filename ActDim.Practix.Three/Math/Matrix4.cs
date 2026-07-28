@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using THREE.Utility;
-
-namespace THREE.Math
+﻿namespace THREE.Math
 {
     /// <summary>
     /// A class representing a 4x4 matrix.
@@ -202,11 +199,6 @@ namespace THREE.Math
                 e[4], e[5], e[6], e[7],
                 e[8], e[9], e[10], e[11],
                 e[12], e[13], e[14], e[15]);
-        }
-
-		internal IEnumerable<object> ToObjectList()
-        {
-            return Utilities.OptimizeFloats(Elements);
         }
     }
 }

@@ -10,43 +10,43 @@ namespace THREE.Geometries
         /// <summary>
         /// Sphere radius.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "radius")]
         public float Radius { get; set; }
 
         /// <summary>
         ///  Number of horizontal segments. Minimum value is 3.
-        /// </summary>		
-        [DataMember]
+        /// </summary>
+        [DataMember(Name = "widthSegments")]
         public int WidthSegments { get; set; }
 
         /// <summary>
         /// Number of vertical segments. Minimum value is 2.
-        /// </summary>		
-        [DataMember]
+        /// </summary>
+        [DataMember(Name = "heightSegments")]
         public int HeightSegments { get; set; }
 
         /// <summary>
         /// Specify horizontal starting angle (in radians).
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "phiStart")]
         public float PhiStart { get; set; }
 
         /// <summary>
         /// Specify horizontal sweep angle size (in radians).
-        /// </summary>		
-        [DataMember]
+        /// </summary>
+        [DataMember(Name = "phiLength")]
         public float PhiLength { get; set; }
 
         /// <summary>
         /// Specify horizontal sweep angle size (in radians).
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "thetaStart")]
         public float ThetaStart { get; set; }
 
         /// <summary>
         /// Specify vertical sweep angle size (in radians).
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "thetaLength")]
         public float ThetaLength { get; set; }
 
 		public bool Equals(SphereGeometryParameters other)
@@ -81,7 +81,7 @@ namespace THREE.Geometries
     [DataContract]
     public class SphereGeometry : Geometry, ISphereGeometry, IEquatable<SphereGeometry>
     {
-        [DataMember]
+        [DataMember(Name = "parameters")]
         public SphereGeometryParameters Parameters { get; set; }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace THREE.Geometries
     [DataContract]
     public class SphereBufferGeometry : BufferGeometry, ISphereGeometry, IEquatable<SphereBufferGeometry>
     {
-        [DataMember]
+        [DataMember(Name = "parameters")]
         public SphereGeometryParameters Parameters { get; set; }
 
 		public SphereBufferGeometry(SphereGeometryParameters parameters)

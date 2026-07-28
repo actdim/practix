@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Runtime.Serialization;
 using THREE.Core;
-using THREE.Utility;
 
 namespace THREE.Textures
 {
@@ -48,7 +47,6 @@ namespace THREE.Textures
                     return null;
                 }
             }
-
         }
 
         /// <summary>
@@ -94,7 +92,7 @@ namespace THREE.Textures
 
         public override int GetHashCode()
         {
-            return Utilities.CombineHashCodes(Mapping, Repeat, Wrap, Image);
+            return System.HashCode.Combine(Mapping, Repeat, Wrap, Image);
         }
 
         public override bool Equals(object other)

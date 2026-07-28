@@ -10,7 +10,6 @@ using THREE.Lights;
 using THREE.Materials;
 using THREE.Math;
 using THREE.Objects;
-using THREE.Utility;
 
 namespace ThreeLib.Tests
 {
@@ -41,9 +40,9 @@ namespace ThreeLib.Tests
 				[0, 1, 0]
 			];
 
-			var vertices = Utilities.Flatten(verts).Cast<float>().ToList(); // Geometry.ProcessVertexArray(verts);
+			var vertices = verts.SelectMany(v => v).ToList(); // Geometry.ProcessVertexArray(verts);
 
-			var normals = Utilities.Flatten(norms).Cast<float>().ToList();
+			var normals = norms.SelectMany(v => v).ToList();
 
 			int[] face1 = [0, 1, 2];
 			int[] face2 = [0, 2, 3];
@@ -181,10 +180,10 @@ namespace ThreeLib.Tests
 			{
 				Attributes =
 				{
-					{ "position", new BufferAttribute("Float32Array", Utilities.Flatten(verts2).Cast<float>().ToArray(), 3) },
-					{ "normal", new BufferAttribute("Float32Array", Utilities.Flatten(norms2).ToArray(), 3) },
-					{ "uv", new BufferAttribute("Float32Array", Utilities.Flatten(uv2).ToArray(), 2) },
-					{ "color", new BufferAttribute("Float32Array", Utilities.Flatten(color2).ToArray(), 3) }
+					{ "position", new BufferAttribute("Float32Array", verts2.SelectMany(v => v).ToArray(), 3) },
+					{ "normal", new BufferAttribute("Float32Array", norms2.SelectMany(v => v).ToArray(), 3) },
+					{ "uv", new BufferAttribute("Float32Array", uv2.SelectMany(v => v).ToArray(), 2) },
+					{ "color", new BufferAttribute("Float32Array", color2.SelectMany(v => v).ToArray(), 3) }
 
 				},
 				BoundingSphere = new BufferGeometryBoundingSphere

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using THREE.Utility;
 
 namespace THREE.Core
 {
@@ -102,7 +101,7 @@ namespace THREE.Core
         /// <returns>A hashcode of the combined data.</returns>
         public override int GetHashCode()
         {
-            return Utilities.CombineHashCodes(Data.Attributes, Data.BoundingSphere);
+            return System.HashCode.Combine(Data.Attributes, Data.BoundingSphere);
         }
     }
 

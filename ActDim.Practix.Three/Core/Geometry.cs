@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using THREE.Utility;
 
 namespace THREE.Core
 {
@@ -17,7 +16,7 @@ namespace THREE.Core
         /// <summary>
         /// Geometry data.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "data")]
         public GeometryData Data { get; set; }
 
         /// <summary>
@@ -333,7 +332,7 @@ namespace THREE.Core
         /// <returns>A hashcode of the combined vertices, colors, faces, Uvs, and Normals.</returns>
         public override int GetHashCode()
         {
-            return Utilities.CombineHashCodes(Vertices, Colors, Faces, Uvs, Normals);
+            return System.HashCode.Combine(Vertices, Colors, Faces, Uvs, Normals);
         }
 
     }
@@ -344,24 +343,19 @@ namespace THREE.Core
         [IgnoreDataMember]
         internal List<float> RawVertices { get; set; }
 
-        [DataMember]
-        public IEnumerable<object> Vertices // OutputVertices
-        {
-            get {
-                return Utilities.OptimizeFloats(RawVertices);
-            }
-        }
+        [DataMember(Name = "vertices")]
+        public List<float> Vertices => RawVertices;
 
-        [DataMember]
+        [DataMember(Name = "colors")]
         public List<int> Colors { get; set; }
 
-        [DataMember]
+        [DataMember(Name = "faces")]
         public List<int> Faces { get; set; }
 
         /// <summary>
         /// The list of UVs associated with this geometry.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "uvs")]
         public List<List<float>> Uvs { get; set; }
 
         /// <summary>
@@ -370,21 +364,16 @@ namespace THREE.Core
         [IgnoreDataMember]
         internal List<float> RawNormals { get; set; }
 
-        [DataMember]
-        public IEnumerable<object> Normals //OutputNormals
-        {
-            get {
-                return Utilities.OptimizeFloats(RawNormals);
-            }
-        }
+        [DataMember(Name = "normals")]
+        public List<float> Normals => RawNormals;
 
         internal GeometryData()
         {
-            RawVertices = new List<float>();
-            Colors = new List<int>();
-            Faces = new List<int>();
-            RawNormals = new List<float>();
-            Uvs = new List<List<float>>();
+            RawVertices = new();
+            Colors = new();
+            Faces = new();
+            RawNormals = new();
+            Uvs = new();
         }
 
     }
@@ -398,28 +387,28 @@ namespace THREE.Core
         /// <summary>
         /// False for triangle, true for quad.
         /// </summary>
-        [DataMember]
+        [DataMember(Name = "topology")]
         public bool Topology { get; set; } //false for triangle, true for quad
 
-        [DataMember]
+        [DataMember(Name = "faceMaterial")]
         public bool FaceMaterial { get; set; }
 
-        [DataMember]
+        [DataMember(Name = "faceUvs")]
         public bool FaceUVs { get; set; }
 
-        [DataMember]
+        [DataMember(Name = "faceVertexUvs")]
         public bool FaceVertexUVs { get; set; }
 
-        [DataMember]
+        [DataMember(Name = "faceNormals")]
         public bool FaceNormals { get; set; }
 
-        [DataMember]
+        [DataMember(Name = "vertexNormals")]
         public bool VertexNormals { get; set; }
 
-        [DataMember]
+        [DataMember(Name = "faceColor")]
         public bool FaceColor { get; set; }
 
-        [DataMember]
+        [DataMember(Name = "vertexColors")]
         public bool VertexColors { get; set; }
 
         internal byte GetFaceType()
