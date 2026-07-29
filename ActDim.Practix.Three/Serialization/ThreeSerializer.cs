@@ -1,7 +1,10 @@
 using System;
 using System.Buffers;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 using THREE.Serialization;
 
 namespace THREE
@@ -60,10 +63,41 @@ namespace THREE
             return buffer.WrittenSpan.ToArray();
         }
 
-        /// <summary>Deserializes from UTF-8 bytes without decoding to a string.</summary>
-        public static T FromBytes<T>(ReadOnlyMemory<byte> utf8)
+        /// <summary>
+        /// Deserializes from UTF-8 bytes without decoding to a string. Takes a
+        /// <see cref="ReadOnlySpan{T}"/> — exactly what STJ consumes; a <c>byte[]</c>,
+        /// <c>ReadOnlyMemory&lt;byte&gt;.Span</c>, <c>ArraySegment</c> or <c>stackalloc</c> all fit.
+        /// </summary>
+        public static T FromBytes<T>(ReadOnlySpan<byte> utf8)
         {
-            return JsonSerializer.Deserialize<T>(utf8.Span, Compact);
+            return JsonSerializer.Deserialize<T>(utf8, Compact);
+        }
+
+        /// <summary>Serializes as UTF-8 to a stream.</summary>
+        public static void ToStream<T>(Stream stream, T value, bool indented = false)
+        {
+            using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = indented }))
+            {
+                JsonSerializer.Serialize(writer, value, Compact);
+            }
+        }
+
+        /// <summary>Deserializes from a UTF-8 stream.</summary>
+        public static T FromStream<T>(Stream stream)
+        {
+            return JsonSerializer.Deserialize<T>(stream, Compact);
+        }
+
+        /// <summary>Asynchronously serializes as UTF-8 to a stream (STJ streams in chunks — no full buffering).</summary>
+        public static Task ToStreamAsync<T>(Stream stream, T value, bool indented = false, CancellationToken cancellationToken = default)
+        {
+            return JsonSerializer.SerializeAsync(stream, value, indented ? Indented : Compact, cancellationToken);
+        }
+
+        /// <summary>Asynchronously deserializes from a UTF-8 stream.</summary>
+        public static ValueTask<T> FromStreamAsync<T>(Stream stream, CancellationToken cancellationToken = default)
+        {
+            return JsonSerializer.DeserializeAsync<T>(stream, Compact, cancellationToken);
         }
     }
 }
