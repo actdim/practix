@@ -33,7 +33,7 @@ namespace THREE.Serialization
             writer.WriteString("type", attribute.Type);
 
             writer.WritePropertyName("array");
-            WriteArray(writer, attribute.Values);
+            attribute.Values.WriteTo(writer);
 
             if (attribute.Normalized)
             {
@@ -41,25 +41,6 @@ namespace THREE.Serialization
             }
 
             writer.WriteEndObject();
-        }
-
-        private static void WriteArray(Utf8JsonWriter writer, ITypedArray values)
-        {
-            writer.WriteStartArray();
-            switch (values)
-            {
-                case Int8Array a: foreach (var v in a.Data) { writer.WriteNumberValue(v); } break;
-                case Uint8Array a: foreach (var v in a.Data) { writer.WriteNumberValue(v); } break;
-                case Uint8ClampedArray a: foreach (var v in a.Data) { writer.WriteNumberValue(v); } break;
-                case Int16Array a: foreach (var v in a.Data) { writer.WriteNumberValue(v); } break;
-                case Uint16Array a: foreach (var v in a.Data) { writer.WriteNumberValue(v); } break;
-                case Int32Array a: foreach (var v in a.Data) { writer.WriteNumberValue(v); } break;
-                case Uint32Array a: foreach (var v in a.Data) { writer.WriteNumberValue(v); } break;
-                case Float16Array a: foreach (var v in a.Data) { writer.WriteNumberValue((float)v); } break;
-                case Float32Array a: foreach (var v in a.Data) { writer.WriteNumberValue(v); } break;
-                case Float64Array a: foreach (var v in a.Data) { writer.WriteNumberValue(v); } break;
-            }
-            writer.WriteEndArray();
         }
 
         public override BufferAttribute Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
