@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace THREE.Core
 {
     [DataContract]
-    public class BufferGeometry : Element, IGeometry, IEquatable<BufferGeometry>
+    public class BufferGeometry : Element, IGeometry
     {
 		[DataMember(Name = "data")]
         public BufferGeometryData Data { get; set; }
@@ -33,76 +31,6 @@ namespace THREE.Core
             Data = new BufferGeometryData();
         }
 
-		public bool Equals(BufferGeometry other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-            else
-            {
-                return Data.Attributes.SequenceEqual(other.Data.Attributes) &&
-                       Data.BoundingSphere.Equals(other.BoundingSphere);
-            }
-        }
-
-		public override bool Equals(object other)
-        {
-            // return Equals(other as BufferGeometry);
-            if (other.GetType() == typeof(BufferGeometry))
-            {
-                return Equals((BufferGeometry)other) && base.Equals(other);
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Override of the == operator.
-        /// </summary>
-        /// <param name="a">The first buffer geometry.</param>
-        /// <param name="b">The second buffer geometry.</param>
-        /// <returns>True if buffer geometries are equal, false if not.</returns>
-        public static bool operator ==(BufferGeometry a, BufferGeometry b)
-        {
-            bool aIsNull = ReferenceEquals(a, null);
-            bool bIsNull = ReferenceEquals(b, null);
-            if (aIsNull & bIsNull)
-            {
-                return true;
-            }
-            if (aIsNull)
-            {
-                return false;
-            }
-            if (bIsNull)
-            {
-                return false;
-            }
-            return a.Equals(b);
-        }
-
-        /// <summary>
-        /// Override the != operator.
-        /// </summary>
-        /// <param name="a">The first buffer geometry.</param>
-        /// <param name="b">The second buffer geometry.</param>
-        /// <returns>False if buffer geometries are equal, true if not.</returns>
-        public static bool operator !=(BufferGeometry a, BufferGeometry b)
-        {
-            return !(a == b);
-        }
-
-        /// <summary>
-        /// Override of the GetHashCode function.
-        /// </summary>
-        /// <returns>A hashcode of the combined data.</returns>
-        public override int GetHashCode()
-        {
-            return System.HashCode.Combine(Data.Attributes, Data.BoundingSphere);
-        }
     }
 
     [DataContract]

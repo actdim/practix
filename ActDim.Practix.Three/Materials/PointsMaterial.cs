@@ -8,7 +8,7 @@ namespace THREE.Materials
     /// Analogous to https://github.com/mrdoob/three.js/blob/master/src/materials/PointsMaterial.js
     /// </summary>
     [DataContract]
-    public class PointsMaterial : Material, IEquatable<PointsMaterial>
+    public class PointsMaterial : Material
     {
         /// <summary>
         /// Material color.
@@ -51,30 +51,5 @@ namespace THREE.Materials
             }
         }
 
-		public bool Equals(PointsMaterial other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-            else
-            {
-                return Color.Equals(other.Color) &&
-                       Size.Equals(other.Size) &&
-                       SizeAttenuation.Equals(other.SizeAttenuation);
-            }
-        }
-
-		public override bool Equals(Material other)
-        {
-            if (other.GetType() == typeof(PointsMaterial))
-            {
-                return Equals((PointsMaterial)other) && base.Equals(other);
-            }
-            else
-            {
-                return false;
-            }
-        }
     }
 }

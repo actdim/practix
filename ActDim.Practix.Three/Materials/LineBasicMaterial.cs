@@ -1,10 +1,9 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace THREE.Materials
 {
     [DataContract]
-    public class LineBasicMaterial : Material, IEquatable<LineBasicMaterial>
+    public class LineBasicMaterial : Material
     {
         /// <summary>
         /// The material color.
@@ -27,31 +26,5 @@ namespace THREE.Materials
         [DataMember(Name = "linejoin")]
         public string LineJoin { get; set; }
 
-		public bool Equals(LineBasicMaterial other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-            else
-            {
-                return Color.Equals(other.Color) &&
-                       LineWidth.Equals(other.LineWidth); //&&
-                                                          //LineJoin.Equals(other.LineJoin) &&
-                                                          //LineCap.Equals(other.LineCap);
-            }
-        }
-
-		public override bool Equals(Material other)
-        {
-            if (other.GetType() == typeof(LineBasicMaterial))
-            {
-                return Equals((LineBasicMaterial)other) && base.Equals(other);
-            }
-            else
-            {
-                return false;
-            }
-        }
     }
 }

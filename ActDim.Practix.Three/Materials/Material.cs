@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using THREE.Core;
 
 namespace THREE.Materials
@@ -8,7 +7,7 @@ namespace THREE.Materials
     {
     }
 
-    public class Material : Element, IMaterial, IEquatable<Material>
+    public class Material : Element, IMaterial
     {
 
         /// <summary>
@@ -108,36 +107,6 @@ namespace THREE.Materials
         /// <summary>
         /// An object that can be used to store custom data about the Material.
         /// </summary>
-        public Dictionary<string, Dictionary<string, object>> UserData { get; set; }
-
-        public virtual bool Equals(Material other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-            return AlphaTest.Equals(other.AlphaTest) &&
-                   Blending.Equals(other.Blending) &&
-                   ClipIntersections.Equals(other.ClipIntersections) &&
-                   ClipShadows.Equals(other.ClipShadows) &&
-                   ColorWrite.Equals(other.ColorWrite) &&
-                   DepthTest.Equals(other.DepthTest) &&
-                   DepthWrite.Equals(other.DepthWrite) &&
-                   Dithering.Equals(other.Dithering) &&
-                   FlatShading.Equals(other.FlatShading) &&
-                   Fog.Equals(other.Fog) &&
-                   Lights.Equals(other.Lights) &&
-                   Opacity.Equals(other.Opacity) &&
-                   Overdraw.Equals(other.Overdraw) &&
-                   PremultipliedAlpha.Equals(other.PremultipliedAlpha) &&
-                   Side.Equals(other.Side) &&
-                   Transparent.Equals(other.Transparent) &&
-                   VertexColors.Equals(other.VertexColors) &&
-                   Visible.Equals(other.Visible) &&
-                   UserData == other.UserData &&
-                   ClippingPlanes == other.ClippingPlanes &&
-                   string.Equals(Precision, other.Precision);
-        }
-
+        public Dictionary<string, object> UserData { get; set; }
     }
 }

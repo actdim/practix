@@ -10,7 +10,7 @@ namespace THREE.Materials
     /// TODO: Add roughness and metalness maps.
     /// </summary>
     [DataContract]
-    public class MeshStandardMaterial : Material, IEquatable<MeshStandardMaterial>
+    public class MeshStandardMaterial : Material
     {
         // TODO: use map type constants
 
@@ -558,40 +558,6 @@ namespace THREE.Materials
         internal Dictionary<string, Texture> GetTextures()
         {
             return Textures;
-        }
-
-        /// <summary>
-        /// Test to see if this material is equal to another.
-        /// </summary>
-        /// <param name="other">The material to test against.</param>
-        /// <returns>True if the object is equal to this one. False, otherwise.</returns>
-        public bool Equals(MeshStandardMaterial other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-            return Roughness.Equals(other.Roughness) &&
-                   Metalness.Equals(other.Metalness) &&
-                   Ambient.Equals(other.Ambient) &&
-                   Color.Equals(other.Color) &&
-                   Emissive.Equals(other.Emissive) &&
-                   Map == other.Map &&
-                   BumpMap == other.BumpMap &&
-                   AlphaMap == other.AlphaMap &&
-                   EnvironmentMap == other.EnvironmentMap;
-        }
-
-		public override bool Equals(Material other)
-        {
-            if (other.GetType() == typeof(MeshStandardMaterial))
-            {
-                return Equals((MeshStandardMaterial)other) && base.Equals(other);
-            }
-            else
-            {
-                return false;
-            }
         }
 
     }

@@ -5,7 +5,7 @@ using THREE.Textures;
 namespace THREE.Materials
 {
     [DataContract]
-    public class MeshPhongMaterial : Material, IEquatable<MeshPhongMaterial>
+    public class MeshPhongMaterial : Material
     {
         /// <summary>
         /// Material diffuse map.
@@ -99,21 +99,5 @@ namespace THREE.Materials
             }
         }
 
-		public bool Equals(MeshPhongMaterial other)
-        {
-            throw new NotImplementedException();
-        }
-
-		public override bool Equals(Material other)
-        {
-            if (other.GetType() == typeof(MeshPhongMaterial))
-            {
-                return Equals((MeshPhongMaterial)other) && base.Equals(other);
-            }
-            else
-            {
-                return false;
-            }
-        }
     }
 }

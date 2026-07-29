@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace THREE.Core
@@ -11,7 +9,7 @@ namespace THREE.Core
     /// Design based on need for Three.js Loaders.
     /// </summary>
     [DataContract]
-    public class Geometry : Element, IGeometry, IEquatable<Geometry>
+    public class Geometry : Element, IGeometry
     {
         /// <summary>
         /// Geometry data.
@@ -248,91 +246,6 @@ namespace THREE.Core
             }
 
             return Normals;
-        }
-
-        /// <summary>
-        /// Check if one Geometry equals another.
-        /// TODO: Check if base.Equals(other)? Object3D would need to be IEquatable.
-        /// </summary>
-        /// <param name="other">The other object to check.</param>
-        /// <returns></returns>
-        public bool Equals(Geometry other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-            else
-            {
-                return Data.Colors.SequenceEqual(other.Data.Colors) &&
-                       Data.Faces.SequenceEqual(other.Data.Faces) &&
-                       Data.RawNormals.SequenceEqual(other.Data.RawNormals) &&
-                       Data.Uvs.Any(uv => other.Data.Uvs.Any(otherUv => uv.SequenceEqual(otherUv))) &&
-                       Data.RawVertices.SequenceEqual(other.Data.RawVertices);
-            }
-        }
-
-        /// <summary>
-        /// Check if this geometry equals another comparing them as objects.
-        /// </summary>
-        /// <param name="other">The other object to compare.</param>
-        /// <returns></returns>
-        public override bool Equals(object other)
-        {
-            //return Equals(other as Geometry);
-            if (other.GetType() == typeof(Geometry))
-            {
-                return Equals((Geometry)other) && base.Equals(other);
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Override of the == operator.
-        /// </summary>
-        /// <param name="a">The first geometry.</param>
-        /// <param name="b">The second geometry.</param>
-        /// <returns>True if geometries are equal, false if not.</returns>
-        public static bool operator ==(Geometry a, Geometry b)
-        {
-            bool aIsNull = ReferenceEquals(a, null);
-            bool bIsNull = ReferenceEquals(b, null);
-            if (aIsNull & bIsNull)
-            {
-                return true;
-            }
-            if (aIsNull)
-            {
-                return false;
-            }
-            if (bIsNull)
-            {
-                return false;
-            }
-            return a.Equals(b);
-        }
-
-        /// <summary>
-        /// Override the != operator.
-        /// </summary>
-        /// <param name="a">The first geometry.</param>
-        /// <param name="b">The second geometry.</param>
-        /// <returns>False if geometries are equal, true if not.</returns>
-        public static bool operator !=(Geometry a, Geometry b)
-        {
-            return !(a == b);
-        }
-
-        /// <summary>
-        /// Override of the GetHashCode function.
-        /// </summary>
-        /// <returns>A hashcode of the combined vertices, colors, faces, Uvs, and Normals.</returns>
-        public override int GetHashCode()
-        {
-            return System.HashCode.Combine(Vertices, Colors, Faces, Uvs, Normals);
         }
 
     }
