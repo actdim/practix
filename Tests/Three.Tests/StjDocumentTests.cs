@@ -1,3 +1,5 @@
+using System;
+using System.Text;
 using System.Text.Json;
 using Xunit;
 using THREE;
@@ -54,6 +56,26 @@ namespace ThreeLib.Tests
 			var mesh = Assert.IsType<Mesh>(Assert.Single(doc.Object.Children));
 			Assert.Same(doc.Geometries[0], mesh.Geometry);
 			Assert.Same(doc.Materials[0], mesh.Material);
+		}
+
+		[Fact]
+		public void SerializerRoundTripsStringAndUtf8()
+		{
+			var document = BuildScene().ToSceneDocument();
+
+			var json = SceneDocumentSerializer.ToJson(document);
+			var fromString = SceneDocumentSerializer.FromJson(json);
+			Assert.IsType<BufferGeometry>(Assert.Single(fromString.Geometries));
+			Assert.IsType<Mesh>(Assert.Single(fromString.Object.Children));
+
+			var utf8 = SceneDocumentSerializer.ToBytes(document);
+			ReadOnlyMemory<byte> memory = utf8;
+			var fromBytes = SceneDocumentSerializer.FromBytes(memory);
+			var mesh = Assert.IsType<Mesh>(Assert.Single(fromBytes.Object.Children));
+			Assert.Same(fromBytes.Geometries[0], mesh.Geometry);
+
+			// string and UTF-8 paths produce the same JSON
+			Assert.Equal(json, Encoding.UTF8.GetString(utf8));
 		}
 	}
 }
