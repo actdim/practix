@@ -46,15 +46,7 @@ namespace THREE.Serialization
             writer.WriteValue(attr.Type);
 
             writer.WritePropertyName("array");
-            if (attr.Values != null)
-            {
-                attr.Values.Write(writer);
-            }
-            else
-            {
-                writer.WriteStartArray();
-                writer.WriteEndArray();
-            }
+            attr.Values.WriteTo(writer);
 
             if (attr.Normalized)
             {
