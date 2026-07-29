@@ -44,8 +44,16 @@
   `float[]` = `Matrix.ToArray()`; `GeometryData.Vertices`/`Normals` return the raw `List<float>`),
   `Flatten` removed (tests use `SelectMany`), `Serialize` removed (`Font.FontData.Equals` uses
   `JsonConvert` directly). File `Utility/Utilities.cs` gone.
-- ✅ **§5 — `CombineHashCodes` dropped**: `Geometry`/`BufferGeometry`/`Texture` `GetHashCode` now use
-  `System.HashCode.Combine`. Dedup is identity-based in the converter (content equality no longer drives it).
+- ✅ **§5 — value-equality removed entirely**: dropped `CombineHashCodes` and then the whole custom
+  equality family (`IEquatable<T>`, `Equals`/`GetHashCode` overrides, `==`/`!=` operators) from
+  `Geometry`/`BufferGeometry`/`Texture`/`Image`/`Material`+subclasses/`Sphere*`/`Text*` params — it was
+  dead (dedup is identity-based), `O(N)` over vertex arrays, and had a broken `Equals`/`GetHashCode`
+  contract + latent bugs (NRE on null, wrong subtype check). Types now use default reference equality.
+  `Core/ElementCollection.cs` deleted (its content-`AddIfNew` was the only consumer).
+- ✅ **Resource-type cleanup**: `Image` now `: Element` (just `Url`; removed `IImage`, `OriginalPath`,
+  `Exists`, `GetDataURL`). `Font`/`FontData` stripped of equality (still a ThreeLib extension — not
+  standard three.js). `Guid.NewGuid()` removed from `Texture`/`Image` ctors (uuid assigned by the
+  converter). `Object3D.UserData` and `Material.UserData` are both `Dictionary<string, object>` (§9).
 - ✅ **§3a — every `[DataMember]` has an explicit `Name`**: all of nodes, `Metadata`,
   `BufferGeometry`/`Data`/`BoundingSphere`, all materials, all lights, cameras, `Texture`, `Image`,
   legacy `Geometry`/`GeometryData`/`GeometryFace`, `Font`/`FontData`, `Sphere*`/`Text*` geometry params.

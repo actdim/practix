@@ -6,7 +6,7 @@ using THREE.Textures;
 namespace THREE.Materials
 {
     [DataContract]
-    public class MeshBasicMaterial : Material, IEquatable<MeshBasicMaterial>
+    public class MeshBasicMaterial : Material
     {
         /// <summary>
         /// Material diffuse color.
@@ -163,30 +163,5 @@ namespace THREE.Materials
             Textures = new Dictionary<string, Texture>();
         }
 
-		public bool Equals(MeshBasicMaterial other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-            return Color.Equals(other.Color) &&
-                   AoMap == other.AoMap &&
-                   Map == other.Map &&
-                   LightMap == other.LightMap &&
-                   AlphaMap == other.AlphaMap &&
-                   EnvironmentMap == other.EnvironmentMap;
-        }
-
-		public override bool Equals(Material other)
-        {
-            if (other.GetType() == typeof(MeshBasicMaterial))
-            {
-                return Equals((MeshBasicMaterial)other) && base.Equals(other);
-            }
-            else
-            {
-                return false;
-            }
-        }
     }
 }

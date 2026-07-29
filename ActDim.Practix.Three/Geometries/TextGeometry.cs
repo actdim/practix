@@ -1,11 +1,10 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using THREE.Core;
 
 namespace THREE.Geometries
 {
     [DataContract]
-    public class TextGeometryParameters : IEquatable<TextGeometryParameters>
+    public class TextGeometryParameters
     {
         /// <summary>
         /// An instance of THREE.Font.
@@ -55,24 +54,6 @@ namespace THREE.Geometries
         [DataMember(Name = "bevelSegments")]
         public int BevelSegments { get; set; }
 
-		public bool Equals(TextGeometryParameters other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-            else
-            {
-                return BevelEnabled.Equals(other.BevelEnabled) &&
-                       BevelSegments.Equals(other.BevelSegments) &&
-                       BevelSize.Equals(other.BevelSize) &&
-                       BevelThickness.Equals(other.BevelThickness) &&
-                       CurveSegments.Equals(other.CurveSegments) &&
-                       Font.Equals(other.Font) &&
-                       Height.Equals(other.Height) &&
-                       Size.Equals(other.Size);
-            }
-        }
     }
 
 	public interface ITextGeometry
@@ -86,45 +67,21 @@ namespace THREE.Geometries
     /// JS Source: https://github.com/mrdoob/three.js/blob/master/src/geometries/TextGeometry.js
     /// </summary>	
     [DataContract]
-    public class TextGeometry : Geometry, ITextGeometry, IEquatable<TextGeometry>
+    public class TextGeometry : Geometry, ITextGeometry
     {
         [DataMember(Name = "parameters")]
         public TextGeometryParameters Parameters { get; set; }
-
-        bool IEquatable<TextGeometry>.Equals(TextGeometry other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-            else
-            {
-                return Parameters.Equals(other.Parameters);
-            }
-        }
     }
 
     [DataContract]
-    public class TextBufferGeometry : Geometry, ITextGeometry, IEquatable<TextBufferGeometry>
+    public class TextBufferGeometry : Geometry, ITextGeometry
     {
         [DataMember(Name = "parameters")]
         public TextGeometryParameters Parameters { get; set; }
 
-		public TextBufferGeometry(TextGeometryParameters parameters)
+        public TextBufferGeometry(TextGeometryParameters parameters)
         {
             Parameters = parameters;
-        }
-
-		bool IEquatable<TextBufferGeometry>.Equals(TextBufferGeometry other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-            else
-            {
-                return Parameters.Equals(other.Parameters);
-            }
         }
     }
 }
