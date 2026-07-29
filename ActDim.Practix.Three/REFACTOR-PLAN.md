@@ -69,10 +69,25 @@
   instead of via `ElementConverter`. Legacy `Geometry.GeometryData.Vertices`/`Normals` made settable so
   legacy geometry round-trips on read. Tests: `ReferenceResolution.*` (texture/image via round-trip pool
   survival; legacy geometry vertices/normals). 9 tests green.
+- ✅ **§10 — geometry `data` fields + multi-material**: `BufferGeometryData` gained `groups`
+  (`GeometryGroup { start, count, materialIndex }`, `ShouldSerialize` when non-empty), `morphAttributes`
+  (`dict<string, List<BufferAttribute>>`, typed buffers via the converter), `drawRange`
+  (`DrawRange { start, count }`, omitted when null). `boundingSphere` confirmed NOT serialized
+  (`[IgnoreDataMember]`). Multi-material: `Mesh.Materials` (`IList<IMaterial>`) serialized as the
+  `material` array (single uuid otherwise); свёртка collects all, read resolves the array. Tests:
+  `GeometryData.*` (groups/drawRange/morph byte-stable round-trip; multi-material round-trip). 11 tests green.
+- ✅ **STJ document support**: full System.Text.Json path. Shared serializer-agnostic logic extracted to
+  `DocumentGraph` (flatten/pools/dedup, node & element type maps, texture-slot reflection); both the
+  Newtonsoft `SceneDocumentConverter` and the new STJ `SceneDocumentStjConverter` +
+  `BufferAttributeStjConverter` use it. `SceneDocument` carries **both** `[JsonConverter]` attributes
+  (Newtonsoft + STJ), so plain `JsonConvert.SerializeObject` / `JsonSerializer.Serialize` both work with
+  no settings. `DataContractResolver` now also honors `ShouldSerialize<Name>()` (STJ omits empty
+  `groups`/`morphAttributes` like Newtonsoft). `BufferGeometryData.Attributes`/`MorphAttributes` setters
+  made public (STJ doesn't populate private-set collections). Tests: `StjDocument.*` (STJ round-trip +
+  **Newtonsoft→STJ interop**). 13 tests green.
 - ⏳ Remaining:
-  - **geometry → font** reference resolution (`TextGeometry` → `Font`) — still not wired on read (niche, untested).
-  - **§10** — `groups`/`morphAttributes`/`drawRange` (+ multi-material `Mesh.Material[]`); `index` done.
-  - **§12** — streaming (avoid `JObject` buffering on read).
+  - **§12** — streaming (avoid `JObject`/`JsonNode` buffering on read; exact-presize typed buffer read).
+  - geometry → font resolution — **dropped** (fonts are not part of the three.js format; ThreeLib extension).
 
 ## Goals
 

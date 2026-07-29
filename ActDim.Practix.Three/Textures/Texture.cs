@@ -4,19 +4,9 @@ using THREE.Core;
 
 namespace THREE.Textures
 {
-    public interface ITexture : IElement
-    {
-    }
-
     [DataContract]
-    public class Texture : ITexture
+    public class Texture : Element
     {
-        [DataMember(Name = "uuid")]
-        public Guid Uuid { get; set; }
-
-        [DataMember(Name = "name")]
-        public string Name { get; set; }
-
         /// <summary>Image associated with this texture (referenced by uuid in JSON).</summary>
         [IgnoreDataMember]
         internal Image Image { get; set; }

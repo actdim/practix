@@ -56,25 +56,20 @@ namespace THREE.Geometries
 
     }
 
-	public interface ITextGeometry
-    {
-        TextGeometryParameters Parameters { get; set; }
-    }
-
     /// <summary>
     /// A class for generating text geometries.
     /// Analagous to: https://threejs.org/docs/index.html#api/en/geometries/TextGeometry
     /// JS Source: https://github.com/mrdoob/three.js/blob/master/src/geometries/TextGeometry.js
-    /// </summary>	
+    /// </summary>
     [DataContract]
-    public class TextGeometry : Geometry, ITextGeometry
+    public class TextGeometry : Geometry
     {
         [DataMember(Name = "parameters")]
         public TextGeometryParameters Parameters { get; set; }
     }
 
     [DataContract]
-    public class TextBufferGeometry : Geometry, ITextGeometry
+    public class TextBufferGeometry : Geometry
     {
         [DataMember(Name = "parameters")]
         public TextGeometryParameters Parameters { get; set; }

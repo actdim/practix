@@ -50,25 +50,20 @@ namespace THREE.Geometries
 
     }
 
-	public interface ISphereGeometry
-    {
-        SphereGeometryParameters Parameters { get; set; }
-    }
-
     /// <summary>
     /// A class for generating sphere geometries.
     /// Analagous to: https://threejs.org/docs/index.html#api/geometries/SphereGeometry
     /// JS Source: https://github.com/mrdoob/three.js/blob/master/src/geometries/SphereGeometry.js
-    /// </summary>	
+    /// </summary>
     [DataContract]
-    public class SphereGeometry : Geometry, ISphereGeometry
+    public class SphereGeometry : Geometry
     {
         [DataMember(Name = "parameters")]
         public SphereGeometryParameters Parameters { get; set; }
     }
 
     [DataContract]
-    public class SphereBufferGeometry : BufferGeometry, ISphereGeometry
+    public class SphereBufferGeometry : BufferGeometry
     {
         [DataMember(Name = "parameters")]
         public SphereGeometryParameters Parameters { get; set; }

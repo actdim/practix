@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using THREE.Core;
@@ -13,25 +11,16 @@ using THREE.Textures;
 namespace THREE.Serialization
 {
     /// <summary>
-    /// Owns all three.js document rules. On write it walks the core graph, builds the flat resource
-    /// pools with identity dedup, assigns missing uuids, and emits
-    /// <c>{ metadata, geometries, materials, textures?, images?, fonts?, object }</c>. Resource and node
-    /// bodies are delegated to the serializer (reflection over the <c>[DataMember]</c> names) — the
-    /// converter only controls document structure.
-    /// <para>
-    /// On read it resolves the pools polymorphically (via <see cref="ElementConverter"/>), rebuilds the
-    /// node tree into concrete types, resolves the <c>geometry</c>/<c>material</c> uuid references back
-    /// to the pooled instances, reads the matrix, and wires parents.
-    /// </para>
+    /// Newtonsoft converter for the three.js "Object" document. Structure (pools, uuid references, dedup)
+    /// comes from <see cref="DocumentGraph"/>; resource/node bodies are delegated to a private serializer
+    /// with the camelCase resolver and the typed-buffer / element-discriminator converters.
     /// </summary>
     public class SceneDocumentConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType) => objectType == typeof(SceneDocument);
 
-        // Format settings live here — the converter owns the three.js rules: typed buffers
-        // (BufferAttributeConverter), element polymorphism (ElementConverter), camelCase for members
-        // without an explicit [DataMember(Name)], and null/default omission. Consumers just call plain
-        // JsonConvert on SceneDocument; its [JsonConverter] routes here, so no settings/wrapper is needed.
+        // Format settings live here — consumers just call plain JsonConvert on SceneDocument; its
+        // [JsonConverter] routes here, so no settings/wrapper is needed.
         private static readonly JsonSerializer Inner = JsonSerializer.Create(new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore,
@@ -40,15 +29,12 @@ namespace THREE.Serialization
             Converters = { new BufferAttributeConverter(), new ElementConverter() },
         });
 
+        #region Write
+
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var document = (SceneDocument)value;
-            var pools = new PoolContext();
-
-            if (document.Object != null)
-            {
-                Collect(document.Object, pools);
-            }
+            var pools = DocumentGraph.Flatten(document.Object);
 
             writer.WriteStartObject();
 
@@ -90,117 +76,9 @@ namespace THREE.Serialization
             writer.WriteEndArray();
         }
 
-        private static void Collect(Object3D node, PoolContext pools)
-        {
-            EnsureUuid(node);
+        #endregion
 
-            if (node is IGeometryContainer container && container.Geometry != null)
-            {
-                EnsureUuid(container.Geometry);
-                pools.AddUnique(pools.Geometries, container.Geometry);
-            }
-
-            var material = MaterialOf(node);
-            if (material != null)
-            {
-                EnsureUuid(material);
-                if (pools.AddUnique(pools.Materials, material))
-                {
-                    CollectTextures(material, pools);
-                }
-            }
-
-            foreach (var child in node.Children)
-            {
-                Collect(child, pools);
-            }
-        }
-
-        private static void CollectTextures(IMaterial material, PoolContext pools)
-        {
-            if (material is not MeshStandardMaterial standard)
-            {
-                return;
-            }
-
-            foreach (var kvp in standard.GetTextures())
-            {
-                var texture = kvp.Value;
-                if (texture == null)
-                {
-                    continue;
-                }
-
-                EnsureUuid(texture);
-                if (pools.AddUnique(pools.Textures, texture) && texture.Image != null)
-                {
-                    EnsureUuid(texture.Image);
-                    pools.AddUnique(pools.Images, texture.Image);
-                }
-            }
-        }
-
-        private static IMaterial MaterialOf(Object3D node)
-        {
-            switch (node)
-            {
-                case Mesh mesh: return mesh.Material;
-                case Line line: return line.Material;
-                case LineSegments segments: return segments.Material;
-                case Points points: return points.Material;
-                default: return null;
-            }
-        }
-
-        private static void EnsureUuid(IElement element)
-        {
-            if (element.Uuid == Guid.Empty)
-            {
-                element.Uuid = Guid.NewGuid();
-            }
-        }
-
-        private sealed class PoolContext
-        {
-            public readonly List<IElement> Geometries = new();
-            public readonly List<IElement> Materials = new();
-            public readonly List<IElement> Textures = new();
-            public readonly List<IElement> Images = new();
-            public readonly List<IElement> Fonts = new();
-
-            private readonly HashSet<object> _seen = new(ReferenceEqualityComparer.Instance);
-
-            /// <summary>Adds by reference identity; returns true if newly added.</summary>
-            public bool AddUnique(List<IElement> pool, IElement element)
-            {
-                if (!_seen.Add(element))
-                {
-                    return false;
-                }
-                pool.Add(element);
-                return true;
-            }
-        }
-
-        private static readonly Dictionary<string, Type> NodeTypes = BuildNodeTypes();
-
-        private static Dictionary<string, Type> BuildNodeTypes()
-        {
-            var map = new Dictionary<string, Type>(StringComparer.Ordinal);
-            foreach (var t in typeof(Object3D).Assembly.GetTypes())
-            {
-                if (t.IsAbstract || !typeof(Object3D).IsAssignableFrom(t))
-                {
-                    continue;
-                }
-                if (t.GetConstructor(Type.EmptyTypes) == null)
-                {
-                    continue;
-                }
-                map[t.Name] = t;
-            }
-            return map;
-        }
+        #region Read
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
@@ -211,10 +89,6 @@ namespace THREE.Serialization
 
             var jo = JObject.Load(reader);
 
-            // Keep the source JObject alongside each pooled element so cross-references (which are
-            // uuid strings and often exposed as get-only properties) can be resolved afterwards.
-            // geometries/materials are heterogeneous and carry a `type` discriminator (ElementConverter);
-            // textures/images/fonts are homogeneous and have no `type`, so read them as concrete types.
             var geometryPairs = ReadPool<IElement>(jo, "geometries");
             var materialPairs = ReadPool<IElement>(jo, "materials");
             var texturePairs = ReadPool<Texture>(jo, "textures");
@@ -231,10 +105,10 @@ namespace THREE.Serialization
                 Fonts = Elements(fontPairs),
             };
 
-            var geometriesById = ToUuidMap(document.Geometries);
-            var materialsById = ToUuidMap(document.Materials);
-            var texturesById = ToUuidMap(document.Textures);
-            var imagesById = ToUuidMap(document.Images);
+            var geometriesById = DocumentGraph.ToUuidMap(document.Geometries);
+            var materialsById = DocumentGraph.ToUuidMap(document.Materials);
+            var texturesById = DocumentGraph.ToUuidMap(document.Textures);
+            var imagesById = DocumentGraph.ToUuidMap(document.Images);
 
             ResolveResourceReferences(materialPairs, texturePairs, texturesById, imagesById);
 
@@ -267,7 +141,6 @@ namespace THREE.Serialization
             return pairs.ConvertAll(pair => pair.Element);
         }
 
-        // Wires uuid string references between pooled resources: texture -> image, material -> textures.
         private static void ResolveResourceReferences(
             List<(JObject Json, IElement Element)> materials,
             List<(JObject Json, IElement Element)> textures,
@@ -284,37 +157,12 @@ namespace THREE.Serialization
 
             foreach (var (json, element) in materials)
             {
-                ResolveMaterialTextures(element, json, texturesById);
-            }
-        }
-
-        // Each texture slot is a Guid? "<name>Uuid" property (its JSON name from [DataMember]) paired with
-        // an internal Texture "<name>" property. Resolve the pooled texture and assign it back.
-        private static void ResolveMaterialTextures(IElement material, JObject json, Dictionary<Guid, IElement> textures)
-        {
-            var type = material.GetType();
-            foreach (var uuidProperty in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-            {
-                if (uuidProperty.PropertyType != typeof(Guid?) || !uuidProperty.Name.EndsWith("Uuid", StringComparison.Ordinal))
+                foreach (var (key, textureProperty) in DocumentGraph.TextureSlots(element.GetType()))
                 {
-                    continue;
-                }
-
-                var textureName = uuidProperty.Name[..^"Uuid".Length];
-                var textureProperty = type.GetProperty(textureName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (textureProperty == null || textureProperty.PropertyType != typeof(Texture) || !textureProperty.CanWrite)
-                {
-                    continue;
-                }
-
-                var dataMember = uuidProperty.GetCustomAttribute<DataMemberAttribute>();
-                var key = !string.IsNullOrEmpty(dataMember?.Name)
-                    ? dataMember.Name
-                    : char.ToLowerInvariant(uuidProperty.Name[0]) + uuidProperty.Name[1..];
-
-                if (TryUuid(json, key, out var id) && textures.TryGetValue(id, out var texture))
-                {
-                    textureProperty.SetValue(material, texture);
+                    if (TryUuid(json, key, out var id) && texturesById.TryGetValue(id, out var texture))
+                    {
+                        textureProperty.SetValue(element, texture);
+                    }
                 }
             }
         }
@@ -327,20 +175,9 @@ namespace THREE.Serialization
                 && Guid.TryParse((string)value, out id);
         }
 
-        private static Dictionary<Guid, IElement> ToUuidMap(List<IElement> pool)
-        {
-            var map = new Dictionary<Guid, IElement>();
-            foreach (var element in pool)
-            {
-                map[element.Uuid] = element;
-            }
-            return map;
-        }
-
         private static Object3D ReadNode(JObject node, Dictionary<Guid, IElement> geometries, Dictionary<Guid, IElement> materials)
         {
-            var type = (string)node["type"];
-            var obj = CreateNode(type);
+            var obj = DocumentGraph.CreateNode((string)node["type"]);
 
             // Type-specific scalars (light color/intensity, scene background, visible, userData, …) come
             // from reflection; structural parts (matrix, refs, children) are wired by hand below.
@@ -377,16 +214,6 @@ namespace THREE.Serialization
             return obj;
         }
 
-        private static Object3D CreateNode(string type)
-        {
-            if (type != null && NodeTypes.TryGetValue(type, out var concrete))
-            {
-                return (Object3D)Activator.CreateInstance(concrete);
-            }
-            // Lenient for unmodeled node types (subset policy): keep structure as a base Object3D.
-            return new Object3D { Type = type };
-        }
-
         private static void ResolveReferences(Object3D obj, JObject node, Dictionary<Guid, IElement> geometries, Dictionary<Guid, IElement> materials)
         {
             if (obj is IGeometryContainer container && node["geometry"] is JValue g && g.Type == JTokenType.String)
@@ -399,27 +226,33 @@ namespace THREE.Serialization
                 container.Geometry = (IGeometry)geometry;
             }
 
-            if (node["material"] is JValue m && m.Type == JTokenType.String)
+            var materialToken = node["material"];
+            if (materialToken is JValue single && single.Type == JTokenType.String)
             {
-                var id = Guid.Parse((string)m);
-                if (!materials.TryGetValue(id, out var material))
+                DocumentGraph.SetMaterial(obj, ResolveMaterial((string)single, materials));
+            }
+            else if (materialToken is JArray array && obj is Mesh mesh)
+            {
+                foreach (var item in array)
                 {
-                    throw new JsonSerializationException($"Unresolved material reference '{id}'.");
+                    if (item.Type == JTokenType.String)
+                    {
+                        mesh.Materials.Add(ResolveMaterial((string)item, materials));
+                    }
                 }
-                SetMaterial(obj, (IMaterial)material);
             }
         }
 
-        private static void SetMaterial(Object3D obj, IMaterial material)
+        private static IMaterial ResolveMaterial(string uuid, Dictionary<Guid, IElement> materials)
         {
-            switch (obj)
+            var id = Guid.Parse(uuid);
+            if (!materials.TryGetValue(id, out var material))
             {
-                case Mesh mesh: mesh.Material = material; break;
-                case Line line: line.Material = material; break;
-                case LineSegments segments: segments.Material = material; break;
-                case Points points: points.Material = material; break;
+                throw new JsonSerializationException($"Unresolved material reference '{id}'.");
             }
+            return (IMaterial)material;
         }
 
+        #endregion
     }
 }
