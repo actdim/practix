@@ -63,19 +63,35 @@ namespace ThreeLib.Tests
 		{
 			var document = BuildScene().ToSceneDocument();
 
-			var json = SceneDocumentSerializer.ToJson(document);
-			var fromString = SceneDocumentSerializer.FromJson(json);
+			var json = ThreeSerializer.ToJson(document);
+			var fromString = ThreeSerializer.FromJson<SceneDocument>(json);
 			Assert.IsType<BufferGeometry>(Assert.Single(fromString.Geometries));
 			Assert.IsType<Mesh>(Assert.Single(fromString.Object.Children));
 
-			var utf8 = SceneDocumentSerializer.ToBytes(document);
+			var utf8 = ThreeSerializer.ToBytes(document);
 			ReadOnlyMemory<byte> memory = utf8;
-			var fromBytes = SceneDocumentSerializer.FromBytes(memory);
+			var fromBytes = ThreeSerializer.FromBytes<SceneDocument>(memory);
 			var mesh = Assert.IsType<Mesh>(Assert.Single(fromBytes.Object.Children));
 			Assert.Same(fromBytes.Geometries[0], mesh.Geometry);
 
 			// string and UTF-8 paths produce the same JSON
 			Assert.Equal(json, Encoding.UTF8.GetString(utf8));
+		}
+
+		[Fact]
+		public void SerializesArbitraryThreeObject()
+		{
+			// Not a SceneDocument — an individual geometry round-trips via the shared STJ options.
+			var geometry = new BufferGeometry { Uuid = Guid.NewGuid() };
+			geometry.Attributes.Add("position", BufferAttribute.Float32([0, 0, 0, 1, 1, 1], 3));
+
+			var json = ThreeSerializer.ToJson(geometry);
+			Assert.Contains("\"data\"", json);
+			Assert.Contains("\"position\"", json);
+
+			var back = ThreeSerializer.FromBytes<BufferGeometry>(ThreeSerializer.ToBytes(geometry));
+			Assert.IsType<Float32Array>(back.Attributes["position"].Values);
+			Assert.Equal(3, back.Attributes["position"].ItemSize);
 		}
 	}
 }
