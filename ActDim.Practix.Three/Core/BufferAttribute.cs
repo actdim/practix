@@ -3,18 +3,12 @@ using THREE.Core.Buffers;
 
 namespace THREE.Core
 {
-
-    public interface IBufferAttribute : IElement
-    {
-
-    }
-
     /// <summary>
     /// A named vertex buffer attribute. The numeric payload is a typed <see cref="ITypedArray"/>
     /// (primitive <c>T[]</c> backing, no per-element boxing). (De)serialization is handled entirely by
     /// <c>BufferAttributeConverter</c> — this type carries no serialization attributes.
     /// </summary>
-    public class BufferAttribute : IBufferAttribute
+    public class BufferAttribute
     {
         public Guid Uuid { get; set; }
 

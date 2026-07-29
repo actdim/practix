@@ -61,6 +61,14 @@ namespace THREE.Serialization
                 {
                     property.Name = dataMember.Name;
                 }
+
+                // Honor Newtonsoft-style ShouldSerialize<Name>() so STJ omits the same members
+                // (e.g. empty `groups`/`morphAttributes`).
+                var shouldSerialize = member.DeclaringType?.GetMethod("ShouldSerialize" + member.Name, Type.EmptyTypes);
+                if (shouldSerialize != null && shouldSerialize.ReturnType == typeof(bool))
+                {
+                    property.ShouldSerialize = (obj, _) => obj != null && (bool)shouldSerialize.Invoke(obj, null);
+                }
             }
 
             return info;

@@ -131,7 +131,7 @@ namespace THREE.Core
                 VertexNormals = true
             };
 
-            List<int> facesIndex = new();
+            List<int> facesIndex = [];
 
             if (faces != null)
             {
@@ -282,11 +282,11 @@ namespace THREE.Core
 
         internal GeometryData()
         {
-            RawVertices = new();
-            Colors = new();
-            Faces = new();
-            RawNormals = new();
-            Uvs = new();
+            RawVertices = [];
+            Colors = [];
+            Faces = [];
+            RawNormals = [];
+            Uvs = [];
         }
 
     }

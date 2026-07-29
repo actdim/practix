@@ -81,7 +81,7 @@ namespace THREE.Core
         /// </summary>
         public Object3D()
         {
-            Children = new List<Object3D>();
+            Children = [];
             Matrix = Matrix4.Identity();
             Position = new Vector3();
             Rotation = new Euler();
