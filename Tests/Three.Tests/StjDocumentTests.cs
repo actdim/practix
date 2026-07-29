@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Xunit;
 using THREE;
 using THREE.Core;
@@ -68,14 +70,13 @@ namespace ThreeLib.Tests
 			Assert.IsType<BufferGeometry>(Assert.Single(fromString.Geometries));
 			Assert.IsType<Mesh>(Assert.Single(fromString.Object.Children));
 
-			var utf8 = ThreeSerializer.ToBytes(document);
-			ReadOnlyMemory<byte> memory = utf8;
-			var fromBytes = ThreeSerializer.FromBytes<SceneDocument>(memory);
+			var utf8bytes = ThreeSerializer.ToBytes(document);
+			var fromBytes = ThreeSerializer.FromBytes<SceneDocument>(utf8bytes);
 			var mesh = Assert.IsType<Mesh>(Assert.Single(fromBytes.Object.Children));
 			Assert.Same(fromBytes.Geometries[0], mesh.Geometry);
 
 			// string and UTF-8 paths produce the same JSON
-			Assert.Equal(json, Encoding.UTF8.GetString(utf8));
+			Assert.Equal(json, Encoding.UTF8.GetString(utf8bytes));
 		}
 
 		[Fact]
@@ -92,6 +93,37 @@ namespace ThreeLib.Tests
 			var back = ThreeSerializer.FromBytes<BufferGeometry>(ThreeSerializer.ToBytes(geometry));
 			Assert.IsType<Float32Array>(back.Attributes["position"].Values);
 			Assert.Equal(3, back.Attributes["position"].ItemSize);
+		}
+
+		[Fact]
+		public void RoundTripsViaStream()
+		{
+			var document = BuildScene().ToSceneDocument();
+
+			using (var stream = new MemoryStream())
+			{
+				ThreeSerializer.ToStream(stream, document);
+				stream.Position = 0;
+				var doc = ThreeSerializer.FromStream<SceneDocument>(stream);
+
+				Assert.Single(doc.Geometries);
+				Assert.IsType<Mesh>(Assert.Single(doc.Object.Children));
+			}
+		}
+
+		[Fact]
+		public async Task RoundTripsViaStreamAsync()
+		{
+			var document = BuildScene().ToSceneDocument();
+
+			using (var stream = new MemoryStream())
+			{
+				await ThreeSerializer.ToStreamAsync(stream, document);
+				stream.Position = 0;
+				var doc = await ThreeSerializer.FromStreamAsync<SceneDocument>(stream);
+
+				Assert.IsType<Mesh>(Assert.Single(doc.Object.Children));
+			}
 		}
 	}
 }
