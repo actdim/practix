@@ -1,11 +1,4 @@
 <!-- BEGIN ACTDIM-AGENTS-PROTOCOL root (managed by init-agents — do not edit by hand) -->
-# Working guidance
-
-- Always brace `if`/`else`/`for`/`foreach`/`while`/`do`/`using` etc. — never single-line or same-line bodies. Every language.
-- No `#region`/`#endregion` (or equivalent folding directives).
-- English everywhere: code, comments, doc-comments, identifiers, log/exception messages.
-- Don't rush to implement. First check: is it warranted? technically sound? any ambiguities to clarify? does it fit the current architecture and the roadmap/vision? If any is in doubt, raise it before coding.
-
 # ACTDIM-AGENTS-PROTOCOL
 
 This repo carries its own agent context, provider-agnostically. Follow it every session, whatever tool you are.
@@ -28,7 +21,7 @@ Also, when relevant: `.agents/VISION.md`, `.agents/GLOSSARY.md`, and the `.agent
 - On completion, MOVE the file to `.agents/TASKS/done/<slug>.md` and update the board.
 
 ## While working
-- Follow the conventions above and in `AGENTS.md`.
+- Follow the conventions in `AGENTS.md`.
 - `DECISIONS.md` is APPEND-ONLY: add a new dated entry per non-trivial architectural decision; never edit past ones — mark a replaced one "Superseded by #N".
 - Add any new/clarified domain term to `.agents/GLOSSARY.md`.
 - Keep the task you touch current (its `status`/`updated` + board line); new work found = a new task.
@@ -48,4 +41,14 @@ Touch `.agents/VISION.md` only if scope/roadmap changed.
 
 ## Project specifics
 
-<!-- Fill in: what this project is, how to build / test / run, architecture map, project-specific conventions. -->
+<!-- Fill in: what this project is, how to build / test / run, architecture map. -->
+
+### Code style
+
+- Always brace `if`/`else`/`for`/`foreach`/`while`/`do`/`using` etc. — never single-line or same-line bodies. Applies to every language (C#, JS/TS, …).
+- No `#region`/`#endregion` (or equivalent folding directives).
+- English everywhere: code, comments, doc-comments, identifiers, log/exception messages.
+
+### Before acting on a request
+
+Don't rush to implement. First check: is it warranted (does it solve the real problem)? is it technically sound? any disputed/ambiguous points to clarify? does it fit the current architecture? does it fit the roadmap/vision? If any of these is in doubt, raise it before coding rather than implementing silently.
