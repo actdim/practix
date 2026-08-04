@@ -561,7 +561,7 @@ namespace ActDim.Practix.Service
                     }
                 }
 
-                // TODO: OAuth/OIDC, Azure, Session, ApiKey
+                // TODO: support other types of authentication schemes (OIDC, etc.)
             }
 
             services.AddAuthorization(authorizationOptions =>

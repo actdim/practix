@@ -1,11 +1,11 @@
 ﻿using Autofac;
 using FastMember;
-using OrthoBits.Abstractions.DataAccess.Generic;
+using ActDim.Practix.Abstractions.DataAccess.Generic;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace OrthoBits.DataAccess.EntityMapping.Fetch
+namespace ActDim.Practix.DataAccess.EntityMapping.Fetch
 {
     public class FetcherEntityFactory
     {

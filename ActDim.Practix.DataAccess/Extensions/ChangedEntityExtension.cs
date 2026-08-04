@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using FastMember;
-using OrthoBits.Abstractions.DataAccess;
+using ActDim.Practix.Abstractions.DataAccess;
 
-namespace OrthoBits.DataAccess.Extensions // OrthoBits.DataAccess.Linq
+namespace ActDim.Practix.DataAccess.Extensions // ActDim.Practix.DataAccess.Linq
 {
 	public static class ChangedEntityExtensions
 	{

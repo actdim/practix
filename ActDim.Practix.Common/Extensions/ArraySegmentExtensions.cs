@@ -11,7 +11,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// <param name="src"></param>
         /// <param name="dstFactory"></param>
         /// <returns></returns>
-		public static T[] CloneToArray<T>(this ArraySegment<T> src, Func<int, T[]> dstFactory = default)
+		public static T[] CloneToArray<T>(this ArraySegment<T> src, Func<long, T[]> dstFactory = default)
         {
             var count = src.Count;
 

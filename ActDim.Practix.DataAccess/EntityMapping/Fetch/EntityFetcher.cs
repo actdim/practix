@@ -4,14 +4,14 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
-using OrthoBits.Abstractions.DataAccess;
-using OrthoBits.Abstractions.Json;
+using ActDim.Practix.Abstractions.DataAccess;
+using ActDim.Practix.Abstractions.Json;
 using System.Buffers;
-using OrthoBits.Common;
-using OrthoBits.Common.Extensions;
+using ActDim.Practix.Common;
+using ActDim.Practix.Common.Extensions;
 using Newtonsoft.Json;
 
-namespace OrthoBits.DataAccess.EntityMapping.Fetch
+namespace ActDim.Practix.DataAccess.EntityMapping.Fetch
 {
     public class EntityFetcher
     {
@@ -242,7 +242,7 @@ namespace OrthoBits.DataAccess.EntityMapping.Fetch
                                 {
                                     getBytes(true);
                                     var stream = (Stream)value;
-                                    strValue = stream.ToString(System.Text.Encoding.UTF8);
+                                    strValue = stream.GetString(System.Text.Encoding.UTF8);
                                 }
                                 else
                                 {

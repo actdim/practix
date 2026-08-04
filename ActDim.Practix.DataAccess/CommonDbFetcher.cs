@@ -1,12 +1,12 @@
 ﻿using Autofac;
-using OrthoBits.Abstractions.DataAccess;
-using OrthoBits.Abstractions.DataAccess.Generic;
-using OrthoBits.Abstractions.Json;
-using OrthoBits.Abstractions.Mapping;
-using OrthoBits.DataAccess.EntityMapping.Fetch;
+using ActDim.Practix.Abstractions.DataAccess;
+using ActDim.Practix.Abstractions.DataAccess.Generic;
+using ActDim.Practix.Abstractions.Json;
+using ActDim.Practix.Abstractions.Mapping;
+using ActDim.Practix.DataAccess.EntityMapping.Fetch;
 using System.Data.Common;
 
-namespace OrthoBits.DataAccess
+namespace ActDim.Practix.DataAccess
 {
     public class CommonDbFetcher<T> : IDbFetcher<T>
     {

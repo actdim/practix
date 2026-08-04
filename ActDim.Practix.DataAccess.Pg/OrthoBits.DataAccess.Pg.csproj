@@ -11,7 +11,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\OrthoBits.Abstractions\OrthoBits.Abstractions.csproj" />
+	  <ProjectReference Include="..\ActDim.Practix.Abstractions\ActDim.Practix.Abstractions.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -1,9 +1,9 @@
 ﻿using Autofac;
-using OrthoBits.Abstractions.DataAccess;
-using OrthoBits.Abstractions.Json;
+using ActDim.Practix.Abstractions.DataAccess;
+using ActDim.Practix.Abstractions.Json;
 using System.Data.Common;
 
-namespace OrthoBits.DataAccess.EntityMapping.Fetch
+namespace ActDim.Practix.DataAccess.EntityMapping.Fetch
 {
     public class EntityFetcher<T> : EntityFetcher
     {

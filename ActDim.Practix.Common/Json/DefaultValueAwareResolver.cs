@@ -34,7 +34,7 @@ namespace ActDim.Practix.Common.Json
 
             foreach (var property in typeInfo.Properties)
             {
-                var attrs = property.AttributeProvider?.GetCustomAttributes(true) ?? Array.Empty<object>();
+                var attrs = property.AttributeProvider?.GetCustomAttributes(true) ?? [];
 
                 var defaultValueAttr = attrs.OfType<DefaultValueAttribute>().FirstOrDefault();
                 var jsonDefaultValueAttr = attrs.OfType<JsonDefaultValueAttribute>().FirstOrDefault();

@@ -1,6 +1,9 @@
 using System;
+using System.Text.Json;
 using Xunit;
+using THREE.Core;
 using THREE.Core.Buffers;
+using THREE.Serialization;
 
 namespace ThreeLib.Tests
 {
@@ -32,6 +35,88 @@ namespace ThreeLib.Tests
 		{
 			Assert.Throws<Newtonsoft.Json.JsonSerializationException>(
 				() => TypedArrays.FromDoubles("NopeArray", [1]));
+		}
+
+		[Fact]
+		public void FromStrings_CreatesStringArray()
+		{
+			var array = TypedArrays.FromStrings(["a", "b", "c"]);
+
+			Assert.Equal(TypedArrays.StringArray, array.Type);
+			var typed = Assert.IsType<StringArray>(array);
+			Assert.Equal(new[] { "a", "b", "c" }, typed.Data);
+		}
+
+		[Fact]
+		public void FromArray_BuildsStringArrayForStringType()
+		{
+			var array = TypedArrays.FromArray(TypedArrays.StringArray, new[] { "a", "b", "c" });
+
+			Assert.Equal(TypedArrays.StringArray, array.Type);
+			var typed = Assert.IsType<StringArray>(array);
+			Assert.Equal(new[] { "a", "b", "c" }, typed.Data);
+		}
+
+		[Fact]
+		public void FromArray_TakesOwnershipWhenSourceIsExactType()
+		{
+			var source = new float[] { 1f, 2f, 3f };
+
+			var typed = Assert.IsType<Float32Array>(TypedArrays.FromArray(TypedArrays.Float32Array, source));
+
+			// Exact-type source is adopted with no copy.
+			Assert.Same(source, typed.Data);
+		}
+
+		[Fact]
+		public void FromArray_ConvertsBoxedNumbers()
+		{
+			// Heterogeneous boxed object[] (the shape callers actually pass) must convert to the real type.
+			object[] source = [0, 1, 0.5, 255];
+
+			var typed = Assert.IsType<Uint8Array>(TypedArrays.FromArray(TypedArrays.Uint8Array, source));
+
+			Assert.Equal(new byte[] { 0, 1, 0, 255 }, typed.Data);
+		}
+
+		[Fact]
+		public void FromArray_ThrowsOnOutOfRangeValue()
+		{
+			// Direct Convert-to-target surfaces bad data instead of silently wrapping (300 -> byte).
+			object[] source = [300];
+
+			Assert.Throws<OverflowException>(() => TypedArrays.FromArray(TypedArrays.Uint8Array, source));
+		}
+
+		[Fact]
+		public void StringArray_RoundTripsThroughStj()
+		{
+			var options = new JsonSerializerOptions();
+			options.Converters.Add(new BufferAttributeStjConverter());
+
+			var attribute = BufferAttribute.String(["red", "green", "blue"]);
+
+			var json = JsonSerializer.Serialize(attribute, options);
+			var back = JsonSerializer.Deserialize<BufferAttribute>(json, options);
+
+			Assert.Equal(TypedArrays.StringArray, back.Type);
+			var typed = Assert.IsType<StringArray>(back.Values);
+			Assert.Equal(new[] { "red", "green", "blue" }, typed.Data);
+		}
+
+		[Fact]
+		public void StringArray_RoundTripsThroughNewtonsoft()
+		{
+			var converter = new BufferAttributeConverter();
+
+			var attribute = BufferAttribute.String(["red", "green", "blue"]);
+
+			var json = Newtonsoft.Json.JsonConvert.SerializeObject(attribute, converter);
+			var back = Newtonsoft.Json.JsonConvert.DeserializeObject<BufferAttribute>(json, converter);
+
+			Assert.Equal(TypedArrays.StringArray, back.Type);
+			var typed = Assert.IsType<StringArray>(back.Values);
+			Assert.Equal(new[] { "red", "green", "blue" }, typed.Data);
 		}
 	}
 }

@@ -1,7 +1,7 @@
-﻿using OrthoBits.Abstractions.DataAccess.Sql;
+﻿using ActDim.Practix.Abstractions.DataAccess.Sql;
 using System;
 
-namespace OrthoBits.DataAccess.Sql
+namespace ActDim.Practix.DataAccess.Sql
 {
     [Obsolete]
     public static class Sql

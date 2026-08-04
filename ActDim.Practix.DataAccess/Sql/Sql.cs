@@ -3,11 +3,11 @@ using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
 using System.Text;
-using OrthoBits.Abstractions.DataAccess;
-using OrthoBits.Abstractions.DataAccess.Sql;
-using OrthoBits.Abstractions.Json;
+using ActDim.Practix.Abstractions.DataAccess;
+using ActDim.Practix.Abstractions.DataAccess.Sql;
+using ActDim.Practix.Abstractions.Json;
 
-namespace OrthoBits.DataAccess.Sql
+namespace ActDim.Practix.DataAccess.Sql
 {
     public class SqlGenerator : ISql
     {

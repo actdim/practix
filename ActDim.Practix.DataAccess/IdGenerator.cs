@@ -1,12 +1,12 @@
 ﻿using Conditions;
-using OrthoBits.Abstractions.DataAccess;
-using OrthoBits.DataAccess.Attributes;
+using ActDim.Practix.Abstractions.DataAccess;
+using ActDim.Practix.DataAccess.Attributes;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace OrthoBits.DataAccess
+namespace ActDim.Practix.DataAccess
 {
     internal class IdGenerator : IIdGenerator
     {

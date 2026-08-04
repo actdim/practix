@@ -2,7 +2,7 @@
 using System.Data;
 using System.Data.Common;
 
-namespace Orthobits.Abstractions.DataAccess
+namespace ActDim.Practix.Abstractions.DataAccess
 {
     // PgDbConnectionFactory
     public class PgDbConnectionProvider : IDbConnectionProvider

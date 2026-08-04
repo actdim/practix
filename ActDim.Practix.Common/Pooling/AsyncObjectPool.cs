@@ -39,10 +39,7 @@ namespace ActDim.Practix.Pooling
         /// </param>
         public AsyncObjectPool(Func<Task<T>> factory, int maxSize, Func<T, ValueTask> disposer = null)
         {
-            if (maxSize <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(maxSize));
-            }
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxSize);
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _disposer = disposer;
             _maxSize = maxSize;

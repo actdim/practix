@@ -1,0 +1,232 @@
+<!-- BEGIN ACTDIM-AGENTS-PROTOCOL ref=../AGENTS.md (managed by init-agents — do not edit by hand) -->
+This folder belongs to a repository that uses the ACTDIM-AGENTS structure. The full working
+guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) —
+read it there. This folder keeps its OWN `.agents/` state; use the nearest one.
+Only this folder's specifics follow.
+<!-- END ACTDIM-AGENTS-PROTOCOL -->
+
+## Project specifics
+
+# ActDim.Practix.BlobManager — AI Context File
+
+## Purpose
+
+A blob storage library providing:
+- **Metadata management** via SQLite (`blob_records` table)
+- **Distributed read/write locking** via SQLite (`resource_locks` table)
+- **File I/O** via file system (`FileSystemBlobDataStore`)
+- **Expiration policies**: absolute, TTL, sliding
+
+---
+
+## Solution Layout
+
+```
+ActDim.Practix.BlobManager/
+├── IBlobManager.cs           # Public API
+├── IBlobDataStore.cs         # Public file I/O interface
+├── IBlobStoreOptions.cs        # Public expiration options interface
+├── BlobLockType.cs           # Enum: None / Read / Write
+├── BlobRecord.cs             # SQLite ORM model + IAsyncDisposable
+├── BlobManager.cs            # internal — delegates to IBlobDataStore + IBlobRegistry
+├── IBlobRegistry.cs     # internal — SQLite lock + metadata contract
+├── SQLiteBlobRegistry.cs# internal — lock engine + metadata persistence
+├── FileSystemBlobDataStore.cs# public — FS implementation of IBlobDataStore
+└── InternalsVisibleTo.cs     # exposes internals to test project
+
+Tests/BlobManager.Tests/
+└── BlobManagerTests.cs       # 7 xUnit v3 tests
+```
+
+---
+
+## Key Concepts
+
+### 1. Two-layer design
+
+```
+IBlobManager  (public)
+    ├─ IBlobDataStore  → FileSystemBlobDataStore  (file ops)
+    └─ IBlobRegistry   → SQLiteBlobRegistry       (locks + metadata)
+```
+
+`BlobManager` (internal) is a thin wrapper; all logic lives in `SQLiteBlobRegistry`.
+
+### 2. `BlobErrorCode` — return values instead of exceptions
+
+All three lock-acquiring methods return `(BlobErrorCode ErrorCode, BlobRecord Record)`:
+
+| `BlobErrorCode` | Meaning |
+|-----------------|---------|
+| `None` | Success — `Record` is non-null and holds the lock |
+| `KeyNotFound` | No record with that key; `Record` is `null` |
+| `Timeout` | Lock acquisition timed out; `Record` is `null` |
+
+Always check `ErrorCode == BlobErrorCode.None` before using `Record`.
+
+### 3. Lock lifecycle — caller MUST `await using`
+
+Every successful call (ErrorCode == None) returns a `BlobRecord` that holds a lock. The lock is released in `DisposeAsync` via the `OnDisposeAsync` callback set by `SQLiteBlobRegistry`.
+
+| Method | Lock acquired | Lock released on dispose |
+|--------|--------------|--------------------------|
+| `TryGetOrSetAsync` | Write | Updates `AccessedAt` + `UpdatedAt`, extends sliding expiry |
+| `TryGetForReadingAsync` | Read | Updates `AccessedAt`, extends sliding expiry |
+| `TryGetForWritingAsync` | Write | Updates `AccessedAt` + `UpdatedAt`, extends sliding expiry |
+
+`TryGetForReadingAsync` and `TryGetForWritingAsync` return `BlobErrorCode.KeyNotFound` if the key does not exist — call `TryGetOrSetAsync` first.
+
+Read lock: allows concurrent readers, blocks writers.  
+Write lock: exclusive — blocks all readers and writers.
+
+Lock ownership is tracked via a `lockHeld` flag: on success it is transferred to `record.OnDisposeAsync`; on any exception the `finally` block releases it exactly once.
+
+### 3. IBlobDataStore lock validation
+
+`FileSystemBlobDataStore` validates `BlobRecord.LockType` before I/O:
+- `Read` / `ReadAsync` — requires `LockType == Read || Write`
+- `Write` / `WriteAsync` / `Append` / `AppendAsync` — requires `LockType == Write`
+
+Passing a `BlobRecord` without a lock (or with the wrong lock type) throws `InvalidOperationException`.
+
+### 4. `IBlobStoreOptions`
+
+```csharp
+public interface IBlobStoreOptions {
+    DateTimeOffset? AbsoluteExpiration { get; set; }
+    TimeSpan?       Ttl               { get; set; }
+    TimeSpan?       SlidingExpiration { get; set; }
+    string          ContentType       { get; set; }
+    BlobLockType    LockType          { get; set; }
+}
+```
+
+**Expiration priority** in `ApplyStorageOptions`: `AbsoluteExpiration` > `Ttl` > existing `SlidingExpiration`.  
+`SlidingExpiration` additionally sets `SlidingExpirationSeconds` for future re-application on access.
+
+**`ContentType`**, **`Hash`**, **`Metadata`**: each applied to the record when non-null/non-empty. Ignored otherwise (existing values kept).
+
+**`lockType` parameter on `GetOrCreateAsync`** (not part of `IBlobStoreOptions`):
+- New record → always `Write` regardless of `lockType`
+- Existing record + `Read` → metadata saved under write lock, then downgraded to read lock before returning
+- Existing record + `Write` (default) → write lock kept
+
+### 5. SQLite locking (distributed)
+
+Both `TryAcquireReadLockAsync` and `TryAcquireWriteLockAsync` use `BEGIN IMMEDIATE` + conditional `INSERT WHERE NOT EXISTS` + `changes()` to atomically acquire locks.
+
+- Retry loop: every 100 ms until `_defaultTimeout` is reached → returns `BlobErrorCode.Timeout` to caller.
+- Lock expiry stored in `blob_locks.expires_at`; stale locks are pruned at acquisition time.
+- `effectiveTimeout` for lock expiry: `max(timeout, 1s)` — minimum lock TTL is 1 second.
+- `expires_at` is stored as **ceiling** of `(UtcNow + effectiveTimeout)` in unix seconds to prevent premature cleanup due to integer truncation.
+- All DB access is serialized via `SemaphoreSlim(1,1)` (`_dbSemaphore`).
+
+### 6. SQLite schema
+
+**`blob_records`** — blob metadata  
+Columns: `blob_key` TEXT (PK), `metadata` TEXT, `content_type` TEXT, `size` INTEGER, `hash` TEXT, `created_at` INTEGER, `updated_at` INTEGER, `accessed_at` INTEGER, `sliding_expiration_seconds` INTEGER, `expires_at` INTEGER  
+Index: `idx_blob_records_expires_at`  
+`expires_at` stored with ceiling rounding to avoid early expiry.
+
+**`blob_locks`** — distributed lock entries  
+Columns: `blob_key` TEXT (FK → blob_records ON DELETE CASCADE), `is_write_lock` INTEGER (0=read/1=write), `locked_by` TEXT (UUID), `locked_at` INTEGER, `expires_at` INTEGER  
+Index: `idx_blob_locks_blob_key`
+
+All date columns are Unix timestamps (seconds, INTEGER). `expires_at` in `blob_locks` uses ceiling rounding; all other timestamps use `ToUnixTimeSeconds()` (floor).
+
+### 7. File path resolution (`FileSystemBlobDataStore`)
+
+`BuildPath(record)` = `_basePath / SanitizeFileName(record.Key) + extension(record.Name)`
+
+- `SanitizeFileName`: replaces `Path.GetInvalidFileNameChars()` with `_`
+- Extension comes from `record.Name` (e.g. `.txt`, `.png`) — set `Name` before I/O if extension matters
+- Falls back to `"blob"` if key is empty/whitespace
+
+### 8. `BlobRecord` — stored vs ignored columns
+
+`[Column]` (stored): `key`, `metadata` (TEXT), `content_type`, `size`, `hash`, `created_at` (INTEGER), `updated_at` (INTEGER), `accessed_at` (INTEGER), `sliding_expiration_seconds` (INTEGER), `expires_at` (INTEGER nullable)
+
+`[Ignore]` (runtime-only): `CreatedAt`, `UpdatedAt`, `AccessedAt` (DateTimeOffset wrappers via `FromUnixTimeSeconds`/`ToUnixTimeSeconds`), `SlidingExpiration` (TimeSpan wrapper), `ExpiresAt` (DateTimeOffset? wrapper), `LockType`, `OnDispose`, `OnDisposeAsync`
+
+Dates stored as Unix timestamps (seconds since epoch). No string formatting — `BlobRecord` is a near-POCO with only trivial type-conversion wrappers.  
+`Metadata` (formerly `Name`) is a free-form TEXT field; `FileSystemBlobDataStore` uses `Path.GetExtension(record.Metadata)` to derive the file extension.
+
+---
+
+## Usage Pattern
+
+```csharp
+var metadataStore = new SQLiteBlobRegistry(dbPath, TimeSpan.FromSeconds(30));
+var dataStore     = new FileSystemBlobDataStore(filesPath);
+IBlobManager manager = new BlobManager(dataStore, metadataStore);
+
+// Create record (also write-locked while handle is open)
+var (ec, record) = await manager.TryGetOrSetAsync("my-key", new MyOptions { Ttl = TimeSpan.FromHours(1) }, LockType.Write, ct);
+if (ec == BlobErrorCode.None)
+{
+    await using (record)
+    {
+        record.Metadata = "report.pdf";
+        await using var stream = await manager.DataStore.WriteAsync(record, ct);
+        // write bytes to stream...
+    }  // lock released, timestamps updated
+}
+
+// Read
+var (readEc, readRecord) = await manager.TryGetForReadingAsync("my-key", ct);
+if (readEc == BlobErrorCode.None)
+{
+    await using (readRecord)
+    {
+        await using var stream = await manager.DataStore.ReadAsync(readRecord, ct);
+        // read bytes...
+    }  // lock released
+}
+```
+
+---
+
+## Current Status (as of April 2026)
+
+- [x] SQLite metadata store — create, update, delete, query
+- [x] Read/write distributed locking via SQLite `resource_locks`
+- [x] Expiration: absolute, TTL, sliding (refreshed on access/write)
+- [x] File system data store with lock validation
+- [x] `BlobRecord` IAsyncDisposable with dispose callbacks
+- [x] `QueryAsync` with SQL LIKE pattern (normalize `*` → `%`)
+- [x] `DeleteExpiredAsync`, `DeleteOlderThanAsync`, `CleanupAsync` (releases expired locks + deletes expired records)
+- [x] 7 xUnit v3 tests covering locking, sliding expiry, round-trip I/O, lock enforcement
+- [ ] DI registration helper (`IServiceCollection` extension / factory method)
+- [ ] `IAsyncEnumerable<string>` variant of `QueryAsync` (commented out in `IBlobManager`)
+- [ ] Nullable reference types enabled
+- [ ] Tag-based query support
+- [ ] Alternative `IBlobRegistry` implementations (PostgreSQL, Redis, etc.)
+- [ ] Alternative `IBlobDataStore` implementations (Azure Blob, S3, etc.)
+
+---
+
+## Known Issues / Notes
+
+- **`BlobManager` is `internal`** — no public factory or DI wiring yet. Tests construct it directly (`new BlobManager(dataStore, metadataStore)`). A future `AddBlobManager(IServiceCollection, ...)` extension is needed.
+- **`TryGetForReadingAsync` / `TryGetForWritingAsync` return `BlobErrorCode.KeyNotFound`** if the key doesn't exist. Always call `TryGetOrSetAsync` first.
+- **`TryGetOrSetAsync` always holds a write lock** while the returned handle is open. Don't hold it longer than necessary.
+- **`SQLiteBlobRegistry` constructor is synchronous** (`EnsureSchemaAsync().GetAwaiter().GetResult()`). Don't call from an async context that holds a sync lock.
+- **`ToSqliteInterval`** private helper is defined but never used — dead code.
+- **`StringFocus` project reference in tests** (`ActDim.Practix.StringFocus`) is declared in the `.csproj` but not used in `BlobManagerTests.cs` — likely a leftover.
+- **`DeleteExpiredAsync` row count** uses `SELECT changes()` after `ExecuteAsync` — works under the semaphore but the count is returned from a separate statement; if the connection is somehow shared this could race. Currently safe.
+- **Test timing**: `GetForReadingAsync_UpdatesAccessedAt` and `GetForWritingAsync_UpdatesUpdatedAt` use `Task.Delay(1100ms)` to ensure a timestamp difference. This may be slow on CI.
+- **`Nullable` is disabled** across both projects (`<Nullable>disable</Nullable>`).
+
+---
+
+## Development Conventions
+
+- **Namespace**: `ActDim.Practix.BlobManager` (all files)
+- **Assembly**: `ActDim.Practix.BlobManager`
+- **Target framework**: `net10.0`
+- **Public surface**: `IBlobManager`, `IBlobDataStore`, `IBlobStoreOptions`, `BlobRecord`, `BlobErrorCode`, `LockType`, `FileSystemBlobDataStore`
+- **Internal**: `BlobManager`, `IBlobRegistry`, `SQLiteBlobRegistry`
+- `InternalsVisibleTo("ActDim.Practix.BlobManager.Tests")` enables direct test construction
+- Always `await using` a `BlobRecord` — sync `Dispose()` only fires `OnDispose`, not `OnDisposeAsync`; prefer `DisposeAsync`
+- The `BlobRecord.Name` field determines the file extension; set it before calling `DataStore.WriteAsync`
+- Tests: xUnit v3, `TestContext.Current.CancellationToken`, isolated temp DB + data dir per test via `TestEnvironment`

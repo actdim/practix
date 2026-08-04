@@ -700,81 +700,81 @@ namespace ActDim.Practix.Compression
 
         // Byte array output support methods:
 
-        public async Task<byte[]> CompressToBytesAsync(byte[] data, CompressionType compressionType, Func<int, byte[]> dstFactory = null, CancellationToken cancellationToken = default)
+        public async Task<IBufferOwner<byte>> CompressToBytesAsync(byte[] data, CompressionType compressionType, Func<int, IBufferOwner<byte>> dstFactory = null, CancellationToken cancellationToken = default)
         {
             using (var outputStream = await CompressAsync(data, compressionType, cancellationToken))
             {
-                var outputData = await outputStream.ReadBytesAsync(dstFactory, BufferSize, cancellationToken);
+                var outputData = await outputStream.ReadBytesAsync(dstFactory, cancellationToken);
                 await outputStream.FlushAsync(cancellationToken);
                 return outputData;
             }
         }
 
-        public async Task<byte[]> CompressToBytesAsync(ReadOnlyMemory<byte> data, CompressionType compressionType, Func<int, byte[]> dstFactory = null, CancellationToken cancellationToken = default)
+        public async Task<IBufferOwner<byte>> CompressToBytesAsync(ReadOnlyMemory<byte> data, CompressionType compressionType, Func<int, IBufferOwner<byte>> dstFactory = null, CancellationToken cancellationToken = default)
         {
             using (var outputStream = await CompressAsync(data, compressionType, cancellationToken))
             {
-                var outputData = await outputStream.ReadBytesAsync(dstFactory, BufferSize, cancellationToken);
+                var outputData = await outputStream.ReadBytesAsync(dstFactory, cancellationToken);
                 await outputStream.FlushAsync(cancellationToken);
                 return outputData;
             }
         }
 
-        public async Task<byte[]> CompressToBytesAsync(Stream inputStream, CompressionType compressionType, Func<int, byte[]> dstFactory = null, CancellationToken cancellationToken = default)
+        public async Task<IBufferOwner<byte>> CompressToBytesAsync(Stream inputStream, CompressionType compressionType, Func<int, IBufferOwner<byte>> dstFactory = null, CancellationToken cancellationToken = default)
         {
             using (var outputStream = await CompressAsync(inputStream, compressionType, cancellationToken))
             {
-                var outputData = await outputStream.ReadBytesAsync(dstFactory, BufferSize, cancellationToken);
+                var outputData = await outputStream.ReadBytesAsync(dstFactory, cancellationToken);
                 await outputStream.FlushAsync(cancellationToken);
                 return outputData;
             }
         }
 
-        public async Task<byte[]> DecompressToBytesAsync(byte[] data, CompressionType compressionType, Func<int, byte[]> dstFactory = null, CancellationToken cancellationToken = default)
+        public async Task<IBufferOwner<byte>> DecompressToBytesAsync(byte[] data, CompressionType compressionType, Func<int, IBufferOwner<byte>> dstFactory = null, CancellationToken cancellationToken = default)
         {
             using (var outputStream = await DecompressAsync(data, compressionType, cancellationToken))
             {
-                var outputData = await outputStream.ReadBytesAsync(dstFactory, BufferSize, cancellationToken);
+                var outputData = await outputStream.ReadBytesAsync(dstFactory, cancellationToken);
                 await outputStream.FlushAsync(cancellationToken);
                 return outputData;
             }
         }
 
-        public async Task<byte[]> DecompressAsync(ReadOnlyMemory<byte> data, CompressionType compressionType, Func<int, byte[]> dstFactory = null, CancellationToken cancellationToken = default)
+        public async Task<IBufferOwner<byte>> DecompressAsync(ReadOnlyMemory<byte> data, CompressionType compressionType, Func<int, IBufferOwner<byte>> dstFactory = null, CancellationToken cancellationToken = default)
         {
             using (var outputStream = await DecompressAsync(data, compressionType, cancellationToken))
             {
-                var outputData = await outputStream.ReadBytesAsync(dstFactory, BufferSize, cancellationToken);
+                var outputData = await outputStream.ReadBytesAsync(dstFactory, cancellationToken);
                 await outputStream.FlushAsync(cancellationToken);
                 return outputData;
             }
         }
 
-        public async Task<byte[]> DecompressToBytesAsync(Stream inputStream, CompressionType compressionType, Func<int, byte[]> dstFactory = null, CancellationToken cancellationToken = default)
+        public async Task<IBufferOwner<byte>> DecompressToBytesAsync(Stream inputStream, CompressionType compressionType, Func<int, IBufferOwner<byte>> dstFactory = null, CancellationToken cancellationToken = default)
         {
             using (var outputStream = await DecompressAsync(inputStream, compressionType, cancellationToken))
             {
-                var outputData = await outputStream.ReadBytesAsync(dstFactory, BufferSize, cancellationToken);
+                var outputData = await outputStream.ReadBytesAsync(dstFactory, cancellationToken);
                 await outputStream.FlushAsync(cancellationToken);
                 return outputData;
             }
         }
 
-        public async Task<byte[]> CompressToZipArchiveBytesAsync(IEnumerable<string> entryNames, Func<string, Stream, Task> writer, Func<int, byte[]> dstFactory = null, CancellationToken cancellationToken = default)
+        public async Task<IBufferOwner<byte>> CompressToZipArchiveBytesAsync(IEnumerable<string> entryNames, Func<string, Stream, Task> writer, Func<int, IBufferOwner<byte>> dstFactory = null, CancellationToken cancellationToken = default)
         {
             using (var outputStream = await CompressToZipArchiveAsync(entryNames, writer, cancellationToken))
             {
-                var outputData = await outputStream.ReadBytesAsync(dstFactory, BufferSize, cancellationToken);
+                var outputData = await outputStream.ReadBytesAsync(dstFactory, cancellationToken);
                 await outputStream.FlushAsync(cancellationToken);
                 return outputData;
             }
         }
 
-        public async Task<byte[]> CompressToZipArchiveBytesAsync(IEnumerable<string> entryNames, Func<string, Task<Stream>> reader, Func<int, byte[]> dstFactory = null, CancellationToken cancellationToken = default)
+        public async Task<IBufferOwner<byte>> CompressToZipArchiveBytesAsync(IEnumerable<string> entryNames, Func<string, Task<Stream>> reader, Func<int, IBufferOwner<byte>> dstFactory = null, CancellationToken cancellationToken = default)
         {
             using (var outputStream = await CompressToZipArchiveAsync(entryNames, reader, cancellationToken))
             {
-                var outputData = await outputStream.ReadBytesAsync(dstFactory, BufferSize, cancellationToken);
+                var outputData = await outputStream.ReadBytesAsync(dstFactory, cancellationToken);
                 await outputStream.FlushAsync(cancellationToken);
                 return outputData;
             }

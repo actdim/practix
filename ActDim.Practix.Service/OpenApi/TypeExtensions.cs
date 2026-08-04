@@ -133,7 +133,7 @@ namespace ActDim.Practix.Service.OpenApi
         // BaseStructType
         private static readonly Type BaseValueType = typeof(ValueType);
         private static readonly Type BaseObjectType = typeof(object);
-        private static readonly IEnumerable<Type> EmptyTypeList = Enumerable.Empty<Type>();
+        private static readonly IEnumerable<Type> EmptyTypeList = [];
         
         public static IEnumerable<Type> GetOpenApiSubTypes(Type baseType)
         {

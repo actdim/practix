@@ -1,12 +1,12 @@
-﻿using OrthoBits.DataAccess.EntityMapping.Fetch;
+﻿using ActDim.Practix.DataAccess.EntityMapping.Fetch;
 using FastMember;
 using System.Collections.Concurrent;
-using OrthoBits.Abstractions.DataAccess;
+using ActDim.Practix.Abstractions.DataAccess;
 using System.Data.Common;
-using OrthoBits.DataAccess.Attributes;
-using OrthoBits.Abstractions.DataAccess;
+using ActDim.Practix.DataAccess.Attributes;
+using ActDim.Practix.Abstractions.DataAccess;
 
-namespace OrthoBits.DataAccess
+namespace ActDim.Practix.DataAccess
 {
     /// <summary>
     /// Helper

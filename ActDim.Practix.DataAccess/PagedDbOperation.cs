@@ -1,8 +1,8 @@
 ﻿
-using OrthoBits.Abstractions.DataAccess;
+using ActDim.Practix.Abstractions.DataAccess;
 using System.Data.Common;
 
-namespace OrthoBits.DataAccess
+namespace ActDim.Practix.DataAccess
 {
     internal class PagedDbOperation : CommonDbOperation
     {

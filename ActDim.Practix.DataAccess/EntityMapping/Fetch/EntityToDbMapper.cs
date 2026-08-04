@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OrthoBits.Abstractions.Json;
-using OrthoBits.Abstractions.DataAccess;
-using OrthoBits.Common.Extensions;
+using ActDim.Practix.Abstractions.Json;
+using ActDim.Practix.Abstractions.DataAccess;
+using ActDim.Practix.Common.Extensions;
 
-namespace OrthoBits.DataAccess.EntityMapping.Fetch
+namespace ActDim.Practix.DataAccess.EntityMapping.Fetch
 {
     internal class EntityToDbMapper
     {
@@ -37,7 +37,7 @@ namespace OrthoBits.DataAccess.EntityMapping.Fetch
             if (nestedTable.TableName != null && nestedTable.TableName != _table.TableName)
             {
                 // nested object is not related to current table
-                return Array.Empty<PropertyToDbValueObj>();
+                return [];
             }
             var nestedMapper = new EntityToDbMapper(nestedTable, _jsonSerializer);
             var values = nestedMapper.MapToDbValues(nestedEntity, include);
