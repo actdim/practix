@@ -57,6 +57,8 @@ namespace THREE.Core
         public static BufferAttribute Float16(Half[] data, int itemSize, bool normalized = false) => Make(new Float16Array { Data = data }, itemSize, normalized);
         public static BufferAttribute Float32(float[] data, int itemSize, bool normalized = false) => Make(new Float32Array { Data = data }, itemSize, normalized);
         public static BufferAttribute Float64(double[] data, int itemSize, bool normalized = false) => Make(new Float64Array { Data = data }, itemSize, normalized);
+        /// <summary>Custom (non-three.js) string buffer — see <see cref="StringArray"/>.</summary>
+        public static BufferAttribute String(string[] data, int itemSize = 1) => Make(new StringArray { Data = data }, itemSize, normalized: false);
 
         private static BufferAttribute Make(ITypedArray values, int itemSize, bool normalized)
         {

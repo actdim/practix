@@ -10,7 +10,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// </summary>
         public static string GetString(this Encoding encoding, Stream stream)
         {
-            return stream.ToString(encoding);
+            return stream.GetString(encoding);
         }
 
         // TODO: GetStringAsync

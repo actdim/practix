@@ -1,11 +1,11 @@
-using OrthoBits.Abstractions.DataAccess;
-using OrthoBits.Abstractions.DataAccess.Sql;
-using OrthoBits.DataAccess.EntityMapping.Fetch;
-using OrthoBits.DataAccess.Extensions;
+using ActDim.Practix.Abstractions.DataAccess;
+using ActDim.Practix.Abstractions.DataAccess.Sql;
+using ActDim.Practix.DataAccess.EntityMapping.Fetch;
+using ActDim.Practix.DataAccess.Extensions;
 using System.Data.Common;
 using System.Linq.Expressions;
 
-namespace OrthoBits.DataAccess.Sql
+namespace ActDim.Practix.DataAccess.Sql
 {
     public static class SqlGeneratorExtensions
     {
@@ -120,7 +120,7 @@ namespace OrthoBits.DataAccess.Sql
             where TTable : class
         {
             var entityTable = providerType == default ? HelperCaches.GetEntityTable(typeof(TTable)) : HelperCaches.GetEntityTable(typeof(TTable), providerType);
-            var exclude = new HashSet<string>(forceExclude ?? Array.Empty<string>(), StringComparer.InvariantCultureIgnoreCase);
+            var exclude = new HashSet<string>(forceExclude ?? [], StringComparer.InvariantCultureIgnoreCase);
             return new ChangedEntity<TTable>()
             {
                 Entity = entityChangeSet.Entity,

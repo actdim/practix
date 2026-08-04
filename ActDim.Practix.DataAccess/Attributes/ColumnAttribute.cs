@@ -1,6 +1,6 @@
-﻿using OrthoBits.Abstractions.DataAccess;
+﻿using ActDim.Practix.Abstractions.DataAccess;
 
-namespace OrthoBits.DataAccess.Attributes
+namespace ActDim.Practix.DataAccess.Attributes
 {
     public class ColumnAttribute : Attribute
     {

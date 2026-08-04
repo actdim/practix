@@ -7,7 +7,11 @@ namespace THREE.Core.Buffers
 {
     /// <summary>
     /// Registry mapping the three.js TypedArray discriminator string to a concrete <see cref="ITypedArray"/>.
-    /// Materializes a typed primitive array from a flat sequence of numbers without per-element object boxing.
+    /// Values are materialized straight into a backing array of the target type — no intermediate buffer.
+    /// The JSON path (<see cref="FromDoubles"/>) narrows each already-<c>double</c> value with a plain cast;
+    /// the arbitrary-<see cref="Array"/> path (<see cref="FromArray"/>) converts each boxed element straight
+    /// to the target type via <see cref="Convert"/>, with a zero-copy fast path when the source already is
+    /// that primitive array.
     /// </summary>
     public static class TypedArrays
     {
@@ -22,147 +26,105 @@ namespace THREE.Core.Buffers
         public const string Float32Array = "Float32Array";
         public const string Float64Array = "Float64Array";
 
-        private static readonly Dictionary<string, Func<IReadOnlyList<double>, ITypedArray>> FromDoublesMap =
-            new(StringComparer.Ordinal)
+        /// <summary>Custom (non-three.js) discriminator for a <c>string[]</c> buffer — see <c>StringArray</c>.</summary>
+        public const string StringArray = "StringArray";
+
+        private static readonly HashSet<string> Known = new(StringComparer.Ordinal)
         {
-            { Int8Array, FromDoublesInt8 },
-            { Uint8Array, FromDoublesUint8 },
-            { Uint8ClampedArray, FromDoublesUint8Clamped },
-            { Int16Array, FromDoublesInt16 },
-            { Uint16Array, FromDoublesUint16 },
-            { Int32Array, FromDoublesInt32 },
-            { Uint32Array, FromDoublesUint32 },
-            { Float16Array, FromDoublesFloat16 },
-            { Float32Array, FromDoublesFloat32 },
-            { Float64Array, FromDoublesFloat64 },
+            Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array,
+            Int32Array, Uint32Array, Float16Array, Float32Array, Float64Array, StringArray,
         };
 
-        private static ITypedArray FromDoublesInt8(IReadOnlyList<double> values)
-        {
-            var data = new sbyte[values.Count];
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i] = (sbyte)values[i];
-            }
-            return new Int8Array { Data = data };
-        }
+        public static bool IsKnown(string type) => type != null && Known.Contains(type);
 
-        private static ITypedArray FromDoublesUint8(IReadOnlyList<double> values)
+        /// <summary>Materializes a <see cref="Buffers.StringArray"/> from a sequence of strings (custom buffer).</summary>
+        public static ITypedArray FromStrings(IReadOnlyList<string> values)
         {
-            var data = new byte[values.Count];
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i] = (byte)values[i];
-            }
-            return new Uint8Array { Data = data };
-        }
-
-        private static ITypedArray FromDoublesUint8Clamped(IReadOnlyList<double> values)
-        {
-            var data = new byte[values.Count];
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i] = (byte)values[i];
-            }
-            return new Uint8ClampedArray { Data = data };
-        }
-
-        private static ITypedArray FromDoublesInt16(IReadOnlyList<double> values)
-        {
-            var data = new short[values.Count];
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i] = (short)values[i];
-            }
-            return new Int16Array { Data = data };
-        }
-
-        private static ITypedArray FromDoublesUint16(IReadOnlyList<double> values)
-        {
-            var data = new ushort[values.Count];
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i] = (ushort)values[i];
-            }
-            return new Uint16Array { Data = data };
-        }
-
-        private static ITypedArray FromDoublesInt32(IReadOnlyList<double> values)
-        {
-            var data = new int[values.Count];
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i] = (int)values[i];
-            }
-            return new Int32Array { Data = data };
-        }
-
-        private static ITypedArray FromDoublesUint32(IReadOnlyList<double> values)
-        {
-            var data = new uint[values.Count];
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i] = (uint)values[i];
-            }
-            return new Uint32Array { Data = data };
-        }
-
-        private static ITypedArray FromDoublesFloat16(IReadOnlyList<double> values)
-        {
-            var data = new Half[values.Count];
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i] = (Half)(float)values[i];
-            }
-            return new Float16Array { Data = data };
-        }
-
-        private static ITypedArray FromDoublesFloat32(IReadOnlyList<double> values)
-        {
-            var data = new float[values.Count];
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i] = (float)values[i];
-            }
-            return new Float32Array { Data = data };
-        }
-
-        private static ITypedArray FromDoublesFloat64(IReadOnlyList<double> values)
-        {
-            var data = new double[values.Count];
-            for (var i = 0; i < data.Length; i++)
+            var count = values?.Count ?? 0;
+            var data = new string[count];
+            for (var i = 0; i < count; i++)
             {
                 data[i] = values[i];
             }
-            return new Float64Array { Data = data };
-        }
-
-        public static bool IsKnown(string type) => type != null && FromDoublesMap.ContainsKey(type);
-
-        /// <summary>Materializes a typed buffer from a flat number sequence. Throws on an unknown type.</summary>
-        public static ITypedArray FromDoubles(string type, IReadOnlyList<double> values)
-        {
-            if (type == null || !FromDoublesMap.TryGetValue(type, out var factory))
-            {
-                throw new JsonSerializationException($"Unknown buffer attribute type '{type}'.");
-            }
-            return factory(values ?? []);
+            return new StringArray { Data = data };
         }
 
         /// <summary>
-        /// Builds a typed buffer from an arbitrary <see cref="Array"/> (convenience path; converts through
-        /// <c>double</c>). Prefer the typed factories on <c>BufferAttribute</c> for large data — they take
-        /// ownership of the primitive array with no copy.
-        /// TODO: add fast paths (Buffer.BlockCopy for matching element widths).
+        /// Materializes a typed buffer from a flat number sequence: each value is already a <c>double</c>, so
+        /// it is narrowed to the target type with a plain cast (three.js/JS truncation-on-overflow semantics).
+        /// Throws on an unknown type.
+        /// </summary>
+        public static ITypedArray FromDoubles(string type, IReadOnlyList<double> values)
+        {
+            values ??= [];
+
+            ITypedArray Fill<T>(Func<double, T> cast, Func<T[], ITypedArray> wrap)
+            {
+                var data = new T[values.Count];
+                for (var i = 0; i < values.Count; i++)
+                {
+                    data[i] = cast(values[i]);
+                }
+                return wrap(data);
+            }
+
+            return type switch
+            {
+                Int8Array => Fill(static d => (sbyte)d, static a => new Int8Array { Data = a }),
+                Uint8Array => Fill(static d => (byte)d, static a => new Uint8Array { Data = a }),
+                Uint8ClampedArray => Fill(static d => (byte)d, static a => new Uint8ClampedArray { Data = a }),
+                Int16Array => Fill(static d => (short)d, static a => new Int16Array { Data = a }),
+                Uint16Array => Fill(static d => (ushort)d, static a => new Uint16Array { Data = a }),
+                Int32Array => Fill(static d => (int)d, static a => new Int32Array { Data = a }),
+                Uint32Array => Fill(static d => (uint)d, static a => new Uint32Array { Data = a }),
+                Float16Array => Fill(static d => (Half)(float)d, static a => new Float16Array { Data = a }),
+                Float32Array => Fill(static d => (float)d, static a => new Float32Array { Data = a }),
+                Float64Array => Fill(static d => d, static a => new Float64Array { Data = a }),
+                _ => throw new JsonSerializationException($"Unknown buffer attribute type '{type}'."),
+            };
+        }
+
+        /// <summary>
+        /// Builds a typed buffer from an arbitrary <see cref="Array"/>. Each boxed element is converted
+        /// straight to the target type via <see cref="Convert"/> (no intermediate <c>double</c>). If the
+        /// source already is that exact primitive array (e.g. a <c>float[]</c> for <see cref="Float32Array"/>),
+        /// it is adopted as-is with no conversion and no copy. Out-of-range values throw
+        /// <see cref="OverflowException"/> (unlike the truncating JSON path). Throws on an unknown type.
         /// </summary>
         public static ITypedArray FromArray(string type, Array source)
         {
-            var values = new double[source?.Length ?? 0];
-            for (var i = 0; i < values.Length; i++)
+            var count = source?.Length ?? 0;
+
+            ITypedArray Fill<T>(Func<object, T> convert, Func<T[], ITypedArray> wrap)
             {
-                values[i] = Convert.ToDouble(source.GetValue(i), CultureInfo.InvariantCulture);
+                if (source is T[] owned)
+                {
+                    return wrap(owned);
+                }
+                var data = new T[count];
+                for (var i = 0; i < count; i++)
+                {
+                    data[i] = convert(source.GetValue(i));
+                }
+                return wrap(data);
             }
-            return FromDoubles(type, values);
+
+            var ci = CultureInfo.InvariantCulture;
+            return type switch
+            {
+                Int8Array => Fill(o => Convert.ToSByte(o, ci), static a => new Int8Array { Data = a }),
+                Uint8Array => Fill(o => Convert.ToByte(o, ci), static a => new Uint8Array { Data = a }),
+                Uint8ClampedArray => Fill(o => Convert.ToByte(o, ci), static a => new Uint8ClampedArray { Data = a }),
+                Int16Array => Fill(o => Convert.ToInt16(o, ci), static a => new Int16Array { Data = a }),
+                Uint16Array => Fill(o => Convert.ToUInt16(o, ci), static a => new Uint16Array { Data = a }),
+                Int32Array => Fill(o => Convert.ToInt32(o, ci), static a => new Int32Array { Data = a }),
+                Uint32Array => Fill(o => Convert.ToUInt32(o, ci), static a => new Uint32Array { Data = a }),
+                Float16Array => Fill(o => (Half)Convert.ToSingle(o, ci), static a => new Float16Array { Data = a }),
+                Float32Array => Fill(o => Convert.ToSingle(o, ci), static a => new Float32Array { Data = a }),
+                Float64Array => Fill(o => Convert.ToDouble(o, ci), static a => new Float64Array { Data = a }),
+                StringArray => Fill(o => Convert.ToString(o, ci), static a => new StringArray { Data = a }),
+                _ => throw new JsonSerializationException($"Unknown buffer attribute type '{type}'."),
+            };
         }
     }
 }

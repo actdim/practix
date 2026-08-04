@@ -52,7 +52,9 @@ namespace THREE.Serialization
             var count = 0;
             var normalized = false;
             var dynamic = false;
+            var arrayPresent = false;
             List<double> array = null;
+            List<string> stringArray = null;
 
             while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
             {
@@ -72,14 +74,47 @@ namespace THREE.Serialization
                         uuid = string.IsNullOrEmpty(value) ? Guid.Empty : Guid.Parse(value);
                         break;
                     }
-                    case "name": name = reader.GetString(); break;
-                    case "itemsize": itemSize = reader.GetInt32(); break;
-                    case "count": count = reader.GetInt32(); break;
-                    case "type": type = reader.GetString(); break;
-                    case "normalized": normalized = reader.GetBoolean(); break;
-                    case "dynamic": dynamic = reader.GetBoolean(); break;
-                    case "array": array = ReadNumbers(ref reader, count * itemSize); break;
-                    default: reader.Skip(); break;
+                    case "name":
+                    {
+                        name = reader.GetString();
+                        break;
+                    }
+                    case "itemsize":
+                    {
+                        itemSize = reader.GetInt32();
+                        break;
+                    }
+                    case "count":
+                    {
+                        count = reader.GetInt32();
+                        break;
+                    }
+                    case "type":
+                    {
+                        type = reader.GetString();
+                        break;
+                    }
+                    case "normalized":
+                    {
+                        normalized = reader.GetBoolean();
+                        break;
+                    }
+                    case "dynamic":
+                    {
+                        dynamic = reader.GetBoolean();
+                        break;
+                    }
+                    case "array":
+                    {
+                        arrayPresent = true;
+                        ReadArray(ref reader, count * itemSize, out array, out stringArray);
+                        break;
+                    }
+                    default:
+                    {
+                        reader.Skip();
+                        break;
+                    }
                 }
             }
 
@@ -92,23 +127,45 @@ namespace THREE.Serialization
                 Dynamic = dynamic,
             };
 
-            if (array != null)
+            if (stringArray != null)
+            {
+                attribute.Values = TypedArrays.FromStrings(stringArray);
+            }
+            else if (array != null)
             {
                 attribute.Values = TypedArrays.FromDoubles(type, array);
+            }
+            else if (arrayPresent)
+            {
+                // Empty array: pick the buffer kind from the declared type.
+                attribute.Values = type == TypedArrays.StringArray
+                    ? TypedArrays.FromStrings([])
+                    : TypedArrays.FromDoubles(type, []);
             }
 
             return attribute;
         }
 
-        private static List<double> ReadNumbers(ref Utf8JsonReader reader, int capacityHint)
+        // Reads a flat JSON array into either a numeric buffer or (custom) a string buffer, decided per
+        // element by token type. Mixed arrays are not expected; strings win if any element is a string.
+        private static void ReadArray(ref Utf8JsonReader reader, int capacityHint, out List<double> numbers, out List<string> strings)
         {
             // reader is positioned at StartArray.
-            var list = capacityHint > 0 ? new List<double>(capacityHint) : new List<double>();
+            numbers = null;
+            strings = null;
+
             while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
             {
-                list.Add(reader.GetDouble());
+                if (reader.TokenType == JsonTokenType.String || reader.TokenType == JsonTokenType.Null)
+                {
+                    (strings ??= []).Add(reader.GetString());
+                }
+                else
+                {
+                    numbers ??= capacityHint > 0 ? new List<double>(capacityHint) : [];
+                    numbers.Add(reader.GetDouble());
+                }
             }
-            return list;
         }
     }
 }

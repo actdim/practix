@@ -118,9 +118,9 @@ namespace ThreeLib.Tests
 
 			using (var stream = new MemoryStream())
 			{
-				await ThreeSerializer.ToStreamAsync(stream, document);
+				await ThreeSerializer.ToStreamAsync(stream, document, cancellationToken: TestContext.Current.CancellationToken);
 				stream.Position = 0;
-				var doc = await ThreeSerializer.FromStreamAsync<SceneDocument>(stream);
+				var doc = await ThreeSerializer.FromStreamAsync<SceneDocument>(stream, TestContext.Current.CancellationToken);
 
 				Assert.IsType<Mesh>(Assert.Single(doc.Object.Children));
 			}

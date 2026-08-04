@@ -1,10 +1,10 @@
-﻿using OrthoBits.Abstractions.DataAccess.Generic;
-using OrthoBits.Abstractions.Json;
-using OrthoBits.Abstractions.Mapping;
+﻿using ActDim.Practix.Abstractions.DataAccess.Generic;
+using ActDim.Practix.Abstractions.Json;
+using ActDim.Practix.Abstractions.Mapping;
 using System.Data.Common;
 using System.Dynamic;
 
-namespace OrthoBits.DataAccess
+namespace ActDim.Practix.DataAccess
 {
     public class DynamicDbFetcher<T> : IDbFetcher<T>
     {

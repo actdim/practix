@@ -1,8 +1,8 @@
-﻿using OrthoBits.Abstractions.DataAccess;
+﻿using ActDim.Practix.Abstractions.DataAccess;
 using System;
 using System.Linq;
 
-namespace OrthoBits.DataAccess.Attributes
+namespace ActDim.Practix.DataAccess.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)]
     public class ConventionProjectorAttribute : Attribute

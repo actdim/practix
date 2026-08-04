@@ -1,6 +1,6 @@
-﻿using OrthoBits.DataAccess.Attributes;
-using OrthoBits.DataAccess.EntityMapping.Fetch;
-using OrthoBits.Abstractions.DataAccess;
+﻿using ActDim.Practix.DataAccess.Attributes;
+using ActDim.Practix.DataAccess.EntityMapping.Fetch;
+using ActDim.Practix.Abstractions.DataAccess;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace OrthoBits.DataAccess.Sql
+namespace ActDim.Practix.DataAccess.Sql
 {
     static class SqlExpressionHelper
     {

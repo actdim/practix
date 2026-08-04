@@ -1,15 +1,15 @@
 ﻿using Autofac;
-using OrthoBits.Abstractions.DataAccess;
-using OrthoBits.Abstractions.DataAccess.Generic;
-using OrthoBits.Abstractions.DataAccess.Sql;
-using OrthoBits.Abstractions.Json;
-using OrthoBits.Abstractions.Mapping;
-using OrthoBits.DataAccess.Sql;
+using ActDim.Practix.Abstractions.DataAccess;
+using ActDim.Practix.Abstractions.DataAccess.Generic;
+using ActDim.Practix.Abstractions.DataAccess.Sql;
+using ActDim.Practix.Abstractions.Json;
+using ActDim.Practix.Abstractions.Mapping;
+using ActDim.Practix.DataAccess.Sql;
 using System.Data;
 using System.Data.Common;
 using System.Transactions;
 
-namespace OrthoBits.DataAccess
+namespace ActDim.Practix.DataAccess
 {
     /// <summary>
     /// DbServer

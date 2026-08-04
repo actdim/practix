@@ -22,5 +22,6 @@ namespace ActDim.Practix.Service.Settings
         /// Absolute session lifetime in minutes
         /// </summary>
         public int AbsoluteLifetimeMinutes { get; set; } = 525600; // 1 year
+        // public TimeSpan AbsoluteLifetime { get; set; } = TimeSpan.FromDays(365);
     }
 }

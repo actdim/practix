@@ -1,10 +1,10 @@
 ﻿
 using Conditions;
-using Orthobits.Abstractions.DataAccess;
-using OrthoBits.Abstractions.DataAccess;
+using ActDim.Practix.Abstractions.DataAccess;
+using ActDim.Practix.Abstractions.DataAccess;
 using System.Data.Common;
 
-namespace Orthobits.DataAccess
+namespace ActDim.Practix.DataAccess
 {
     internal class PgSequenceIdGenerator : ISequenceIdGenerator
     {   

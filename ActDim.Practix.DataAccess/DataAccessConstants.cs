@@ -1,4 +1,4 @@
-﻿namespace OrthoBits.DataAccess
+﻿namespace ActDim.Practix.DataAccess
 {
     internal static class DataAccessConstants
     {

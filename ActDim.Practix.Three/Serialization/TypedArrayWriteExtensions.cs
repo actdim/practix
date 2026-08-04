@@ -77,6 +77,12 @@ namespace THREE.Serialization
                         writer.WriteValue(v);
                     }
                     break;
+                case StringArray a:
+                    foreach (var v in a.Data)
+                    {
+                        writer.WriteValue(v);
+                    }
+                    break;
             }
 
             writer.WriteEndArray();
@@ -146,6 +152,12 @@ namespace THREE.Serialization
                     foreach (var v in a.Data)
                     {
                         writer.WriteNumberValue(v);
+                    }
+                    break;
+                case StringArray a:
+                    foreach (var v in a.Data)
+                    {
+                        writer.WriteStringValue(v);
                     }
                     break;
             }

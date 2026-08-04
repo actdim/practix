@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Newtonsoft.Json;
 using THREE.Core;
 using THREE.Core.Buffers;
@@ -71,7 +72,9 @@ namespace THREE.Serialization
             var count = 0;
             var normalized = false;
             var dynamic = false;
+            var arrayPresent = false;
             List<double> array = null;
+            List<string> stringArray = null;
 
             while (reader.Read() && reader.TokenType != JsonToken.EndObject)
             {
@@ -121,7 +124,8 @@ namespace THREE.Serialization
                     }
                     case "array":
                     {
-                        array = ReadNumbers(reader, count * itemSize);
+                        arrayPresent = true;
+                        ReadArray(reader, count * itemSize, out array, out stringArray);
                         break;
                     }
                     default:
@@ -142,29 +146,48 @@ namespace THREE.Serialization
                 Dynamic = dynamic,
             };
 
-            if (array != null)
+            if (stringArray != null)
+            {
+                attr.Values = TypedArrays.FromStrings(stringArray);
+            }
+            else if (array != null)
             {
                 // TODO: when `type` precedes `array`, stream straight into an exact-sized T[] instead of
                 // buffering doubles then converting.
                 attr.Values = TypedArrays.FromDoubles(type, array);
             }
+            else if (arrayPresent)
+            {
+                // Empty array: pick the buffer kind from the declared type.
+                attr.Values = type == TypedArrays.StringArray
+                    ? TypedArrays.FromStrings([])
+                    : TypedArrays.FromDoubles(type, []);
+            }
 
             return attr;
         }
 
-        private static List<double> ReadNumbers(JsonReader reader, int capacityHint)
+        // Reads a flat JSON array into either a numeric buffer or (custom) a string buffer, decided per
+        // element by token type. Mixed arrays are not expected; strings win if any element is a string.
+        private static void ReadArray(JsonReader reader, int capacityHint, out List<double> numbers, out List<string> strings)
         {
+            numbers = null;
+            strings = null;
+
             reader.Read(); // advance to StartArray
 
-            var list = capacityHint > 0 ? new List<double>(capacityHint) : new List<double>();
-
-            double? value;
-            while ((value = reader.ReadAsDouble()) != null)
+            while (reader.Read() && reader.TokenType != JsonToken.EndArray)
             {
-                list.Add(value.Value);
+                if (reader.TokenType == JsonToken.String || reader.TokenType == JsonToken.Null)
+                {
+                    (strings ??= []).Add((string)reader.Value);
+                }
+                else
+                {
+                    numbers ??= capacityHint > 0 ? new List<double>(capacityHint) : [];
+                    numbers.Add(Convert.ToDouble(reader.Value, CultureInfo.InvariantCulture));
+                }
             }
-
-            return list;
         }
     }
 }

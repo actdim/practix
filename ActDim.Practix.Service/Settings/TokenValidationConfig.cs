@@ -13,7 +13,6 @@ namespace ActDim.Practix.Service.Settings
         public List<string> ValidAudiences { get; set; } = [];
 
         public int ClockSkewSeconds { get; set; } = 300; // 5 minutes
-
         // public TimeSpan ClockSkew { get; set; } = TimeSpan.FromMinutes(5);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OrthoBits.DataAccess.Attributes
+namespace ActDim.Practix.DataAccess.Attributes
 {
 	[AttributeUsage(AttributeTargets.Property)]
 	public class SequenceNameAttribute : Attribute

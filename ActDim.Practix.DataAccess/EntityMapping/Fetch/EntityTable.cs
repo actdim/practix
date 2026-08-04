@@ -3,10 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using OrthoBits.DataAccess.Attributes;
-using OrthoBits.Abstractions.DataAccess;
+using ActDim.Practix.DataAccess.Attributes;
+using ActDim.Practix.Abstractions.DataAccess;
 
-namespace OrthoBits.DataAccess.EntityMapping.Fetch
+namespace ActDim.Practix.DataAccess.EntityMapping.Fetch
 {
     internal sealed class EntityTable
     {

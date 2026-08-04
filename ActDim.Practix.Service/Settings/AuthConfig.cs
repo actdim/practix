@@ -2,6 +2,8 @@ namespace ActDim.Practix.Service.Settings
 {
     public class AuthConfig
     {
+        public AuthSchemeType? SchemeType { get; set; }
+
         public LocalAuthJwtConfig LocalJwt { get; set; }
 
         public OidcAuthConfig Oidc { get; set; }

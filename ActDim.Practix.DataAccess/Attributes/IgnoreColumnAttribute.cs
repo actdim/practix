@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OrthoBits.DataAccess.Attributes
+namespace ActDim.Practix.DataAccess.Attributes
 {
 	public class IgnoreColumnAttribute : Attribute
 	{

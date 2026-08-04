@@ -1,4 +1,4 @@
-﻿namespace OrthoBits.DataAccess.EntityMapping.Fetch
+﻿namespace ActDim.Practix.DataAccess.EntityMapping.Fetch
 {
     internal class PropertyToDbValueObj
     {

@@ -1,10 +1,10 @@
 ﻿
-using OrthoBits.Abstractions.DataAccess.Generic;
-using OrthoBits.Abstractions.Json;
-using OrthoBits.Abstractions.Mapping;
+using ActDim.Practix.Abstractions.DataAccess.Generic;
+using ActDim.Practix.Abstractions.Json;
+using ActDim.Practix.Abstractions.Mapping;
 using System.Data.Common;
 
-namespace OrthoBits.DataAccess
+namespace ActDim.Practix.DataAccess
 {
     internal class LambdaDbFetcher<T> : IDbFetcher<T>
     {

@@ -2,12 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OrthoBits.Abstractions.DataAccess;
-using OrthoBits.DataAccess.Attributes;
-using OrthoBits.Common;
-using OrthoBits.Common.Extensions;
+using ActDim.Practix.Abstractions.DataAccess;
+using ActDim.Practix.DataAccess.Attributes;
+using ActDim.Practix.Common;
+using ActDim.Practix.Common.Extensions;
 
-namespace OrthoBits.DataAccess.EntityMapping.Fetch
+namespace ActDim.Practix.DataAccess.EntityMapping.Fetch
 {
     internal sealed class EntityProperty
     {
