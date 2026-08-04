@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Xunit;
-using THREE.Core;
-using THREE.Materials;
-using THREE.Serialization;
+using ActDim.Three.Core;
+using ActDim.Three.Materials;
+using ActDim.Three.Serialization;
 
-namespace ThreeLib.Tests
+namespace ActDim.Three.Tests
 {
 	public class Stj
 	{

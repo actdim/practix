@@ -1,13 +1,13 @@
 using System.Linq;
 using Newtonsoft.Json;
 using Xunit;
-using THREE;
-using THREE.Core;
-using THREE.Materials;
-using THREE.Objects;
-using THREE.Textures;
+using ActDim.Three;
+using ActDim.Three.Core;
+using ActDim.Three.Materials;
+using ActDim.Three.Objects;
+using ActDim.Three.Textures;
 
-namespace ThreeLib.Tests
+namespace ActDim.Three.Tests
 {
 	public class ReferenceResolution
 	{

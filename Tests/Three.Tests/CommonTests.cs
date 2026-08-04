@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Xunit;
-using THREE;
-using THREE.Core;
-using THREE.Geometries;
-using THREE.Lights;
-using THREE.Materials;
-using THREE.Math;
-using THREE.Objects;
+using ActDim.Three.Core;
+using ActDim.Three.Geometries;
+using ActDim.Three.Lights;
+using ActDim.Three.Materials;
+using ActDim.Three.Math;
+using ActDim.Three.Objects;
 
-namespace ThreeLib.Tests
+namespace ActDim.Three.Tests
 {
 	public class Common
 	{
@@ -287,9 +286,9 @@ namespace ThreeLib.Tests
 				WidthSegments = 22,
 				HeightSegments = 22,
 				PhiStart = 0,
-				PhiLength = (float)Math.PI * 2,
+				PhiLength = (float)System.Math.PI * 2,
 				ThetaStart = 0,
-				ThetaLength = (float)Math.PI * 2
+				ThetaLength = (float)System.Math.PI * 2
 			});
 
 			var sphereMeshAsChild = new Mesh
@@ -325,9 +324,9 @@ namespace ThreeLib.Tests
 				WidthSegments = 10,
 				HeightSegments = 5,
 				PhiStart = 0,
-				PhiLength = (float)Math.PI * 2,
+				PhiLength = (float)System.Math.PI * 2,
 				ThetaStart = 0,
-				ThetaLength = (float)Math.PI * 2
+				ThetaLength = (float)System.Math.PI * 2
 			});
 
 			var sphereMesh = new Mesh
