@@ -4,13 +4,13 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
-using THREE;
-using THREE.Core;
-using THREE.Core.Buffers;
-using THREE.Materials;
-using THREE.Objects;
+using ActDim.Three;
+using ActDim.Three.Core;
+using ActDim.Three.Core.Buffers;
+using ActDim.Three.Materials;
+using ActDim.Three.Objects;
 
-namespace ThreeLib.Tests
+namespace ActDim.Three.Tests
 {
 	public class StjDocument
 	{

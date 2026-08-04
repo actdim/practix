@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11512.155
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActDim.Three", "ActDim.Three\ActDim.Three.csproj", "{B1774D29-1A4C-3270-5609-DC55A9A9AD85}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActDim.Three.Tests", "Tests\Three.Tests\ActDim.Three.Tests.csproj", "{F72F3AE1-13DF-352C-E2C3-DBA2BB795B89}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1774D29-1A4C-3270-5609-DC55A9A9AD85}.Debug|x64.ActiveCfg = Debug|x64
+		{B1774D29-1A4C-3270-5609-DC55A9A9AD85}.Debug|x64.Build.0 = Debug|x64
+		{B1774D29-1A4C-3270-5609-DC55A9A9AD85}.Release|x64.ActiveCfg = Release|x64
+		{B1774D29-1A4C-3270-5609-DC55A9A9AD85}.Release|x64.Build.0 = Release|x64
+		{F72F3AE1-13DF-352C-E2C3-DBA2BB795B89}.Debug|x64.ActiveCfg = Debug|x64
+		{F72F3AE1-13DF-352C-E2C3-DBA2BB795B89}.Debug|x64.Build.0 = Debug|x64
+		{F72F3AE1-13DF-352C-E2C3-DBA2BB795B89}.Release|x64.ActiveCfg = Release|x64
+		{F72F3AE1-13DF-352C-E2C3-DBA2BB795B89}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ABD2F236-7BD4-497A-B831-69D8AAC6F6C9}
+	EndGlobalSection
+EndGlobal

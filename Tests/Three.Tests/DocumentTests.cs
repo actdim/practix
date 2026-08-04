@@ -1,13 +1,13 @@
 using System;
 using Newtonsoft.Json;
 using Xunit;
-using THREE;
-using THREE.Core;
-using THREE.Materials;
-using THREE.Math;
-using THREE.Objects;
+using ActDim.Three;
+using ActDim.Three.Core;
+using ActDim.Three.Materials;
+using ActDim.Three.Math;
+using ActDim.Three.Objects;
 
-namespace ThreeLib.Tests
+namespace ActDim.Three.Tests
 {
 	public class Document
 	{
