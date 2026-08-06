@@ -7,7 +7,7 @@ namespace ActDim.Practix.Common.Memory
 {
     public sealed class ArrayPoolBufferOwner<T> : IBufferOwner<T>
     {
-        private T[]? _array;
+        private T[] _array;
         private readonly ArrayPool<T> _pool;
 
         public T[] Array =>

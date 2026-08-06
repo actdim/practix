@@ -1,53 +1,32 @@
 using ActDim.Practix.Abstractions.Messaging;
-using ActDim.Practix.Disposal;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 
-namespace ActDim.Practix.Messaging // ActDim.Practix.CallContext
+namespace ActDim.Practix.Messaging
 {
-    internal class CallContext : MarshalByRefObject, ICallContext
+    /// <summary>
+    /// Stateless facade over the ambient property bag owned by <see cref="CallContextProvider"/>.
+    /// All state lives in the provider's <c>AsyncLocal</c>, so this instance carries nothing and is
+    /// safe to share.
+    /// </summary>
+    internal sealed class CallContext : ICallContext
     {
-        private ImmutableDictionary<string, object> _data;
+        private readonly CallContextProvider _provider;
 
-        public CallContext()
+        internal CallContext(CallContextProvider provider)
         {
-            _data = ImmutableDictionary.Create<string, object>(); // StringComparer.OrdinalIgnoreCase
+            _provider = provider;
         }
 
         /// <summary>
-        /// Disposal will unset (remove) the value
+        /// Pushes <paramref name="value"/> under <paramref name="name"/> for the current async flow.
+        /// Disposing the returned handle restores the previous value (or removes the key if it was absent).
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public IDisposable Set([NotNull] string name, object value) // Push
+        public IDisposable Set(string name, object value)
         {
-            object oldValue = default;
-
-            var overwrite = _data.TryGetValue(name, out oldValue);
-
-            if (overwrite) // existed/existing
-            {
-                oldValue = value;
-            }
-
-            _data = _data.SetItem(name, value);
-
-            return new DisposableAction(() =>
-            {
-                if (overwrite)
-                {
-                    _data = _data.SetItem(name, oldValue);
-                }
-                else
-                {
-                    _data = _data.Remove(name);
-                }
-            });
+            return _provider.Set(name, value);
         }
 
-        public IReadOnlyDictionary<string, object> Data => _data.AsReadOnly();
+        public IReadOnlyDictionary<string, object> Data => _provider.Data;
     }
 }

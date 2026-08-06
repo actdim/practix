@@ -11,6 +11,7 @@ using ActDim.Practix.Abstractions.Compression;
 using ActDim.Practix.Extensions;
 using ActDim.Practix.Memory;
 using Ardalis.GuardClauses;
+using ActDim.Practix.Common.Memory;
 
 namespace ActDim.Practix.Compression
 {

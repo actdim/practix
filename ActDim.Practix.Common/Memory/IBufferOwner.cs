@@ -1,6 +1,6 @@
 using System;
 
-namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
+namespace ActDim.Practix.Common.Memory
 {
     public interface IBufferOwner<T> : IDisposable
     {
