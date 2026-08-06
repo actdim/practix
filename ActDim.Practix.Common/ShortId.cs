@@ -1,165 +1,48 @@
 using System;
-using System.Linq;
-using ActDim.Practix.Threading;
+using System.Security.Cryptography;
 using Ardalis.GuardClauses;
+
 namespace ActDim.Practix
 {
-    public class ShortId : IDisposable
+    /// <summary>
+    /// Generates short, URL-safe, collision-resistant identifiers.
+    /// <para>
+    /// Backed by <see cref="RandomNumberGenerator.GetString(ReadOnlySpan{char}, int)"/>, so every id is
+    /// cryptographically strong and drawn without modulo bias. The type is stateless and thread-safe;
+    /// there is nothing to instantiate or dispose.
+    /// </para>
+    /// </summary>
+    public static class ShortId
     {
-        // Alpha-numeric
-        public const string DefaultCharSet = "0123456789abcdefghjlkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY"; // _
+        /// <summary>
+        /// Default alphabet: digits and letters with the visually ambiguous characters (i, I, Z) removed.
+        /// </summary>
+        public const string DefaultCharSet = "0123456789abcdefghjlkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY";
 
-        private readonly ThreadSafe<Random, (object SyncRoot, Random GlobalRandom)> _random;
-
-        private string _charSet;
-
-        private readonly object _syncRoot = new();
-
-        private readonly Func<int, int, int> _rnd;
-
-        public ShortId() : this(Guid.NewGuid().GetHashCode() & int.MaxValue)
+        /// <summary>
+        /// Generates a random identifier of the given length from <see cref="DefaultCharSet"/>.
+        /// </summary>
+        /// <param name="length">Number of characters to produce; must be positive.</param>
+        public static string Generate(int length)
         {
-
-        }
-
-        public ShortId(string characters) : this(characters, Guid.NewGuid().GetHashCode() & int.MaxValue)
-        {
-
-        }
-
-        /// <param name="seed">The seed for the random number generator</param>
-        public ShortId(int seed) : this(DefaultCharSet, seed)
-        {
-
-        }
-
-        public ShortId(string characters, int seed)
-        {
-            SetCharacters(characters);
-
-            _random = new ThreadSafe<Random, (object SyncRoot, Random GlobalRandom)>(context =>
-            {
-                int localSeed;
-                lock (context.SyncRoot)
-                {
-                    localSeed = context.GlobalRandom.Next();
-                }
-                return new Random(localSeed);
-            }, (new object(), new Random(seed)));
-
-            _rnd = new Func<int, int, int>((int minValue, int maxValue) =>
-            {
-                return _random.Value.Next(minValue, maxValue);
-            });
+            return Generate(length, DefaultCharSet);
         }
 
         /// <summary>
-        /// Allows to use custom random number generator (for example Mersenne Twister)
+        /// Generates a random identifier of the given length from <paramref name="charSet"/>.
         /// </summary>
-        /// <param name="rnd">Random number generator, should be thread-safe</param>
-        public ShortId(Func<int, int, int> rnd) : this(DefaultCharSet, rnd)
+        /// <param name="length">Number of characters to produce; must be positive.</param>
+        /// <param name="charSet">Alphabet to draw from; must not be empty.</param>
+        public static string Generate(int length, ReadOnlySpan<char> charSet)
         {
+            Guard.Against.NegativeOrZero(length, nameof(length));
 
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="characters">Character set</param>
-        /// <param name="rnd">Random number generator, should be thread-safe</param>
-        public ShortId(string characters, Func<int, int, int> rnd)
-        {
-            SetCharacters(characters);
-            Guard.Against.Null(rnd, nameof(rnd));
-            _rnd = rnd;
-        }
-
-        /// <summary>
-        /// Generates a random string of a specified length
-        /// </summary>
-        /// <param name="length">The length of the generated string</param>
-        /// <returns>A random string</returns>
-        public string Generate(int length)
-        {
-            if (length < 7)
+            if (charSet.IsEmpty)
             {
-                // The length should be greater than 7
-                Guard.Against.OutOfRange(length, nameof(length), 8, int.MaxValue);
+                throw new ArgumentException("The character set must not be empty.", nameof(charSet));
             }
 
-            char[] output = new char[length];
-            var pool = _charSet;
-
-            for (int i = 0; i < length; i++)
-            {
-                int charIndex = _rnd(0, pool.Length);
-                output[i] = pool[charIndex];
-            }
-
-            return new string(output);
+            return RandomNumberGenerator.GetString(charSet, length);
         }
-
-        /// <summary>
-        /// Changes the character set that id's are generated from
-        /// </summary>
-        /// <param name="characters">The new character set</param>
-        /// <exception cref="InvalidOperationException">Thrown when the new character set is less than 20 characters</exception>
-        public void SetCharacters(string characters)
-        {
-            // The character set should not be empty and contain whiteSpace
-            Guard.Against.NullOrWhiteSpace(characters, nameof(characters));
-
-            var distinctCharacters = characters.Distinct().ToArray();
-            if (distinctCharacters.Length < characters.Length)
-            {
-                // The character set should not contain any duplicates
-                throw new ArgumentException("The character set contains duplicates", nameof(characters));
-            }
-
-            if (distinctCharacters.Length < 20)
-            {
-                // The character set length should be greater than 20
-                Guard.Against.InvalidInput(distinctCharacters, nameof(characters), c => c.Length > 20);
-            }
-
-            lock (_syncRoot)
-            {
-                _charSet = new string(distinctCharacters);
-            }
-        }
-
-        #region IDisposable Support
-
-        private bool _isDisposed = false;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_isDisposed)
-            {
-                if (disposing)
-                {
-                    lock (_syncRoot)
-                    {
-                        _random.Dispose();
-                    }
-                }
-
-                _isDisposed = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-
-            GC.SuppressFinalize(this);
-        }
-
-        ~ShortId()
-        {
-            Dispose(false);
-        }
-
-        #endregion
     }
 }

@@ -536,12 +536,14 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             Guard.Against.Null(callback, nameof(callback));
 
             var i = 0;
-            foreach (var element in source) //item
+            foreach (var element in source)
             {
                 if (!callback(element, i))
                 {
                     break;
                 }
+
+                i++;
             }
         }
 

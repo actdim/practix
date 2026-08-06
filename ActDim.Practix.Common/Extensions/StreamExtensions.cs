@@ -18,7 +18,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
     /// </summary>
     public static class StreamExtensions
     {
-        private const int BufferSize = 8 * 1024; // 8kB
+        internal const int BufferSize = 8 * 1024; // 8kB
 
         // Default text encoding: UTF-8 WITHOUT a BOM. Encoding.UTF8 emits a preamble (EF BB BF), which
         // StreamWriter writes on the first write to a stream at position 0. A BOM is almost never wanted
@@ -611,8 +611,12 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// <typeparam name="TStream"></typeparam>
         /// <param name="dst"></param>
         /// <param name="data"></param>
-        /// <param name="chunkSize"></param>
-        public static void WriteSafe<TStream>(this TStream dst, byte[] data, int chunkSize = 8192) where TStream : Stream
+        /// <param name="chunkSize">Maximum bytes per <see cref="Stream.Write(byte[], int, int)"/> call.</param>
+        /// <remarks>
+        /// Not needed for a plain <see cref="FileStream"/> or <see cref="MemoryStream"/>, where a single
+        /// <c>Write(data, 0, data.Length)</c> is equivalent.
+        /// </remarks>
+        public static void WriteInChunks<TStream>(this TStream dst, byte[] data, int chunkSize = BufferSize) where TStream : Stream
         {
             Guard.Against.Null(dst, nameof(dst));
             Guard.Against.Null(data, nameof(data));
@@ -633,9 +637,14 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// <typeparam name="TStream"></typeparam>
         /// <param name="dst"></param>
         /// <param name="data"></param>
-        /// <param name="chunkSize"></param>
+        /// <param name="chunkSize">Maximum bytes per write call, and therefore the cancellation granularity.</param>
         /// <param name="ct"></param>
-        public static async Task WriteSafeAsync<TStream>(this TStream dst, byte[] data, int chunkSize = 8192, CancellationToken ct = default) where TStream : Stream
+        /// <remarks>
+        /// Beyond bounding the buffer size, chunking gives <paramref name="ct"/> somewhere to be
+        /// observed: a single <see cref="Stream.WriteAsync(ReadOnlyMemory{byte}, CancellationToken)"/>
+        /// over a large buffer may not notice cancellation until it has finished.
+        /// </remarks>
+        public static async Task WriteInChunksAsync<TStream>(this TStream dst, byte[] data, int chunkSize = BufferSize, CancellationToken ct = default) where TStream : Stream
         {
             Guard.Against.Null(dst, nameof(dst));
             Guard.Against.Null(data, nameof(data));
