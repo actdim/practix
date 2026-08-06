@@ -34,7 +34,7 @@ IBlobRegistry.cs           # internal — metadata + lock contract
 SQLiteBlobRegistry.cs      # internal — lock engine + persistence
 FileSystemBlobDataStore.cs # public — FS implementation
 
-Tests/BlobManager.Tests/BlobManagerTests.cs   # 41 xUnit v3 tests
+Tests/BlobManager.Tests/BlobManagerTests.cs   # 64 xUnit v3 tests
 ```
 
 `README.md` is the consumer-facing document: the API plus the reasoning behind the shapes that look
@@ -188,6 +188,11 @@ Setter visibility follows what a value **is**, not whether mutating it is safe �
 exclusive, so mutation under one is exactly what the lock is for. Facts the library observes are
 `internal` (`Size`, `Hash`, `CreatedAt`/`UpdatedAt`/`AccessedAt`, `Key`); intent only the caller can
 supply stays public (`ContentType`, `Metadata`, `SlidingExpiration`, `ExpiresAt`).
+
+`TryGetForWritingAsync(key, options, …)` is `TryGetForWritingAsync` + `Apply` on the handed-out record;
+it applies nothing on a failed acquisition and persists on dispose, because the write lock is held
+throughout. `TryGetOrSetAsync` persists options immediately only because it may downgrade to a read
+lock (#008).
 
 `BlobRecord.Apply(BlobStoreOptions)` applies instructions to a record already held under a write lock —
 `Ttl` resolved against now, only values that were set, expiration priority. The registry uses an

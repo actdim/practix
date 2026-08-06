@@ -112,6 +112,28 @@ namespace ActDim.Practix.BlobManager
         public async Task<BlobResult> TryGetForWritingAsync(string key, TimeSpan timeout, CancellationToken ct)
             => await ReconcileContentAsync(await _registry.TryGetForWritingAsync(key, timeout, ct), false, timeout, ct);
 
+        public async Task<BlobResult> TryGetForWritingAsync(string key, BlobStoreOptions options, CancellationToken ct)
+            => ApplyOptions(await TryGetForWritingAsync(key, ct), options);
+
+        public async Task<BlobResult> TryGetForWritingAsync(string key, BlobStoreOptions options, TimeSpan timeout, CancellationToken ct)
+            => ApplyOptions(await TryGetForWritingAsync(key, timeout, ct), options);
+
+        /// <summary>
+        /// Applies the caller's options to a record handed out under a write lock. Unlike
+        /// <see cref="TryGetOrSetAsync(string, BlobStoreOptions, LockType, CancellationToken)"/>, which
+        /// has to persist them before it may downgrade the lock, nothing is written here: the write
+        /// lock is held until the handle is disposed, and disposal persists the record anyway.
+        /// </summary>
+        private static BlobResult ApplyOptions(BlobResult blobResult, BlobStoreOptions options)
+        {
+            if (options != null && blobResult.IsSuccess)
+            {
+                blobResult.Record.Apply(options);
+            }
+
+            return blobResult;
+        }
+
         public async Task<BlobResult> TryGetOrSetAsync(string key, CancellationToken ct)
             => await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, null, LockType.Write, ct), true, null, ct);
 

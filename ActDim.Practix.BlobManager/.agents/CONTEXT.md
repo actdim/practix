@@ -2,16 +2,17 @@
 
 _Current-state snapshot. Keep SHORT; history goes to SESSIONS/._
 
-- **State**: builds clean, 61/61 tests green. Nothing in flight.
+- **State**: builds clean, 64/64 tests green. Nothing in flight.
 - **Shape**: two layers that do not know each other — `SQLiteBlobRegistry` (metadata + locks) and
   `FileSystemBlobDataStore` (content). `BlobManager` is the only place that sees both, so
   `ReconcileContentAsync` and all four deletion paths live there.
-- **Read `DECISIONS.md` #001–#007 before changing any invariant.** In short: a record without content
+- **Read `DECISIONS.md` #001–#008 before changing any invariant.** In short: a record without content
   is transient and only `TryGetOrSetAsync` may observe it, via `IsNew`; `Size` is library-owned and
   always read from the store; `BlobRecord` stays decoupled from streams; deletion removes content
   before metadata; the write surface has no position and no mode flags; **writes consume a stream,
   reads hand one out**; options are instructions and the record is state, so `BlobRecord.Apply`
-  translates one into the other under a write lock.
+  translates one into the other under a write lock — and `TryGetForWritingAsync(key, options, …)` is
+  that acquire-then-`Apply` pair as one call, persisting on dispose (#008).
 - **Docs discipline**: XML docs say what a member does for the caller. Rationale goes to
   `DECISIONS.md`, requirements on implementations to `AGENTS.md`, and `README.md` is the only place
   that deliberately explains why the API is shaped as it is.
