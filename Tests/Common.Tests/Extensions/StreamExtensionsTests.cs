@@ -482,62 +482,62 @@ namespace ActDim.Practix.Common.Tests.Extensions
             Assert.Equal(data, owner.Memory.ToArray());
         }
 
-        // WriteSafe --------------------------------------------------------------------------------------
+        // WriteInChunks --------------------------------------------------------------------------------------
 
         [Fact]
-        public void WriteSafe_WritesAllBytes_WithSmallChunks()
+        public void WriteInChunks_WritesAllBytes_WithSmallChunks()
         {
             var data = MakeBytes(1000);
             using var dst = new MemoryStream();
 
-            dst.WriteSafe(data, chunkSize: 64); // chunk smaller than data -> multiple iterations
+            dst.WriteInChunks(data, chunkSize: 64); // chunk smaller than data -> multiple iterations
 
             Assert.Equal(data, dst.ToArray());
         }
 
         [Fact]
-        public async Task WriteSafeAsync_WritesAllBytes_WithSmallChunks()
+        public async Task WriteInChunksAsync_WritesAllBytes_WithSmallChunks()
         {
             var data = MakeBytes(1000);
             using var dst = new MemoryStream();
 
-            await dst.WriteSafeAsync(data, chunkSize: 64);
+            await dst.WriteInChunksAsync(data, chunkSize: 64);
 
             Assert.Equal(data, dst.ToArray());
         }
 
         [Fact]
-        public void WriteSafe_NullDst_Throws()
+        public void WriteInChunks_NullDst_Throws()
         {
-            Assert.ThrowsAny<ArgumentException>(() => ((Stream)null).WriteSafe(MakeBytes(4)));
+            Assert.ThrowsAny<ArgumentException>(() => ((Stream)null).WriteInChunks(MakeBytes(4)));
         }
 
         [Fact]
-        public void WriteSafe_NullData_Throws()
+        public void WriteInChunks_NullData_Throws()
         {
             using var dst = new MemoryStream();
 
-            Assert.ThrowsAny<ArgumentException>(() => dst.WriteSafe(null));
+            Assert.ThrowsAny<ArgumentException>(() => dst.WriteInChunks(null));
         }
 
         [Theory]
         [InlineData(0)]
         [InlineData(-1)]
-        public void WriteSafe_NonPositiveChunkSize_Throws(int chunkSize)
+        public void WriteInChunks_NonPositiveChunkSize_Throws(int chunkSize)
         {
             using var dst = new MemoryStream();
 
-            Assert.ThrowsAny<ArgumentException>(() => dst.WriteSafe(MakeBytes(4), chunkSize));
+            Assert.ThrowsAny<ArgumentException>(() => dst.WriteInChunks(MakeBytes(4), chunkSize));
         }
 
         [Theory]
         [InlineData(0)]
         [InlineData(-1)]
-        public async Task WriteSafeAsync_NonPositiveChunkSize_Throws(int chunkSize)
+        public async Task WriteInChunksAsync_NonPositiveChunkSize_Throws(int chunkSize)
         {
             using var dst = new MemoryStream();
 
-            await Assert.ThrowsAnyAsync<ArgumentException>(() => dst.WriteSafeAsync(MakeBytes(4), chunkSize));
+            await Assert.ThrowsAnyAsync<ArgumentException>(() => dst.WriteInChunksAsync(MakeBytes(4), chunkSize));
         }
     }
 }
