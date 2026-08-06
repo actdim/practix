@@ -238,7 +238,16 @@ applied, and expiration follows the priority above. So `Apply` exists for anythi
 translated into state, and plain assignment for the rest.
 
 `Apply` needs the write lock, which is also why `TryGetOrSetAsync(key, options, …)` amounts to
-get-or-create followed by `Apply`.
+get-or-create followed by `Apply`. `TryGetForWritingAsync(key, options, …)` is the same shorthand for
+a key that must already exist:
+
+```csharp
+var (ec, record) = await manager.TryGetForWritingAsync(key, new BlobStoreOptions { Ttl = TimeSpan.FromHours(1) }, ct);
+```
+
+It applies nothing when the acquisition fails, and — unlike `TryGetOrSetAsync`, which persists options
+immediately because it may downgrade to a read lock — it writes on dispose along with everything else
+you changed. So the handle still has to be disposed for the options to reach storage.
 
 ---
 
