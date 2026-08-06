@@ -7,5 +7,3 @@ namespace ActDim.Practix.BlobManager
         Write = 2
     }
 }
-
-

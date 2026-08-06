@@ -24,6 +24,7 @@ namespace ActDim.Practix.BlobManager
         Task<IList<string>> QueryAsync(string pattern, CancellationToken ct);
 
         Task DeleteAsync(string key, CancellationToken ct);
+        Task DeleteAsync(string key, TimeSpan timeout, CancellationToken ct);
 
         Task<int> DeleteExpiredAsync(CancellationToken ct);
 

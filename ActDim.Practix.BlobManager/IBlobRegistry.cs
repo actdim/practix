@@ -18,11 +18,21 @@ namespace ActDim.Practix.BlobManager
 
         Task<IList<string>> QueryAsync(string pattern, CancellationToken ct);
 
-        Task DeleteAsync(string key, CancellationToken ct);
+        /// <summary>
+        /// Deletes the record and its locks. The caller must already hold the write lock on it,
+        /// which <see cref="BlobRecord.LockType"/> attests — so no lock is acquired here.
+        /// </summary>
+        Task DeleteLockedAsync(BlobRecord record, CancellationToken ct);
 
-        Task<int> DeleteExpiredAsync(CancellationToken ct);
+        /// <summary>
+        /// Drops every lock on the key so a subsequent acquisition cannot be blocked by a holder
+        /// that is still alive. Only for the forced-deletion path.
+        /// </summary>
+        Task ForceUnlockAsync(string key, CancellationToken ct);
 
-        Task<int> DeleteOlderThanAsync(DateTimeOffset cutoff, CancellationToken ct, bool forceDeleteLocked = false);
+        Task<IList<string>> GetExpiredKeysAsync(CancellationToken ct);
+
+        Task<IList<string>> GetKeysOlderThanAsync(DateTimeOffset cutoff, bool includeLocked, CancellationToken ct);
 
         Task CleanupLocksAsync(CancellationToken ct);
     }
