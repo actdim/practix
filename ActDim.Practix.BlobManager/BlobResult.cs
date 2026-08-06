@@ -5,7 +5,7 @@ namespace ActDim.Practix.BlobManager
 {
     public sealed class BlobResult : IAsyncDisposable, IDisposable
     {
-        public BlobResult(BlobErrorCode errorCode, BlobRecord record = null, bool isNew = false)
+        internal BlobResult(BlobErrorCode errorCode, BlobRecord record = null, bool isNew = false)
         {
             ErrorCode = errorCode;
             Record = record;
@@ -15,7 +15,7 @@ namespace ActDim.Practix.BlobManager
         public BlobErrorCode ErrorCode { get; }
         public BlobRecord Record { get; }
         public bool IsSuccess => ErrorCode == BlobErrorCode.None;
-        public bool IsNew { get; }
+        public bool IsNew { get; internal set; }
 
         public void Deconstruct(out BlobErrorCode errorCode, out BlobRecord record)
             => (errorCode, record) = (ErrorCode, Record);

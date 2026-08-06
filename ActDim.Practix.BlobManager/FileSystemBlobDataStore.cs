@@ -9,6 +9,10 @@ namespace ActDim.Practix.BlobManager
 {
     public class FileSystemBlobDataStore : IBlobDataStore
     {
+        private const int BufferSize = 81920;
+
+        private const char EscapeChar = '%';
+
         private readonly string _basePath;
 
         public FileSystemBlobDataStore(string basePath)
@@ -17,23 +21,59 @@ namespace ActDim.Practix.BlobManager
             Directory.CreateDirectory(_basePath);
         }
 
-        public Task<Stream> CreateAsync(BlobRecord blobRecord, CancellationToken ct)
+        public Task<long> WriteAsync(BlobRecord blobRecord, Stream content, CancellationToken ct)
         {
-            ct.ThrowIfCancellationRequested();
-            EnsureWriteLock(blobRecord);
-            var path = BuildPath(blobRecord);
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, 81920, true);
-            return Task.FromResult(stream);
+            return CopyIntoAsync(blobRecord, content, FileMode.Create, ct);
         }
 
-        public Task<Stream> WriteAsync(BlobRecord blobRecord, CancellationToken ct)
+        public Task<long> AppendAsync(BlobRecord blobRecord, Stream content, CancellationToken ct)
+        {
+            // FileMode.Append creates the file when absent and positions at its end, so the current
+            // size never has to be looked up.
+            return CopyIntoAsync(blobRecord, content, FileMode.Append, ct);
+        }
+
+        public Task<long> WriteAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> produce, CancellationToken ct)
+        {
+            return ProduceIntoAsync(blobRecord, produce, FileMode.Create, ct);
+        }
+
+        public Task<long> AppendAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> produce, CancellationToken ct)
+        {
+            return ProduceIntoAsync(blobRecord, produce, FileMode.Append, ct);
+        }
+
+        private Task<long> CopyIntoAsync(BlobRecord blobRecord, Stream content, FileMode mode, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(content, nameof(content));
+            return WriteThroughAsync(blobRecord, (file, token) => content.CopyToAsync(file, BufferSize, token), mode, ct);
+        }
+
+        private Task<long> ProduceIntoAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> produce, FileMode mode, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(produce, nameof(produce));
+            // The producer gets the destination file itself; the interface default would only route
+            // the same bytes through a pipe.
+            return WriteThroughAsync(blobRecord, produce, mode, ct);
+        }
+
+        private async Task<long> WriteThroughAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> write, FileMode mode, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
             EnsureWriteLock(blobRecord);
-            var path = BuildPath(blobRecord);
-            Stream stream = new FileStream(path, FileMode.Truncate, FileAccess.Write, FileShare.Read, 81920, true);
-            return Task.FromResult(stream);
+
+            var path = EnsureDirectory(blobRecord);
+            await using var file = new FileStream(path, mode, FileAccess.Write, FileShare.Read, BufferSize, true);
+
+            await write(file, ct);
+            await file.FlushAsync(ct);
+
+            // Length rather than Position: a producer given this stream directly may seek within it,
+            // in which case the position is not the end. Recorded here because this is the moment the
+            // size is known for certain, without asking the file system again.
+            var size = file.Length;
+            blobRecord.Size = size;
+            return size;
         }
 
         public Task<Stream> ReadAsync(BlobRecord blobRecord, CancellationToken ct)
@@ -41,18 +81,23 @@ namespace ActDim.Practix.BlobManager
             ct.ThrowIfCancellationRequested();
             EnsureReadLock(blobRecord);
             var path = BuildPath(blobRecord);
-            Stream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 81920, true);
+            Stream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, BufferSize, true);
             return Task.FromResult(stream);
         }
 
-        public Task<Stream> AppendAsync(BlobRecord blobRecord, long offset, CancellationToken ct)
+        public Task<bool> DeleteAsync(BlobRecord blobRecord, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
             EnsureWriteLock(blobRecord);
             var path = BuildPath(blobRecord);
-            Stream file = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.Read, 81920, true);
-            file.Seek(offset, SeekOrigin.Begin);
-            return Task.FromResult(file);
+            if (!File.Exists(path))
+            {
+                return Task.FromResult(false);
+            }
+
+            File.Delete(path);
+            PruneEmptyDirectories(Path.GetDirectoryName(path));
+            return Task.FromResult(true);
         }
 
         public Task<string> ResolveLocationAsync(BlobRecord blobRecord, CancellationToken ct)
@@ -67,16 +112,16 @@ namespace ActDim.Practix.BlobManager
             return Task.FromResult(location);
         }
 
-        public Task<bool> ExistsAsync(BlobRecord blobRecord, CancellationToken ct)
+        public Task<long?> GetSizeAsync(BlobRecord blobRecord, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
             ArgumentNullException.ThrowIfNull(blobRecord, nameof(blobRecord));
-            var location = BuildPath(blobRecord);
-            if (!File.Exists(location))
+            var info = new FileInfo(BuildPath(blobRecord));
+            if (!info.Exists)
             {
-                return Task.FromResult(false);
+                return Task.FromResult((long?)null);
             }
-            return Task.FromResult(true);
+            return Task.FromResult((long?)info.Length);
         }
 
         private static void EnsureReadLock(BlobRecord blobRecord)
@@ -99,11 +144,24 @@ namespace ActDim.Practix.BlobManager
             }
         }
 
+        /// <summary>
+        /// Resolves the path and makes sure its shard directories exist, for the operations that
+        /// may have to create the content.
+        /// </summary>
+        private string EnsureDirectory(BlobRecord blobRecord)
+        {
+            var path = BuildPath(blobRecord);
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            return path;
+        }
+
         private string BuildPath(BlobRecord blobRecord)
         {
-            var key = blobRecord.Key;
+            var key = blobRecord.Key ?? string.Empty;
 
-            var segments = (key ?? string.Empty).Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries);
+            // Only '/' separates. A backslash is an ordinary character that gets escaped, so 'a\b' stays
+            // a distinct key rather than aliasing onto 'a/b'.
+            var segments = key.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
             if (segments.Length > 1)
             {
@@ -113,15 +171,15 @@ namespace ActDim.Practix.BlobManager
                 parts[0] = _basePath;
                 for (var i = 0; i < segments.Length; i++)
                 {
-                    parts[i + 1] = SanitizeFileName(segments[i]);
+                    parts[i + 1] = EscapeFileName(segments[i]);
                 }
                 return Path.Combine(parts);
             }
 
             // Flat key: derive two subfolders from the first 4 hex chars (2 + 2) of its hash
             // to avoid piling every blob into a single directory.
-            var fileName = SanitizeFileName(key);
-            var hashCode = ComputeHash(key ?? string.Empty);
+            var fileName = EscapeFileName(key);
+            var hashCode = ComputeHash(key);
             return Path.Combine(_basePath, hashCode[..2], hashCode[2..4], fileName);
         }
 
@@ -173,29 +231,75 @@ namespace ActDim.Practix.BlobManager
         //     }
         // }        
 
-        private static string SanitizeFileName(string input)
+        /// <summary>
+        /// Removes the directories a deleted blob left empty. Keys are sharded into subfolders,
+        /// so without this every deleted blob would leave its shard behind for good.
+        /// </summary>
+        private void PruneEmptyDirectories(string directory)
         {
-            if (string.IsNullOrWhiteSpace(input))
+            var root = Path.GetFullPath(_basePath);
+            var current = directory;
+
+            while (!string.IsNullOrEmpty(current))
+            {
+                var full = Path.GetFullPath(current);
+                if (string.Equals(full, root, StringComparison.OrdinalIgnoreCase)
+                    || !full.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                if (Directory.GetFileSystemEntries(full).Length > 0)
+                {
+                    return;
+                }
+
+                try
+                {
+                    Directory.Delete(full);
+                }
+                catch (IOException)
+                {
+                    // Someone repopulated the directory between the check and the delete.
+                    return;
+                }
+
+                current = Path.GetDirectoryName(full);
+            }
+        }
+
+        /// <summary>
+        /// Turns a key segment into a file name **reversibly**: anything a file name cannot carry becomes
+        /// %XX, and '%' itself is escaped so the mapping stays injective. Two different segments therefore
+        /// cannot produce the same name — a lossy replacement would fold ':' and '_' onto one file.
+        /// </summary>
+        private static string EscapeFileName(string input)
+        {
+            if (string.IsNullOrEmpty(input))
             {
                 return "blob";
             }
 
             var invalid = Path.GetInvalidFileNameChars();
             var sb = new StringBuilder(input.Length);
+
             for (var i = 0; i < input.Length; i++)
             {
                 var ch = input[i];
-                var isInvalid = false;
-                for (var j = 0; j < invalid.Length; j++)
+
+                // Windows silently drops a trailing dot or space, which would alias "a." onto "a".
+                var isTrimmedAway = i == input.Length - 1 && (ch == '.' || ch == ' ');
+
+                if (ch == EscapeChar || isTrimmedAway || Array.IndexOf(invalid, ch) >= 0)
                 {
-                    if (invalid[j] == ch)
-                    {
-                        isInvalid = true;
-                        break;
-                    }
+                    sb.Append(EscapeChar).Append(((int)ch).ToString("X2"));
                 }
-                sb.Append(isInvalid ? '_' : ch);
+                else
+                {
+                    sb.Append(ch);
+                }
             }
+
             return sb.ToString();
         }
     }

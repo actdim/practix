@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,53 +68,54 @@ namespace ActDim.Practix.BlobManager
             EnsureSchemaAsync().GetAwaiter().GetResult();
         }
 
-        public async Task DeleteAsync(string key, CancellationToken ct)
+        public async Task DeleteLockedAsync(BlobRecord record, CancellationToken ct)
         {
-            var existing = await GetRecordAsync(key, ct);
-            if (existing == null)
+            ArgumentNullException.ThrowIfNull(record, nameof(record));
+            if (record.LockType != LockType.Write)
             {
-                throw new KeyNotFoundException($"Blob '{key}' not found.");
+                throw new InvalidOperationException("Deleting a record requires a write lock on it.");
             }
 
-            var writeLockId = Guid.NewGuid().ToString("N");
-            await AcquireWriteLockAsync(key, writeLockId, _defaultTimeout, ct);
-
-            var lockHeld = true;
             await _dbSemaphore.WaitAsync(ct);
             try
             {
-                await _db.ExecuteAsync("DELETE FROM blob_locks WHERE blob_key = ?;", key);
-                await _db.ExecuteAsync("DELETE FROM blob_records WHERE blob_key = ?;", key);
-                lockHeld = false;
+                await _db.ExecuteAsync("DELETE FROM blob_locks WHERE blob_key = ?;", record.Key);
+                await _db.ExecuteAsync("DELETE FROM blob_records WHERE blob_key = ?;", record.Key);
             }
             finally
             {
                 _dbSemaphore.Release();
-                if (lockHeld)
-                {
-                    await ReleaseWriteLockAsync(key, writeLockId, ct);
-                }
             }
         }
 
-        public async Task<int> DeleteExpiredAsync(CancellationToken ct)
+        public async Task ForceUnlockAsync(string key, CancellationToken ct)
+        {
+            await _dbSemaphore.WaitAsync(ct);
+            try
+            {
+                await _db.ExecuteAsync("DELETE FROM blob_locks WHERE blob_key = ?;", key);
+            }
+            finally
+            {
+                _dbSemaphore.Release();
+            }
+        }
+
+        public async Task<IList<string>> GetExpiredKeysAsync(CancellationToken ct)
         {
             await _dbSemaphore.WaitAsync(ct);
             try
             {
                 var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                var condition =
-                    "expires_at IS NOT NULL AND expires_at <= ? " +
+                var rows = await _db.QueryAsync<BlobRecordTransport>(
+                    "SELECT blob_key FROM blob_records " +
+                    "WHERE expires_at IS NOT NULL AND expires_at <= ? " +
                     "  AND NOT EXISTS (" +
                     "    SELECT 1 FROM blob_locks " +
                     "    WHERE blob_locks.blob_key = blob_records.blob_key AND blob_locks.expires_at > ?" +
-                    "  )";
-                await _db.ExecuteAsync(
-                    $"DELETE FROM blob_locks WHERE blob_key IN (SELECT blob_key FROM blob_records WHERE {condition});",
+                    "  );",
                     now, now);
-                return await _db.ExecuteAsync(
-                    $"DELETE FROM blob_records WHERE {condition};",
-                    now, now);
+                return ToKeys(rows);
             }
             finally
             {
@@ -122,40 +123,46 @@ namespace ActDim.Practix.BlobManager
             }
         }
 
-        public async Task<int> DeleteOlderThanAsync(DateTimeOffset cutoff, CancellationToken ct, bool forceDeleteLocked = false)
+        public async Task<IList<string>> GetKeysOlderThanAsync(DateTimeOffset cutoff, bool includeLocked, CancellationToken ct)
         {
             await _dbSemaphore.WaitAsync(ct);
             try
             {
                 var cutoffUnix = cutoff.ToUnixTimeSeconds();
-                if (forceDeleteLocked)
+                if (includeLocked)
                 {
-                    await _db.ExecuteAsync(
-                        "DELETE FROM blob_locks WHERE blob_key IN (SELECT blob_key FROM blob_records WHERE updated_at < ?);",
+                    var all = await _db.QueryAsync<BlobRecordTransport>(
+                        "SELECT blob_key FROM blob_records WHERE updated_at < ?;",
                         cutoffUnix);
-                    return await _db.ExecuteAsync(
-                        "DELETE FROM blob_records WHERE updated_at < ?;",
-                        cutoffUnix);
+                    return ToKeys(all);
                 }
 
                 var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                var condition =
-                    "updated_at < ? " +
+                var rows = await _db.QueryAsync<BlobRecordTransport>(
+                    "SELECT blob_key FROM blob_records " +
+                    "WHERE updated_at < ? " +
                     "  AND NOT EXISTS (" +
                     "    SELECT 1 FROM blob_locks " +
                     "    WHERE blob_locks.blob_key = blob_records.blob_key AND blob_locks.expires_at > ?" +
-                    "  )";
-                await _db.ExecuteAsync(
-                    $"DELETE FROM blob_locks WHERE blob_key IN (SELECT blob_key FROM blob_records WHERE {condition});",
+                    "  );",
                     cutoffUnix, now);
-                return await _db.ExecuteAsync(
-                    $"DELETE FROM blob_records WHERE {condition};",
-                    cutoffUnix, now);
+                return ToKeys(rows);
             }
             finally
             {
                 _dbSemaphore.Release();
             }
+        }
+
+        private static IList<string> ToKeys(List<BlobRecordTransport> rows)
+        {
+            var keys = new List<string>(rows.Count);
+            foreach (var row in rows)
+            {
+                keys.Add(row.Key);
+            }
+
+            return keys;
         }
 
         public async Task CleanupLocksAsync(CancellationToken ct)
@@ -180,7 +187,9 @@ namespace ActDim.Practix.BlobManager
         {
             var existing = await GetRecordAsync(key, ct);
             if (existing == null)
+            {
                 return new BlobResult(BlobErrorCode.KeyNotFound);
+            }
 
             var lockedBy = Guid.NewGuid().ToString("N");
             try
@@ -211,7 +220,9 @@ namespace ActDim.Practix.BlobManager
             finally
             {
                 if (lockHeld)
+                {
                     await ReleaseReadLockAsync(key, lockedBy, ct);
+                }
             }
         }
 
@@ -224,7 +235,9 @@ namespace ActDim.Practix.BlobManager
         {
             var existing = await GetRecordAsync(key, ct);
             if (existing == null)
+            {
                 return new BlobResult(BlobErrorCode.KeyNotFound);
+            }
 
             var lockedBy = Guid.NewGuid().ToString("N");
             try
@@ -255,7 +268,9 @@ namespace ActDim.Practix.BlobManager
             finally
             {
                 if (lockHeld)
+                {
                     await ReleaseWriteLockAsync(key, lockedBy, ct);
+                }
             }
         }
 
@@ -284,7 +299,7 @@ namespace ActDim.Practix.BlobManager
                 var now = DateTimeOffset.UtcNow;
                 var record = await GetRecordAsync(key, ct);
 
-                ApplyOptions(record, options, now);
+                record.Apply(options, now);
                 await UpdateRecordAsync(record, ct);
 
                 var effectiveLock = (!isNew && lockType == LockType.Read) ? LockType.Read : LockType.Write;
@@ -318,7 +333,9 @@ namespace ActDim.Practix.BlobManager
             finally
             {
                 if (lockHeld)
+                {
                     await ReleaseWriteLockAsync(key, writeLockId, ct);
+                }
             }
         }
 
@@ -382,52 +399,6 @@ namespace ActDim.Practix.BlobManager
             }
         }
 
-        private void ApplyOptions(BlobRecord record, BlobStoreOptions options, DateTimeOffset now)
-        {
-            if (options == null)
-            {
-                if (record.SlidingExpiration.HasValue)
-                {
-                    record.ExpiresAt = now.Add(record.SlidingExpiration.Value);
-                }
-
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(options.ContentType))
-            {
-                record.ContentType = options.ContentType;
-            }
-
-            if (!string.IsNullOrEmpty(options.Hash))
-            {
-                record.Hash = options.Hash;
-            }
-
-            if (!string.IsNullOrEmpty(options.Metadata))
-            {
-                record.Metadata = options.Metadata;
-            }
-
-            if (options.AbsoluteExpiration.HasValue)
-            {
-                record.ExpiresAt = options.AbsoluteExpiration.Value;
-            }
-            else if (options.Ttl.HasValue)
-            {
-                record.ExpiresAt = now.Add(options.Ttl.Value);
-            }
-            else if (record.SlidingExpiration.HasValue)
-            {
-                record.ExpiresAt = now.Add(record.SlidingExpiration.Value);
-            }
-
-            if (options.SlidingExpiration.HasValue)
-            {
-                record.SlidingExpiration = options.SlidingExpiration;
-                record.ExpiresAt = now.Add(options.SlidingExpiration.Value);
-            }
-        }
 
         private async Task<BlobRecord> GetRecordAsync(string key, CancellationToken ct)
         {
@@ -509,9 +480,19 @@ namespace ActDim.Practix.BlobManager
             ExpiresAtUnix = r.ExpiresAt.HasValue ? (long?)((long)Math.Ceiling(r.ExpiresAt.Value.ToUnixTimeMilliseconds() / 1000.0)) : null,
         };
 
+        /// <summary>
+        /// <see cref="TimeSpan.Zero"/> means "attempt once, do not wait" — the deadline is already
+        /// reached when the first attempt returns, so the retry loop exits immediately. A negative
+        /// value is treated as unspecified and falls back to the default timeout.
+        /// </summary>
+        private TimeSpan NormalizeAcquireTimeout(TimeSpan timeout)
+        {
+            return timeout < TimeSpan.Zero ? _defaultTimeout : timeout;
+        }
+
         private async Task AcquireReadLockAsync(string resourceId, string lockedBy, TimeSpan timeout, CancellationToken ct)
         {
-            var effectiveTimeout = timeout <= TimeSpan.Zero ? _defaultTimeout : timeout;
+            var effectiveTimeout = NormalizeAcquireTimeout(timeout);
             var deadline = DateTimeOffset.UtcNow + effectiveTimeout;
             while (true)
             {
@@ -532,7 +513,7 @@ namespace ActDim.Practix.BlobManager
 
         private async Task AcquireWriteLockAsync(string resourceId, string lockedBy, TimeSpan timeout, CancellationToken ct)
         {
-            var effectiveTimeout = timeout <= TimeSpan.Zero ? _defaultTimeout : timeout;
+            var effectiveTimeout = NormalizeAcquireTimeout(timeout);
             var deadline = DateTimeOffset.UtcNow + effectiveTimeout;
             while (true)
             {
