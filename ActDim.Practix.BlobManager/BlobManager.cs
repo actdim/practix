@@ -155,7 +155,7 @@ namespace ActDim.Practix.BlobManager
 
             if (blobResult.IsNew && !allowNew)
             {
-                throw new InvalidOperationException($"Invalid blob record state: {blobResult.Record.Key}");
+                throw new InvalidOperationException($"Invalid record state: {blobResult.Record.Key}");
             }
 
             long? size;

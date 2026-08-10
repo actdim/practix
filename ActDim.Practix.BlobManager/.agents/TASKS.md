@@ -2,6 +2,10 @@
 
 ## Active
 
+- [ ] add-write-at-offset — new `WriteAsync(record, produce, truncate, ct)` and `WriteAsync(record, stream, offset, ct)` for chunked random-write (out-of-order resumable upload); default interface throws, FileSystemBlobDataStore overrides with OpenOrCreate + Seek
+- [~] add-try-create-with-conflict-behavior — `TryCreateAsync` (conflict handling) + `BlobManagerExtensions.CreateAsync` (one-shot creation from byte[]/Stream/producer delegate); see `.agents/TASKS/add-try-create-with-conflict-behavior.md`
+- [ ] multi-backend — multiple `IBlobManager` instances, each self-describing via `KeyPrefix`;
+      client picks the right one by calling `ResolveKey`
 - [ ] di-registration — `BlobManager` is `internal` and `BlobManagerModule.cs` is commented out, so
       nothing outside the assembly can consume the library
 - [ ] content-hash — `Hash` is an unchecked claim: compute it during the write, verify a declared one,

@@ -25,9 +25,11 @@ _Current-state snapshot. Keep SHORT; history goes to SESSIONS/._
   the invariant list for agents. Keep both in sync with the public surface.
 - **Next real blocker**: no DI registration — `BlobManager` is `internal` and `BlobManagerModule.cs`
   is entirely commented out, so nothing outside the assembly can consume this yet.
-- **Open tasks**: `di-registration` (blocks all consumption), `content-hash`, `integrity-audit`,
-  `url-safe-key-separator`, `read-lock-persists-mutations`, `batch-content-delete`, and `range-read`'s
-  deferred second half.
+- **Open tasks**: `multi-backend` (new — multiple IBlobManager with self-describing key prefixes),
+  `di-registration` (blocks all consumption), `content-hash`, `integrity-audit`,
+  `url-safe-key-separator`, `read-lock-persists-mutations`, `batch-content-delete`, `range-read`'s
+  deferred second half, and `add-try-create-with-conflict-behavior` (now includes one-shot
+  `CreateAsync` extension methods for byte[]/Stream/producer delegate).
 - **`IBlobDataStore` cannot enumerate its content**, so nothing can find orphaned files or audit the
   store against the registry — see `integrity-audit`.
 - **Key format is unsettled**: `/` in a key means "make directories", which collides with the key being

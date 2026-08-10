@@ -58,6 +58,36 @@ produce the content.
 `TryGetForReadingAsync` and `TryGetForWritingAsync` take the opposite stance — you asked for existing
 content, so if there is none the orphaned record is deleted and you get `KeyNotFound`.
 
+### Choosing an entry point
+
+The three differ by more than "creates the record or not". The row that catches people out is the
+second one: asking for *existing* content when there is none does not merely fail, it **prunes** the
+orphaned record.
+
+| | `TryGetOrSetAsync` | `TryGetForReadingAsync` | `TryGetForWritingAsync` |
+|---|---|---|---|
+| no record | creates it, `IsNew = true` | `KeyNotFound` | `KeyNotFound` |
+| record but no content | succeeds, `IsNew = true` | deletes the record → `KeyNotFound` | deletes the record → `KeyNotFound` |
+| lock you get | write — or read, if you ask for it *and* the record already existed | read | write |
+| codes it can return | `None`, `Timeout` | `None`, `KeyNotFound`, `Timeout` | `None`, `KeyNotFound`, `Timeout` |
+| `IsNew` | meaningful | always `false` | always `false` |
+| `BlobStoreOptions` | applied **and written** during the call | no overload — see below | applied, written when you dispose |
+| reach for it when | the blob may not exist yet | you only need to read | the blob exists and you will change it |
+
+Notes on the less obvious cells:
+
+- **`TryGetOrSetAsync` never returns `KeyNotFound`, but it is not "always success"** — it still returns
+  `Timeout` when the lock cannot be acquired, and again if the read-lock downgrade times out.
+- **Options are persisted eagerly only by `TryGetOrSetAsync`**, because it may release the write lock to
+  hand you a read lock instead; anything not written before that release would be lost in the gap.
+  `TryGetForWritingAsync` holds its write lock until you dispose, and disposal persists the record, so
+  nothing extra is written during the call.
+- **There is no reading overload taking options.** Applying them needs a write lock — a read lock admits
+  concurrent readers, so two of them could each mutate the same record and the last to dispose would
+  win silently.
+- **`IsNew` from the strict two is not merely always `false`** — a result arriving with it set is an
+  impossible state and throws.
+
 ---
 
 ## Writing: the store consumes your stream
