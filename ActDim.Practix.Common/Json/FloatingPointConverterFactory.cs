@@ -10,7 +10,7 @@ namespace ActDim.Practix.Common.Json
     /// (e.g. 7.0 instead of 7), matching Newtonsoft.Json's default floating-point behavior.
     /// Handles non-finite double values (NaN, Infinity, -Infinity) as strings,
     /// matching legacy Newtonsoft FloatFormatHandling.String behavior.
-    /// <summary>
+    /// </summary>
     public class FloatingPointConverterFactory : JsonConverterFactory
     {
         public override bool CanConvert(Type typeToConvert) =>
@@ -28,15 +28,32 @@ namespace ActDim.Practix.Common.Json
         {
             var s = value.ToString("R", Nfi);
             if (!s.Contains('.') && !s.Contains('E') && !s.Contains('e'))
+            {
                 s += ".0";
+            }
             return s;
         }
 
         private static string Format(float value)
         {
+            if (float.IsNaN(value))
+            {
+                return "NaN";
+            }
+            if (float.IsPositiveInfinity(value))
+            {
+                return "Infinity";
+            }
+            if (float.IsNegativeInfinity(value))
+            {
+                return "-Infinity";
+            }
+
             var s = value.ToString("R", Nfi);
             if (!s.Contains('.') && !s.Contains('E') && !s.Contains('e'))
+            {
                 s += ".0";
+            }
             return s;
         }
 
@@ -55,13 +72,21 @@ namespace ActDim.Practix.Common.Json
         public static void WriteDouble(Utf8JsonWriter writer, double value)
         {
             if (double.IsNaN(value))
+            {
                 writer.WriteStringValue("NaN");
+            }
             else if (double.IsPositiveInfinity(value))
+            {
                 writer.WriteStringValue("Infinity");
+            }
             else if (double.IsNegativeInfinity(value))
+            {
                 writer.WriteStringValue("-Infinity");
+            }
             else
+            {
                 writer.WriteRawValue(Format(value));
+            }
         }
 
         private sealed class DoubleConverter : JsonConverter<double>
@@ -95,16 +120,33 @@ namespace ActDim.Practix.Common.Json
             public override void Write(Utf8JsonWriter writer, double? value, JsonSerializerOptions options)
             {
                 if (value is null)
+                {
                     writer.WriteNullValue();
+                }
                 else
+                {
                     WriteDouble(writer, (double)value);
+                }
             }
         }
 
         private sealed class FloatConverter : JsonConverter<float>
         {
             public override float Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-                => reader.GetSingle();
+            {
+                if (reader.TokenType == JsonTokenType.String)
+                {
+                    var s = reader.GetString();
+                    return s switch
+                    {
+                        "Infinity" => float.PositiveInfinity,
+                        "-Infinity" => float.NegativeInfinity,
+                        "NaN" => float.NaN,
+                        _ => float.Parse(s, CultureInfo.InvariantCulture)
+                    };
+                }
+                return reader.GetSingle();
+            }
 
             public override void Write(Utf8JsonWriter writer, float value, JsonSerializerOptions options)
                 => writer.WriteRawValue(Format(value));
@@ -118,9 +160,13 @@ namespace ActDim.Practix.Common.Json
             public override void Write(Utf8JsonWriter writer, float? value, JsonSerializerOptions options)
             {
                 if (value is null)
+                {
                     writer.WriteNullValue();
+                }
                 else
+                {
                     writer.WriteRawValue(Format(value.Value));
+                }
             }
         }
     }

@@ -208,13 +208,14 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// <param name="stream"></param>
         /// <param name="str"></param>
         /// <param name="encoding">Text encoding; defaults to UTF-8 without a BOM when null.</param>
-        public static void WriteString(this Stream stream, string str, Encoding encoding = null)
+        /// <returns>Number of bytes written to <paramref name="stream"/>.</returns>
+        public static int WriteString(this Stream stream, string str, Encoding encoding = null)
         {
             Guard.Against.Null(stream, nameof(stream));
 
             if (string.IsNullOrEmpty(str))
             {
-                return;
+                return 0;
             }
 
             encoding ??= Utf8NoBom;
@@ -233,6 +234,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             {
                 var written = encoding.GetBytes(str, buffer);
                 stream.Write(buffer, 0, written);
+                return written;
             }
             finally
             {
@@ -249,13 +251,14 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// <param name="str"></param>
         /// <param name="encoding">Text encoding; defaults to UTF-8 without a BOM when null.</param>
         /// <param name="ct"></param>
-        public static async Task WriteStringAsync(this Stream stream, string str, Encoding encoding = null, CancellationToken ct = default)
+        /// <returns>Number of bytes written to <paramref name="stream"/>.</returns>
+        public static async Task<int> WriteStringAsync(this Stream stream, string str, Encoding encoding = null, CancellationToken ct = default)
         {
             Guard.Against.Null(stream, nameof(stream));
 
             if (string.IsNullOrEmpty(str))
             {
-                return;
+                return 0;
             }
 
             encoding ??= Utf8NoBom;
@@ -267,6 +270,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             {
                 var written = encoding.GetBytes(str, buffer);
                 await stream.WriteAsync(buffer.AsMemory(0, written), ct);
+                return written;
             }
             finally
             {
