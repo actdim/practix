@@ -1,71 +1,84 @@
 using System;
 using System.Linq.Expressions;
+using System.Reflection;
 
-namespace ActDim.Practix
-{
-	public class NameHelper
-	{
-		// MethodInfo.GetCurrentMethod().Name.Substring(4);
-		// TypeManager.GetProperty<T>(x => x.Name).Name;
-
-		// GetName/GetMemberName
-		// expression - propertyExpression/memberExpression/propertySelector/memberSelector
-        public static string NameOf(Expression<Func<object>> expression)
-        {
-            var body = expression.Body;
-            return NameOf(body);
-        }
-
+namespace ActDim.Practix.Common
+    {
+        /// <summary>
+        /// Provides utilities for extracting names or full property paths from Expression trees.
+        /// </summary>
+    public static class NameHelper
+    {
+        /// <summary>
+        /// Extracts the name or path of a property from a lambda expression (e.g., x => x.User.Name -> "User.Name").
+        /// </summary>
         public static string NameOf<T>(Expression<Func<T, object>> expression)
         {
-            var body = expression.Body;
-            return NameOf(body);
+            return GetMemberPath(expression.Body);
         }
 
+        /// <summary>
+        /// Extracts the name or path of a property from a lambda expression (e.g., x => x.Id -> "Id").
+        /// </summary>
         public static string NameOf<TParameter, TResult>(Expression<Func<TParameter, TResult>> expression)
-		{
-            var body = expression.Body;
-            return NameOf(body);
+        {
+            return GetMemberPath(expression.Body);
         }
 
-		public static string NameOf(Expression expression)
-		{
-			MemberExpression memberExpression = null;
-			switch (expression.NodeType)
-			{
-				case ExpressionType.MemberAccess: // is MemberExpression
-					memberExpression = (MemberExpression)expression; // as MemberExpression
-					break;
-				case ExpressionType.Lambda: // expression is LambdaExpression
-					memberExpression = (MemberExpression)((LambdaExpression)expression).Body; // as LambdaExpression, as MemberExpression
-					break;
-				// ExpressionType.ConvertChecked?
-				case ExpressionType.Convert:
-					// expression.Body is UnaryExpression?
-					memberExpression = (MemberExpression)((UnaryExpression)expression).Operand; // as UnaryExpression, as MemberExpression
-					break;
-				case ExpressionType.Call:
-					var callExpression = (MethodCallExpression)expression;
-					return callExpression.Method.Name;
-				case ExpressionType.New:
-					var newExpression = (NewExpression)expression;
-					return newExpression.Constructor.Name;
-			}
+        /// <summary>
+        /// Main entry point for extracting the name or path from any expression.
+        /// </summary>
+        public static string NameOf(Expression expression)
+        {
+            ArgumentNullException.ThrowIfNull(expression);
 
-			// throw new ArgumentException("expression.Body must be a member or call expression.", "expression");
+            return GetMemberPath(expression);
+        }
 
-			if (memberExpression == null)
-			{
-				throw new ArgumentException("Invalid expression type.", nameof(expression)); //cannot get member expression
-			}
-			return memberExpression.Member.Name;
-			// return NameOf(memberExpression.Expression) + "." + memberExpression.Member.Name;
-			// exclude (ignore) parents
-			// exclude (ignore) "this"?
-			// ConstantExpression constantExpression = (ConstantExpression)memberExpression.Expression; // as ConstantExpression
-			// LambdaExpression lambda = Expression.Lambda(constantExpression);
-			// lambda.Compile().DynamicInvoke();
-			// constantExpression.Value;
-		}
-	}
+        private static string GetMemberPath(Expression expression)
+        {
+            switch (expression)
+            {
+                case LambdaExpression lambda:
+                    return GetMemberPath(lambda.Body);
+
+                case UnaryExpression unary:
+                    // Handle type casting or boxing to object
+                    return GetMemberPath(unary.Operand);
+
+                case MemberExpression member:
+                    return ResolveFullMemberName(member);
+
+                case MethodCallExpression call:
+                    return call.Method.Name;
+
+                case NewExpression @new:
+                    if (@new.Constructor != null)
+                    {
+                        return @new.Constructor.Name;
+                    }
+                    else
+                    {
+                        return "Unknown";
+                    }
+
+                default:
+                    throw new NotSupportedException($"The expression type {expression.NodeType} is not supported for name extraction.");
+            }
+        }
+
+        private static string ResolveFullMemberName(MemberExpression member)
+        {
+            // Recursively traverse up the tree to build the full path (e.g., User.Address.City)
+            if (member.Expression is MemberExpression nestedMember)
+            {
+                return $"{ResolveFullMemberName(nestedMember)}.{member.Member.Name}";
+            }
+            else
+            {
+                // If we reached the root, return the current member's name
+                return member.Member.Name;
+            }
+        }
+    }
 }

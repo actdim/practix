@@ -8,10 +8,10 @@ using ActDim.Practix.Config;
 using ActDim.Practix.Messaging;
 using Autofac;
 
-namespace ActDim.Practix
-{
-    public class CommonModule : Module
+namespace ActDim.Practix.Common
     {
+        public class CommonModule : Module
+{
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<JsonConfigurationManager>()

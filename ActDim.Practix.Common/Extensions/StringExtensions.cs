@@ -13,8 +13,22 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
     /// </summary>
     public static class StringExtensions
     {
-        public static bool Contains(this string source, string value, StringComparison comparisonType) // valueToFind
+        private static readonly Regex _identifierRegex = new Regex(@"[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Nl}\p{Mn}\p{Mc}\p{Cf}\p{Pc}\p{Lm}]", RegexOptions.Compiled);
+
+        public static string ToCSharpIdentifier(this string input)
         {
+            if (string.IsNullOrWhiteSpace(input)) return "_empty";
+
+            string result = _identifierRegex.Replace(input, "_");
+
+            if (!char.IsLetter(result[0]) && result[0] != '_')
+                result = "_" + result;
+
+            return result;
+        }
+
+        public static bool Contains(this string source, string value, StringComparison comparisonType) // valueToFind
+{
             return source.IndexOf(value, comparisonType) >= 0;
         }
 

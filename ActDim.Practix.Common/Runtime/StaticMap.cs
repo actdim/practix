@@ -520,7 +520,7 @@ public class StaticMap<TKey, TValue>
     private sealed class StringCharacterComparer(
         int characterIndex) : IComparer<string>
     {
-        public int Compare(string? x, string? y)
+        public int Compare(string x, string y)
         {
             if (ReferenceEquals(x, y))
             {

@@ -1,24 +1,33 @@
 using System;
 using System.Threading;
 
-namespace ActDim.Practix.Threading
+namespace ActDim.Practix.Common.Threading
 {
-    public class ThreadSafe<T, TContext> : ThreadLocal<T>
+    public class ThreadLocalResource<T, TContext> : IDisposable where T : class
     {
-        private TContext _context;
-        public ThreadSafe(Func<TContext, T> valueFactory, TContext context)
-            : base(() => valueFactory(context))
+        private readonly ThreadLocal<T> _storage;
+
+        public ThreadLocalResource(Func<TContext, T> factory, TContext context)
         {
-            _context = context;
+            ArgumentNullException.ThrowIfNull(factory);
+
+            _storage = new ThreadLocal<T>(
+                () => factory(context),
+                trackAllValues: true);
         }
 
-        protected override void Dispose(bool disposing)
+        public T Value => _storage.Value!;
+
+        public void Dispose()
         {
-            if (disposing && _context is IDisposable disposableContext)
+            foreach (var value in _storage.Values)
             {
-                disposableContext.Dispose();
+                if (value is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
             }
-            base.Dispose(disposing);
+            _storage.Dispose();
         }
     }
 }
