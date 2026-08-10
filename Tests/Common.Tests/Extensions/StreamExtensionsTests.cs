@@ -186,7 +186,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
             var bytes = Encoding.UTF8.GetBytes(SampleText);
             using Stream src = new WrapperStream(bytes, canSeek: true);
 
-            Assert.Equal(SampleText, await src.GetStringAsync(Encoding.UTF8));
+            Assert.Equal(SampleText, await src.GetStringAsync(Encoding.UTF8, TestContext.Current.CancellationToken));
         }
 
         [Fact]
@@ -195,7 +195,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
             var bytes = Encoding.UTF8.GetBytes(SampleText);
             using Stream src = new WrapperStream(bytes, canSeek: false);
 
-            Assert.Equal(SampleText, await src.GetStringAsync(Encoding.UTF8));
+            Assert.Equal(SampleText, await src.GetStringAsync(Encoding.UTF8, TestContext.Current.CancellationToken));
         }
 
         // WriteString ------------------------------------------------------------------------------------
@@ -247,7 +247,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
             await ms.WriteStringAsync(SampleText);
             ms.Position = 0L;
 
-            Assert.Equal(SampleText, await ms.GetStringAsync(Encoding.UTF8));
+            Assert.Equal(SampleText, await ms.GetStringAsync(Encoding.UTF8, TestContext.Current.CancellationToken));
         }
 
         // ZeroAllocCopyTo --------------------------------------------------------------------------------
@@ -382,7 +382,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
             var data = MakeBytes(5000);
             using Stream src = new WrapperStream(data, canSeek: true);
 
-            using var mem = await src.ToMemoryAsync();
+            using var mem = await src.ToMemoryAsync(TestContext.Current.CancellationToken);
 
             Assert.Equal(0L, mem.Position);
             Assert.Equal(data.Length, mem.Length);
@@ -501,7 +501,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
             var data = MakeBytes(1000);
             using var dst = new MemoryStream();
 
-            await dst.WriteInChunksAsync(data, chunkSize: 64);
+            await dst.WriteInChunksAsync(data, 64, TestContext.Current.CancellationToken);
 
             Assert.Equal(data, dst.ToArray());
         }
@@ -537,7 +537,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
         {
             using var dst = new MemoryStream();
 
-            await Assert.ThrowsAnyAsync<ArgumentException>(() => dst.WriteInChunksAsync(MakeBytes(4), chunkSize));
+            await Assert.ThrowsAnyAsync<ArgumentException>(() => dst.WriteInChunksAsync(MakeBytes(4), chunkSize, TestContext.Current.CancellationToken));
         }
     }
 }

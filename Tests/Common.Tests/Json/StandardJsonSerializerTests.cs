@@ -105,7 +105,7 @@ public class StandardJsonSerializerTests
     [Fact]
     public void SerializeObject_IncludesNullProperties()
     {
-        var result = _ser.Serialize(new { Name = (string?)null, Age = 5 });
+        var result = _ser.Serialize(new { Name = (string)null, Age = 5 });
         Assert.Multiple(() =>
         {
             Assert.Contains("\"Name\":null", result);
@@ -160,7 +160,7 @@ public class StandardJsonSerializerTests
     [Fact]
     public void SerializeObject_WithNullOptions_FallsBackToDefault()
     {
-        var result = _ser.Serialize(new { Name = "X" }, (JsonSerializerOptions?)null);
+        var result = _ser.Serialize(new { Name = "X" }, (JsonSerializerOptions)null);
         Assert.Equal("{\"Name\":\"X\"}", result);
     }
 

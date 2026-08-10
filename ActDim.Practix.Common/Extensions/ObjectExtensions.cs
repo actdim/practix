@@ -1,3 +1,4 @@
+using ActDim.Practix.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,7 +44,6 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// <returns></returns>
         public static string ToStringSafe(this object obj)
         {
-
             return (obj != null && obj != DBNull.Value ? obj.ToString() : string.Empty);
         }
 
@@ -69,72 +69,5 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         {
             return NameHelper.NameOf(expression);
         }
-
-        // QUOTENAME
-        // http://msdn.microsoft.com/en-us/library/ms176114.aspx
-        // SqlCeCommand.Parameters Property
-        // http://msdn.microsoft.com/en-us/library/system.data.sqlserverce.sqlcecommand.parameters.aspx
-        // SQLify
-        // Embedded single-quotes and backslashes are not properly escaped
-        // Nullable?
-        // AsSqlLiteral
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static string ToSqlLiteral(this object value) //for SQL statements
-        {
-            if (value == null)
-            {
-                return "NULL";
-            }
-            else
-            {
-                if (value is Int16 || value is Int32 || value is Int64 || value is Double || value is Single || value is Byte || value is Decimal) //|| value is Char
-                {
-                    return value.ToString();
-                }
-                else
-                {
-                    // quote
-                    return string.Format("'{0}'", value.ToString().Replace("'", "''"));
-                }
-
-            }
-        }
-
-        // AsSqlIdentifier
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static string ToSqlIdentifier(this object value) //for SQL statements
-        {
-            return string.Format("[{0}]", value); //"\"{0}\""
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static MethodBase GetCurrentMethod(this object value)
-        {
-            StackTrace st = new StackTrace();
-            StackFrame sf = st.GetFrame(1);
-            var method = sf.GetMethod();
-            if ("Void MoveNext()".Equals(method.ToString()) &&
-                method.DeclaringType.GetCustomAttribute<CompilerGeneratedAttribute>() != null)
-            {
-                // var baseType = value.GetType();
-                // var wrappedMethod = st.GetFrames().Skip(1).Select(x => x.GetMethod()).FirstOrDefault(x => x.DeclaringType == baseType);
-                // if (wrappedMethod != null)
-                // {
-                // 	return wrappedMethod;
-                // }
-                return method.GetRealMethodFromAsyncMethod();
-            }
-            return method;
-        }
-
-
     }
 }
