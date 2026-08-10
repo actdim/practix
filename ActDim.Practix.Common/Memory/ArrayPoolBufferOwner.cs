@@ -30,7 +30,7 @@ namespace ActDim.Practix.Common.Memory
 
         public static ArrayPoolBufferOwner<T> Rent(
             int size,
-            ArrayPool<T>? pool = null)
+            ArrayPool<T> pool = null)
         {
             pool ??= ArrayPool<T>.Shared;
 

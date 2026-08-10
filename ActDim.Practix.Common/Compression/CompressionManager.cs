@@ -531,7 +531,7 @@ namespace ActDim.Practix.Compression
             var length = (int)outputStream.Length;
             if (length == 0)
             {
-                return Array.Empty<byte>();
+                return [];
             }
 
             // The array is filled completely right below, so skip the zeroing pass.
