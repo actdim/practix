@@ -25,7 +25,7 @@ namespace ActDim.Practix.BlobManager
             => (await GetSizeAsync(blobRecord, ct)).HasValue;
 
         /// <summary>
-        /// Writes the content from scratch, creating it when absent and discarding whatever was
+        /// Stores the content as a whole, creating it when absent and discarding whatever was
         /// there otherwise. Returns the resulting size.
         /// </summary>
         /// <remarks>
@@ -34,7 +34,7 @@ namespace ActDim.Practix.BlobManager
         /// needs no buffering. A producer that can only write into a stream should use the
         /// <paramref name="produce"/> overload instead.
         /// </remarks>
-        Task<long> WriteAsync(BlobRecord blobRecord, Stream content, CancellationToken ct);
+        Task<long> PutAsync(BlobRecord blobRecord, Stream content, CancellationToken ct);
 
         /// <summary>
         /// Writes the content past its current end, creating it when absent. Returns the resulting
@@ -43,7 +43,7 @@ namespace ActDim.Practix.BlobManager
         Task<long> AppendAsync(BlobRecord blobRecord, Stream content, CancellationToken ct);
 
         /// <summary>
-        /// Writes the content from scratch, letting <paramref name="produce"/> write it into a stream
+        /// Stores the content as a whole, letting <paramref name="produce"/> write it into a stream
         /// supplied to it — for producers that can only write and have no readable form to hand over.
         /// Returns the resulting size.
         /// </summary>
@@ -52,8 +52,8 @@ namespace ActDim.Practix.BlobManager
         /// left to close afterwards. The supplied stream is write-only and must not be assumed seekable.
         /// Flush any writer wrapped around it before returning, or its buffer is lost.
         /// </remarks>
-        Task<long> WriteAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> produce, CancellationToken ct)
-            => ProducerStreamBridge.WriteAsync(this, blobRecord, produce, ct);
+        Task<long> PutAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> produce, CancellationToken ct)
+            => ProducerStreamBridge.PutAsync(this, blobRecord, produce, ct);
 
         /// <summary>
         /// Writes content past the current end, letting <paramref name="produce"/> write it into a

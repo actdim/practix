@@ -120,7 +120,7 @@ returns `Task` — unlike the `TryGet*` family.
 ### 6. Writes consume a stream, reads hand one out (#005, #006)
 
 ```csharp
-Task<long>   WriteAsync(record, Stream content, ct);   // FileMode.Create — create or truncate
+Task<long>   PutAsync(record, Stream content, ct);     // FileMode.Create — create or truncate
 Task<long>   AppendAsync(record, Stream content, ct);  // FileMode.Append — creates when absent
 Task<Stream> ReadAsync(record, ct);                    // FileMode.Open — seekable
 Task<bool>   DeleteAsync(record, ct);                  // also prunes emptied shard directories
@@ -142,7 +142,7 @@ For a producer whose API only writes (`JsonSerializer.SerializeAsync`, `XmlWrite
 compress mode), `IBlobDataStore` carries a producer-delegate overload:
 
 ```csharp
-await manager.DataStore.WriteAsync(record, (stream, token) =>
+await manager.DataStore.PutAsync(record, (stream, token) =>
     JsonSerializer.SerializeAsync(stream, dto, cancellationToken: token), ct);
 ```
 
@@ -171,7 +171,7 @@ genuinely cheaper existence probe. Being a default implementation it is reachabl
 `null` means no content; a size of `0` is a real, existing zero-byte blob. Conflating them would
 make `TryGetFor*` delete the record of a legitimately empty blob.
 
-`WriteAsync` is correct for a new and an existing key alike — never consult `IsNew` to pick a write
+`PutAsync` is correct for a new and an existing key alike — never consult `IsNew` to pick a write
 method. `AppendAsync` takes no offset: the store knows the size. Resumable upload works through
 `record.Size` plus a plain append; patching the middle of a blob is not supported.
 
@@ -250,8 +250,8 @@ if (ec == BlobErrorCode.None)
 {
     await using (record)
     {
-        await using var stream = await manager.DataStore.WriteAsync(record, ct);
-        // write bytes — stream closes before the record, releasing the lock last
+        await using var source = File.OpenRead(path);
+        await manager.DataStore.PutAsync(record, source, ct);
     }
 }
 ```

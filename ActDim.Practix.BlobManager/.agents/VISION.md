@@ -41,8 +41,8 @@ Two consequences that will bite an object-store backend and do not show up on a 
 
 ## Non-goals
 
-- Writing at an arbitrary position with the tail preserved (#005). Not expressible on any object
-  store; resumable upload is served by `record.Size` plus a plain append.
+- Public positioned writing at an arbitrary offset. Backends differ too much; resumable out-of-order
+  uploads belong to a durable multipart upload session, which owns staging and completion.
 - Locking inside the data store. Mutual exclusion is the registry's job and stays portable that way.
 - Computing content hashes implicitly on every write — that means reading the whole blob.
 - Enforcing stream/record disposal order by making `BlobRecord` own its streams (#003). The record
@@ -65,3 +65,5 @@ Ordered by how much each unblocks a non-file-system backend.
    `CanarySystems.FileStorage`).
 6. Content hashing as an explicit opt-in; tag-based query; `IAsyncEnumerable` variant of
    `QueryAsync`; nullable reference types.
+7. Multipart upload sessions for resumable out-of-order uploads, after the session persistence and
+   final-publication rules are designed.
