@@ -93,7 +93,7 @@ Notes on the less obvious cells:
 ## Writing: the store consumes your stream
 
 ```csharp
-Task<long> WriteAsync(BlobRecord record, Stream content, CancellationToken ct);   // create or replace
+Task<long> PutAsync(BlobRecord record, Stream content, CancellationToken ct);     // create or replace
 Task<long> AppendAsync(BlobRecord record, Stream content, CancellationToken ct);  // append at the end
 ```
 
@@ -102,15 +102,15 @@ bytes you appended.
 
 ```csharp
 await using var source = File.OpenRead(path);
-var size = await manager.DataStore.WriteAsync(record, source, ct);
+var size = await manager.DataStore.PutAsync(record, source, ct);
 ```
 
-`WriteAsync` is correct whether or not the key already existed, so you never inspect `IsNew` to decide
+`PutAsync` is correct whether or not the key already existed, so you never inspect `IsNew` to decide
 which method to call. `AppendAsync` takes no offset — the store knows the current size.
 
 ### Why not hand out a writable stream?
 
-The obvious shape is `Task<Stream> WriteAsync(record, ct)`: you get a stream, you write, you close it.
+The obvious shape is `Task<Stream> OpenWriteAsync(record, ct)`: you get a stream, you write, you close it.
 This library did exactly that, and changed. Three reasons, in increasing severity.
 
 **The size is unknown while the call runs.** It exists only once you stop writing and flush, which
@@ -144,7 +144,7 @@ Plenty of producers can only write: `JsonSerializer.SerializeAsync`, `XmlWriter`
 carries an overload taking the producer instead of the content:
 
 ```csharp
-await manager.DataStore.WriteAsync(record, (stream, token) =>
+await manager.DataStore.PutAsync(record, (stream, token) =>
     JsonSerializer.SerializeAsync(stream, dto, cancellationToken: token), ct);
 ```
 
@@ -175,7 +175,7 @@ Two things are still on you:
   those bytes never reach the pipe. This fails *silently*, so dispose it inside the delegate:
 
 ```csharp
-await manager.DataStore.WriteAsync(record, async (stream, token) =>
+await manager.DataStore.PutAsync(record, async (stream, token) =>
 {
     // leaveOpen: the pipe is not yours to close. And note Encoding.UTF8 emits a BOM —
     // use a BOM-less encoding unless you actually want those three bytes in the blob.
@@ -194,7 +194,7 @@ producing code, and Azure's SDK does ship both directions. It is not offered her
 completion back to the caller and so reinstates all three problems above — and because it would
 reintroduce a fork this library already removed once.
 
-That earlier fork was `CreateAsync` versus `WriteAsync`, which differed only in whether the file had to
+That earlier fork was `CreateAsync` versus `PutAsync`, which differed only in whether the file had to
 pre-exist. Choosing correctly required knowing whether the key was new, which the calling code often
 did not. One write method that is always right is worth more than two that are each right half the
 time.

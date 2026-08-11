@@ -9,13 +9,13 @@ namespace ActDim.Practix.BlobManager
     /// <summary>
     /// Turns a write-only producer into a readable stream, so a store that can only consume content
     /// still supports push-style writing. This is the default behind
-    /// <see cref="IBlobDataStore.WriteAsync(BlobRecord, Func{Stream, CancellationToken, Task}, CancellationToken)"/>;
+    /// <see cref="IBlobDataStore.PutAsync(BlobRecord, Func{Stream, CancellationToken, Task}, CancellationToken)"/>;
     /// a store that can hand out its own destination stream — as
     /// <see cref="FileSystemBlobDataStore"/> does — overrides that and never comes here.
     /// </summary>
     internal static class ProducerStreamBridge
     {
-        public static Task<long> WriteAsync(
+        public static Task<long> PutAsync(
             IBlobDataStore dataStore,
             BlobRecord blobRecord,
             Func<Stream, CancellationToken, Task> produce,
@@ -52,7 +52,7 @@ namespace ActDim.Practix.BlobManager
 
                 var size = append
                     ? await dataStore.AppendAsync(blobRecord, source, ct)
-                    : await dataStore.WriteAsync(blobRecord, source, ct);
+                    : await dataStore.PutAsync(blobRecord, source, ct);
 
                 // Reaching here means the store read to the end of the pipe, which only happens once
                 // the writer has completed — so the producer has finished. Awaiting it is a formality

@@ -21,7 +21,7 @@ namespace ActDim.Practix.BlobManager
             Directory.CreateDirectory(_basePath);
         }
 
-        public Task<long> WriteAsync(BlobRecord blobRecord, Stream content, CancellationToken ct)
+        public Task<long> PutAsync(BlobRecord blobRecord, Stream content, CancellationToken ct)
         {
             return CopyIntoAsync(blobRecord, content, FileMode.Create, ct);
         }
@@ -33,7 +33,7 @@ namespace ActDim.Practix.BlobManager
             return CopyIntoAsync(blobRecord, content, FileMode.Append, ct);
         }
 
-        public Task<long> WriteAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> produce, CancellationToken ct)
+        public Task<long> PutAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> produce, CancellationToken ct)
         {
             return ProduceIntoAsync(blobRecord, produce, FileMode.Create, ct);
         }

@@ -2,11 +2,12 @@
 
 _Current-state snapshot. Keep SHORT; history goes to SESSIONS/._
 
-- **State**: builds clean, 64/64 tests green. Nothing in flight.
+- **State**: `IBlobDataStore.PutAsync` is the verified whole-blob create-or-replace operation
+  (64/64 BlobManager tests green). Multipart upload sessions are planned, not implemented.
 - **Shape**: two layers that do not know each other — `SQLiteBlobRegistry` (metadata + locks) and
   `FileSystemBlobDataStore` (content). `BlobManager` is the only place that sees both, so
   `ReconcileContentAsync` and all four deletion paths live there.
-- **Read `DECISIONS.md` #001–#008 before changing any invariant.** In short: a record without content
+- **Read `DECISIONS.md` #001–#009 before changing any invariant.** In short: a record without content
   is transient and only `TryGetOrSetAsync` may observe it, via `IsNew`; `Size` is library-owned and
   always read from the store; `BlobRecord` stays decoupled from streams; deletion removes content
   before metadata; the write surface has no position and no mode flags; **writes consume a stream,
@@ -29,7 +30,8 @@ _Current-state snapshot. Keep SHORT; history goes to SESSIONS/._
   `di-registration` (blocks all consumption), `content-hash`, `integrity-audit`,
   `url-safe-key-separator`, `read-lock-persists-mutations`, `batch-content-delete`, `range-read`'s
   deferred second half, and `add-try-create-with-conflict-behavior` (now includes one-shot
-  `CreateAsync` extension methods for byte[]/Stream/producer delegate).
+  `CreateAsync` extension methods for byte[]/Stream/producer delegate), and
+  `multipart-upload-session` for resumable out-of-order uploads.
 - **`IBlobDataStore` cannot enumerate its content**, so nothing can find orphaned files or audit the
   store against the registry — see `integrity-audit`.
 - **Key format is unsettled**: `/` in a key means "make directories", which collides with the key being

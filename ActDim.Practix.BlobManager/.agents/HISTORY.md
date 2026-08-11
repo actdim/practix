@@ -12,3 +12,4 @@ _`<YYYY-MM-DD> — <slug> — <agent> — <summary> — <relative link>`_
 2026-08-06 — write-options-overload — Claude Code / claude-opus-5[1m] — TryGetForWritingAsync accepts BlobStoreOptions, applied on the handed-out record and persisted on dispose (#008); registry untouched, reading still takes no options; 64/64 green — [SESSIONS/2026/2026-08-06--write-options-overload.md](SESSIONS/2026/2026-08-06--write-options-overload.md)
 
 2026-08-10 — extend-create-task — Claude Code / sonnet-5 — Extended add-try-create-with-conflict-behavior to include one-shot CreateAsync extension methods (byte[]/Stream/producer delegate) — [SESSIONS/2026/2026-08-10--extend-create-task.md](SESSIONS/2026/2026-08-10--extend-create-task.md)
+2026-08-11 — put-and-multipart — Codex / GPT-5 — Renamed whole-blob WriteAsync to PutAsync and replaced raw offset-write planning with multipart upload sessions — [SESSIONS/2026/2026-08-11--put-and-multipart.md](SESSIONS/2026/2026-08-11--put-and-multipart.md)

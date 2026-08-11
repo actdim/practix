@@ -121,3 +121,16 @@ _One dated entry per architectural decision. Never edit past entries; mark a rep
   - No change to `IBlobRegistry`: applying options is computation over a record (#007), so `BlobManager` is the right place and the registry surface stays as it was.
   - Not extended to `TryGetForReadingAsync`: `Apply` requires a write lock, and the read-dispose hole noted in #007 is a reason to keep it that way rather than to widen it.
   - `TryGetOrSetAsync` remains the only entry point that may create the key. The new overloads still return `KeyNotFound` for a missing record or one whose content is gone (#001).
+
+## #009 — Whole-object writes are puts; resumable uploads are sessions
+- Date: 2026-08-11
+- Status: accepted
+- Context: `WriteAsync` meant a whole-blob create-or-replace even though “write” naturally suggests an in-place or positioned change. A proposed `WriteAsync(record, content, offset)` would let a file-system backend assemble chunks out of order, but file length cannot prove that every range was received: writing a late chunk first creates holes. Exposing temporary content under the final key would also let readers observe an incomplete upload.
+- Decision:
+  - Rename both whole-object `WriteAsync` overloads to `PutAsync`; they retain `FileMode.Create` semantics and consume a source stream or producer delegate.
+  - Do not add public positioned-write overloads to `IBlobDataStore`.
+  - Model resumable out-of-order upload as a durable multipart upload session with begin, part upload, complete, and abort operations. The session owns staging content and received-range tracking; only successful completion publishes content at the final key.
+- Consequences:
+  - The rename is a breaking change to the public data-store interface, but removes the semantic ambiguity before consumers depend on it.
+  - `AppendAsync` remains a separate operation; it is not an upload-completeness protocol.
+  - Session design must specify idempotency, overlaps, expected length, expiry cleanup, atomic publication, and checksum behaviour before implementation. `content-hash` must be reconciled with that design.
