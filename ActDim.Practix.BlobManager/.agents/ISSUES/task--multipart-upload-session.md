@@ -25,7 +25,8 @@ the receipt tracking needed to make out-of-order upload safe.
   validation before implementation.
 - Store parts in staging content, never under the final key visible to readers.
 - `CompleteUploadAsync` validates exact coverage of `[0, expectedLength)`, then atomically publishes
-  the staged content and metadata under the final key.
+  the staged content and metadata under the final key. If the final key already has content,
+  completion reports a conflict and leaves it unchanged.
 - `AbortUploadAsync` and expiry cleanup remove both staging data and receipt metadata.
 - Do not hold a `BlobRecord` distributed lock for the session lifetime; each request uses short-lived
   locking/transactions around its own state change.
@@ -35,7 +36,7 @@ the receipt tracking needed to make out-of-order upload safe.
 ## Design work first
 
 1. Decide session and received-range persistence schema in the registry layer.
-2. Decide final-key conflict and visibility rules at completion.
+2. Final-key conflict rule: completion fails when final content already exists; it never replaces it.
 3. Decide duplicate/overlapping part and checksum rules.
 4. Decide expiry cleanup integration and error recovery after a publish failure.
 5. Reconcile this work with `content-hash`, which already identifies hash finalisation as a
