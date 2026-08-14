@@ -128,7 +128,7 @@ namespace ActDim.Practix.BlobManager.Tests
             long written;
             await using (record)
             {
-                written = await env.Manager.DataStore.WriteAsync(record, Content("hello-blob"), ct);
+                written = await env.Manager.DataStore.PutAsync(record, Content("hello-blob"), ct);
             }
 
             Assert.Equal(10, written);
@@ -136,7 +136,7 @@ namespace ActDim.Practix.BlobManager.Tests
         }
 
         [Fact]
-        public async Task DataStore_WriteAsync_TruncatesExistingContent()
+        public async Task DataStore_PutAsync_ReplacesExistingContent()
         {
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
@@ -146,7 +146,7 @@ namespace ActDim.Practix.BlobManager.Tests
             var (_, writeRecord) = await env.Manager.TryGetForWritingAsync("write-trunc-key", ct);
             await using (writeRecord)
             {
-                Assert.Equal(3, await env.Manager.DataStore.WriteAsync(writeRecord, Content("new"), ct));
+                Assert.Equal(3, await env.Manager.DataStore.PutAsync(writeRecord, Content("new"), ct));
             }
 
             Assert.Equal("new", await env.ReadTextAsync("write-trunc-key", ct));
@@ -193,7 +193,7 @@ namespace ActDim.Practix.BlobManager.Tests
         // ── Push-style writing (BlobDataStoreExtensions) ─────────────────────────
 
         [Fact]
-        public async Task DataStore_WriteAsync_WithProducer_WritesContent()
+        public async Task DataStore_PutAsync_WithProducer_WritesContent()
         {
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
@@ -203,7 +203,7 @@ namespace ActDim.Practix.BlobManager.Tests
             await using (record)
             {
                 // A write-only producer: it is handed a stream instead of supplying one.
-                written = await env.Manager.DataStore.WriteAsync(record, async (stream, token) =>
+                written = await env.Manager.DataStore.PutAsync(record, async (stream, token) =>
                 {
                     await using var writer = new StreamWriter(stream, Utf8NoBom, 1024, true);
                     await writer.WriteAsync("produced".AsMemory(), token);
@@ -238,7 +238,7 @@ namespace ActDim.Practix.BlobManager.Tests
         }
 
         [Fact]
-        public async Task DataStore_WriteAsync_WithProducer_PropagatesProducerFailure()
+        public async Task DataStore_PutAsync_WithProducer_PropagatesProducerFailure()
         {
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
@@ -249,13 +249,13 @@ namespace ActDim.Practix.BlobManager.Tests
                 // The failure travels through the pipe: the store's read rethrows it, so the caller
                 // sees the producer's own exception rather than a pipe-level one.
                 await Assert.ThrowsAsync<InvalidTimeZoneException>(async () =>
-                    await env.Manager.DataStore.WriteAsync(record, (stream, token) =>
+                    await env.Manager.DataStore.PutAsync(record, (stream, token) =>
                         throw new InvalidTimeZoneException("producer gave up"), ct));
             }
         }
 
         [Fact]
-        public async Task DataStore_WriteAsync_WithProducer_SurvivesPayloadLargerThanPipeBuffer()
+        public async Task DataStore_PutAsync_WithProducer_SurvivesPayloadLargerThanPipeBuffer()
         {
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
@@ -269,7 +269,7 @@ namespace ActDim.Practix.BlobManager.Tests
             long written;
             await using (record)
             {
-                written = await env.Manager.DataStore.WriteAsync(record, async (stream, token) =>
+                written = await env.Manager.DataStore.PutAsync(record, async (stream, token) =>
                 {
                     await using var writer = new StreamWriter(stream, Utf8NoBom, 1024, true);
                     for (var i = 0; i < chunks; i++)
@@ -283,7 +283,7 @@ namespace ActDim.Practix.BlobManager.Tests
         }
 
         [Fact]
-        public async Task FileSystemDataStore_WriteAsync_WithProducer_HandsOverTheDestinationStream()
+        public async Task FileSystemDataStore_PutAsync_WithProducer_HandsOverTheDestinationStream()
         {
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
@@ -291,7 +291,7 @@ namespace ActDim.Practix.BlobManager.Tests
             var (_, record) = await env.Manager.TryGetOrSetAsync("produce-direct-key", ct);
             await using (record)
             {
-                await env.Manager.DataStore.WriteAsync(record, (stream, token) =>
+                await env.Manager.DataStore.PutAsync(record, (stream, token) =>
                 {
                     // Store-specific, NOT a contract guarantee: this store owns a real file stream and
                     // overrides the default, so no pipe is in the way. The pipe default would hand
@@ -303,7 +303,7 @@ namespace ActDim.Practix.BlobManager.Tests
         }
 
         [Fact]
-        public async Task FileSystemDataStore_WriteAsync_WithProducer_ReportsLengthWhenProducerSeeks()
+        public async Task FileSystemDataStore_PutAsync_WithProducer_ReportsLengthWhenProducerSeeks()
         {
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
@@ -312,7 +312,7 @@ namespace ActDim.Practix.BlobManager.Tests
             long written;
             await using (record)
             {
-                written = await env.Manager.DataStore.WriteAsync(record, async (stream, token) =>
+                written = await env.Manager.DataStore.PutAsync(record, async (stream, token) =>
                 {
                     var head = Encoding.UTF8.GetBytes("hello world");
                     await stream.WriteAsync(head, 0, head.Length, token);
@@ -352,7 +352,7 @@ namespace ActDim.Practix.BlobManager.Tests
         }
 
         [Fact]
-        public async Task DataStore_WriteAsync_RequiresWriteLock()
+        public async Task DataStore_PutAsync_RequiresWriteLock()
         {
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
@@ -360,7 +360,7 @@ namespace ActDim.Practix.BlobManager.Tests
             var record = new BlobRecord { Key = "no-lock-write", Metadata = "file.txt", LockType = LockType.Read };
 
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                await env.Manager.DataStore.WriteAsync(record, Content("nope"), ct));
+                await env.Manager.DataStore.PutAsync(record, Content("nope"), ct));
         }
 
         [Fact]
@@ -496,7 +496,7 @@ namespace ActDim.Practix.BlobManager.Tests
             {
                 Assert.Equal(16, writeRecord.Size);
 
-                await env.Manager.DataStore.WriteAsync(writeRecord, Content("new"), ct);
+                await env.Manager.DataStore.PutAsync(writeRecord, Content("new"), ct);
 
                 // The store records the size as it writes, so the handle is current immediately.
                 Assert.Equal(3, writeRecord.Size);
@@ -518,7 +518,7 @@ namespace ActDim.Practix.BlobManager.Tests
             var (_, record) = await env.Manager.TryGetOrSetAsync("size-persist-key", ct);
             await using (record)
             {
-                await env.Manager.DataStore.WriteAsync(record, Content("persisted"), ct);
+                await env.Manager.DataStore.PutAsync(record, Content("persisted"), ct);
             }
 
             // Going through the registry directly bypasses the data-store reconciliation, so
@@ -1254,7 +1254,7 @@ namespace ActDim.Practix.BlobManager.Tests
 
                 await using (record)
                 {
-                    await Manager.DataStore.WriteAsync(record, Content(content), ct);
+                    await Manager.DataStore.PutAsync(record, Content(content), ct);
                 }
             }
 
