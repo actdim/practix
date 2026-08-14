@@ -1,21 +1,14 @@
-using ActDim.Practix.Abstractions.Messaging;
+using ActDim.Practix.Abstractions.Context;
 using ActDim.Practix.Disposal;
 using Ardalis.GuardClauses;
 using System;
 using System.Collections.Immutable;
 using System.Threading;
 
-namespace ActDim.Practix.Messaging
+namespace ActDim.Practix.Context
 {
-    /// <summary>
-    /// Ambient, provider-agnostic key/value context with scoped push/pop semantics.
-    /// <para>
-    /// The bag is stored as an immutable dictionary directly in an <see cref="AsyncLocal{T}"/>. Because
-    /// every mutation assigns a brand-new dictionary to <see cref="AsyncLocal{T}.Value"/>, copy-on-write
-    /// isolates each async flow: a <see cref="Set"/> in a child flow never leaks into its parent or siblings.
-    /// </para>
-    /// </summary>
-    internal sealed class CallContextProvider : ICallContextProvider
+    /// <inheritdoc />
+    public sealed class CallContextProvider : ICallContextProvider
     {
         private readonly AsyncLocal<ImmutableDictionary<string, object>> _current = new();
 
@@ -31,6 +24,7 @@ namespace ActDim.Practix.Messaging
 
         public static CallContextProvider Instance => InternalInstance.Value;
 
+        /// <inheritdoc />
         public ICallContext Get()
         {
             return _facade;
@@ -40,11 +34,11 @@ namespace ActDim.Practix.Messaging
         {
             get
             {
-                return _current.Value ?? [];
+                return _current.Value ?? ImmutableDictionary<string, object>.Empty;
             }
         }
 
-        internal IDisposable Set(string name, object value)
+        internal IDisposable Push(string name, object value)
         {
             Guard.Against.NullOrEmpty(name, nameof(name));
 
@@ -55,10 +49,10 @@ namespace ActDim.Practix.Messaging
 
             return new DisposableAction(() =>
             {
-                var latest = _current.Value ?? [];
+                var latest = _current.Value ?? ImmutableDictionary<string, object>.Empty;
                 if (existed)
                 {
-                    _current.Value = latest.SetItem(name, oldValue);
+                    _current.Value = latest.SetItem(name, oldValue!);
                 }
                 else
                 {

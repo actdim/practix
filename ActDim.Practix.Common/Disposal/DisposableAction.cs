@@ -9,6 +9,7 @@ namespace ActDim.Practix.Disposal
     /// repeated <see cref="Dispose"/> calls run the action at most once, and the captured delegate is
     /// released afterwards.
     /// </summary>
+    /// <inheritdoc />
     public sealed class DisposableAction : IDisposable
     {
         private Action _disposeAction;

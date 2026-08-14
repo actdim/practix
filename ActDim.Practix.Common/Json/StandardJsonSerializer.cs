@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace ActDim.Practix.Common.Json
 {
-    // TODO: check [EnumeratorCancellation], JsonExtensionData, JsonSerializerContext
+    /// <inheritdoc />
     internal class StandardJsonSerializer : IJsonSerializer, IStringSerializer, IBinarySerializer, IStreamSerializer
     {
         private JsonSerializerOptions _options;
