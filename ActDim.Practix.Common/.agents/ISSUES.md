@@ -1,4 +1,4 @@
-# Tasks   (glyphs: [ ] open  [~] in-progress  [!] blocked  [x] done)
+# Issues   (glyphs: [ ] open  [~] in-progress  [!] blocked  [x] done)
 
 ## Active
 - [~] compression-interface-cleanup — 14 documented problems in `ICompressionManager` / `IArchiveEntry` /

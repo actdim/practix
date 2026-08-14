@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace ActDim.Practix.Caching
 {
     // MemoizingProxy
+    /// <inheritdoc />
     public class MemoryCachingProxy : IMemoryCachingProxy
     {
         private readonly IMemoryCache _cache = null;

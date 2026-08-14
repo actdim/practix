@@ -8,6 +8,7 @@ namespace ActDim.Practix.Compression
     /// callback may safely keep the reference after the enumeration moved on (the entry DATA stream, however,
     /// is only valid inside the callback - see <see cref="CompressionManager.DecompressArchiveAsync(System.IO.Stream, ICompressionManager.ArchiveEntryReaderAsyncDelegate, ArchiveFormat?, System.Threading.CancellationToken)"/>).
     /// </summary>
+    /// <inheritdoc />
     public sealed class ArchiveEntry : IArchiveEntry
     {
         /// <inheritdoc/>

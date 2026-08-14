@@ -44,6 +44,7 @@ namespace ActDim.Practix.Compression
     /// <see cref="NotSupportedException"/> on use, because the BCL ships no codec for it.
     /// </para>
     /// </summary>
+    /// <inheritdoc />
     [Obfuscation(Exclude = true)]
     public class CompressionManager : ICompressionManager
     {

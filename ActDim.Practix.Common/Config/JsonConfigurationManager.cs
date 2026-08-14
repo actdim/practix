@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ActDim.Practix.Config
 {
+    /// <inheritdoc />
     public class JsonConfigurationManager : IJsonConfigurationManager
     {
         public const string DefaultSchema = "http://json-schema.org/latest/json-schema-core.html#rfc.section.9.1";

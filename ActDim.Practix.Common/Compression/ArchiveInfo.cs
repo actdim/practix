@@ -9,6 +9,7 @@ namespace ActDim.Practix.Compression
     /// <see cref="Entries"/> is filled as the archive is enumerated - for a sequentially read format (TAR)
     /// it therefore only contains the entries seen so far.
     /// </summary>
+    /// <inheritdoc />
     public sealed class ArchiveInfo : IArchiveInfo
     {
         /// <inheritdoc/>
