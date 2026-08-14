@@ -134,3 +134,10 @@ _One dated entry per architectural decision. Never edit past entries; mark a rep
   - The rename is a breaking change to the public data-store interface, but removes the semantic ambiguity before consumers depend on it.
   - `AppendAsync` remains a separate operation; it is not an upload-completeness protocol.
   - Session design must specify idempotency, overlaps, expected length, expiry cleanup, atomic publication, and checksum behaviour before implementation. `content-hash` must be reconciled with that design.
+
+## #010 — Multipart completion never overwrites a blob
+- Date: 2026-08-11
+- Status: accepted
+- Context: A multipart upload stages data outside its final key, so completion must decide what to do if another writer has published that key while the session was active.
+- Decision: `CompleteUploadAsync` reports a conflict when final content exists. It leaves that blob and the session's staged data unchanged, allowing the caller to abort or inspect/retry according to its own policy.
+- Consequences: Completion must acquire the final key's write lock and check content existence while holding it. The API needs an explicit conflict result or exception; it must not silently replace the published blob.

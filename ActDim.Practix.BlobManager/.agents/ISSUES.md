@@ -1,9 +1,9 @@
-# Tasks   (glyphs: [ ] open  [~] in-progress  [!] blocked  [x] done)
+# Issues   (glyphs: [ ] open  [~] in-progress  [!] blocked  [x] done)
 
 ## Active
 
 - [ ] multipart-upload-session — persistent staged upload sessions: `BeginUploadAsync`, out-of-order `UploadPartAsync`, `CompleteUploadAsync`, and `AbortUploadAsync`; publish only complete content
-- [~] add-try-create-with-conflict-behavior — `TryCreateAsync` (conflict handling) + `BlobManagerExtensions.CreateAsync` (one-shot creation from byte[]/Stream/producer delegate); see `.agents/TASKS/add-try-create-with-conflict-behavior.md`
+- [~] add-try-create-with-conflict-behavior — `TryCreateAsync` (conflict handling) + `BlobManagerExtensions.CreateAsync` (one-shot creation from byte[]/Stream/producer delegate); see `.agents/ISSUES/add-try-create-with-conflict-behavior.md`
 - [ ] multi-backend — multiple `IBlobManager` instances, each self-describing via `KeyPrefix`;
       client picks the right one by calling `ResolveKey`
 - [ ] di-registration — `BlobManager` is `internal` and `BlobManagerModule.cs` is commented out, so
