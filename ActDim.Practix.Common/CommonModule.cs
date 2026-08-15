@@ -20,8 +20,8 @@ namespace ActDim.Practix.Common
             // builder.RegisterType<ConcurrencyManager>()
             //    .As<IConcurrencyManager>()
             //    .SingleInstance();
-            builder.RegisterInstance(CallContextProvider.Instance)
-                .As<ICallContextProvider>();
+            builder.RegisterInstance(AmbientContextProvider.Instance)
+                .As<IAmbientContextProvider>();
             builder.RegisterType<CompressionManager>()
                 .As<ICompressionManager>()
                 .SingleInstance();

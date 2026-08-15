@@ -1,6 +1,8 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace ActDim.Practix.Observability
 {
@@ -10,16 +12,41 @@ namespace ActDim.Practix.Observability
     public class EventObservabilityOptions
     {
         /// <summary>
-        /// Gets or sets whether external scopes (from Microsoft.Extensions.Logging.IExternalScopeProvider) are written into telemetry tags.
-        /// Default is <c>true</c>. Can be suppressed dynamically per async scope via <c>callContext.SuppressExternalScopes()</c>.
+        /// Gets or sets whether an <see cref="Activity"/> is automatically started on BeginScope if <see cref="Activity.Current"/> is null.
+        /// Default is <c>true</c>.
         /// </summary>
-        public bool IncludeExternalScopes { get; set; } = true;
+        public bool AutoCreateActivityOnScope { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets whether ambient properties from ICallContextProvider are written into telemetry tags.
-        /// Default is <c>true</c>. Can be suppressed dynamically per async scope via <c>callContext.SuppressCallContext()</c>.
+        /// Gets or sets the default ActivitySource name used when no custom source is specified in the ambient context.
+        /// Defaults to EntryAssembly name or "ActDim.Practix".
         /// </summary>
-        public bool IncludeCallContext { get; set; } = true;
+        public string DefaultActivitySourceName { get; set; } = Assembly.GetEntryAssembly()?.GetName().Name ?? "ActDim.Practix";
+
+        /// <summary>
+        /// Gets or sets whether external scopes (from <see cref="Microsoft.Extensions.Logging.IExternalScopeProvider"/>) are written
+        /// into <see cref="Activity"/> tags. Default is <c>false</c>. Can be suppressed dynamically per async scope via
+        /// <see cref="IObservabilityContext.SuppressExternalScopes"/>.
+        /// </summary>
+        public bool IncludeExternalScopes { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets whether a logged <see cref="Exception"/> is reported to the current <see cref="Activity"/> through
+        /// <see cref="Activity.AddException"/>. This is the only trace write performed by a log call,
+        /// and it deliberately ignores log level filtering so that failures never stay invisible in traces.
+        /// The same exception instance is recorded at most once per <see cref="Activity"/>, so reporting it again while it propagates
+        /// does not duplicate the event.
+        /// Default is <c>true</c>.
+        /// </summary>
+        public bool RecordExceptionsOnSpan { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets how a telemetry tag written more than once within a single log call is resolved.
+        /// Default is <see cref="TagCollisionBehavior.KeepFirst"/>; every collision is counted and reported
+        /// through the <see cref="ObservabilityTagNames.Collisions"/> tag regardless of this setting.
+        /// Use <see cref="TagCollisionBehavior.Throw"/> in tests to fail on silent telemetry loss.
+        /// </summary>
+        public TagCollisionBehavior TagCollisions { get; set; } = TagCollisionBehavior.KeepFirst;
 
         /// <summary>
         /// Custom mapping of logger provider types to custom alias names.
