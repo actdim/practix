@@ -1,57 +1,63 @@
 using System;
-#if NET_2
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-#endif
 
 namespace ActDim.Practix.TypeAccess.Reflection
 {
+	/// <summary>
+	/// Provides fast reflection access to properties, fields, and methods for a specific object instance.
+	/// </summary>
+	/// <typeparam name="T">The object type.</typeparam>
 	public class ObjectAccessor<T> : IObjectAccessor<T> where T : class
 	{
-		//private T _instance;
+		private readonly WeakReference<T> _instanceWeakRef;
 
-		public T Instance {
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ObjectAccessor{T}"/> class wrapping the specified instance.
+		/// </summary>
+		/// <param name="instance">The target instance.</param>
+		public ObjectAccessor(T instance)
+		{
+			_instanceWeakRef = new WeakReference<T>(instance);
+		}
+
+		/// <inheritdoc />
+		public T Instance
+		{
 			get
 			{
-				// return _instance;
-
-				if (InstanceWeekRef.TryGetTarget(out var instance))
+				if (_instanceWeakRef.TryGetTarget(out var instance))
 				{
 					return instance;
 				}
-				// TargetInvocationException
+
 				throw new ReflectionException("Can't access target object");
 			}
 		}
 
-		private readonly WeakReference<T> InstanceWeekRef;
-
-		public ObjectAccessor(T instance)
-		{
-			// _instance = instance;
-			InstanceWeekRef = new WeakReference<T>(instance);
-		}
-
+		/// <inheritdoc />
 		public TProperty GetProperty<TProperty>(string name)
 		{
 			return TypeAccessor<T>.GetPropertyGetter<TProperty>(name)(Instance);
 		}
 
+		/// <inheritdoc />
 		public Func<T, TProperty> GetPropertyGetter<TProperty>(string name)
 		{
 			return TypeAccessor<T>.GetPropertyGetter<TProperty>(name);
 		}
 
+		/// <inheritdoc />
 		public TField GetField<TField>(string name)
 		{
 			return TypeAccessor<T>.GetFieldGetter<TField>(name)(Instance);
 		}
 
+		/// <inheritdoc />
 		public Func<T, TField> GetFieldGetter<TField>(string name)
 		{
 			return TypeAccessor<T>.GetFieldGetter<TField>(name);
 		}
 
+		/// <inheritdoc />
 		public TDelegate GetMethodCaller<TDelegate>(string name)
 		{
 			return TypeAccessor<T>.GetMethodCaller<TDelegate>(name);

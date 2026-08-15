@@ -18,6 +18,18 @@ namespace ActDim.Practix.Observability
         public bool AutoCreateActivityOnScope { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets the maximum recursion depth when flattening objects into OpenTelemetry attributes.
+        /// Default is <c>3</c>.
+        /// </summary>
+        public int MaxFlattenDepth { get; set; } = 3;
+
+        /// <summary>
+        /// Gets or sets the maximum number of attributes generated when flattening an object into OpenTelemetry attributes.
+        /// Default is <c>100</c>.
+        /// </summary>
+        public int MaxFlattenAttributes { get; set; } = 100;
+
+        /// <summary>
         /// Gets or sets the default ActivitySource name used when no custom source is specified in the ambient context.
         /// Defaults to EntryAssembly name or "ActDim.Practix".
         /// </summary>

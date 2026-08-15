@@ -209,7 +209,7 @@ namespace ActDim.Practix.TypeAccess.Tests
         {
             var obj1 = (TestRecord)typeof(TestRecord).CreateInstance("prop1");
             Assert.NotNull(obj1);
-            Assert.Equal(obj1.Prop, "prop1");
+            Assert.Equal("prop1", obj1.Prop);
         }
 
         [Fact]

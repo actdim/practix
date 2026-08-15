@@ -11,14 +11,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization.Formatters;
-using System.Security;
 using System.Text;
 using System.Xml.Linq;
 
-// [assembly: AllowPartiallyTrustedCallers]
-// [assembly: SecurityTransparent]
-// [assembly: SecurityRules(SecurityRuleSet.Level2, SkipVerificationInFullTrust = true)]
 namespace ActDim.Practix.TypeAccess.Reflection
 {
     /// <summary>
@@ -986,7 +981,8 @@ namespace ActDim.Practix.TypeAccess.Reflection
             var propInfo = pair.Item2;
 
             var delegateGenericArgs = delegateType.GetGenericArguments(); // delegateTypeArgs
-            var instanceType = delegateGenericArgs.Length == 2 ? delegateGenericArgs[0] : propInfo.ReflectedType ?? propInfo.DeclaringType;
+            var declaringType = propInfo.ReflectedType ?? propInfo.DeclaringType;
+            var instanceType = delegateGenericArgs.Length == 2 ? delegateGenericArgs[0] : (declaringType != null && (!declaringType.IsAbstract || !declaringType.IsSealed) ? declaringType : ObjectType);
             var resultType = delegateGenericArgs.Length == 2 ? delegateGenericArgs[1] : propInfo.PropertyType;
 
             var paramExpr = Expression.Parameter(instanceType, "instance");

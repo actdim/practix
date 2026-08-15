@@ -33,7 +33,7 @@ namespace ActDim.Practix.TypeAccess.Tests
             };
             var lambda1 = DynamicExpression.ParseLambda([System.Linq.Expressions.Expression.Parameter(testObj.GetType(), ""), System.Linq.Expressions.Expression.Parameter(testObj.GetType(), "this")], null, "l.Add(this.q[1]) ").Compile();
             lambda1.DynamicInvoke(testObj, testObj);
-            Assert.Equal(1, testObj.l.Count);
+            Assert.Single(testObj.l);
             Assert.Equal(testObj.q[1], testObj.l[0]);
             var lambda2 = DynamicExpression.ParseLambda([System.Linq.Expressions.Expression.Parameter(testObj.GetType(), "")], null, "q.Max(IntProperty)").Compile();
             var result = lambda2.DynamicInvoke(testObj);
@@ -163,9 +163,13 @@ namespace ActDim.Practix.TypeAccess.Tests
                 obj.Number2 = float.MinValue;
                 T element = default(T);
                 if (project != null)
+                {
                     element = project(obj);
+                }
                 else
+                {
                     element = obj;
+                }
                 yield return element;
             }
         }

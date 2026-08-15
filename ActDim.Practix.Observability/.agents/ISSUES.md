@@ -1,8 +1,6 @@
 # Active Issues
 
 ## Active
-- [bug--unsafe-object-flattening](ISSUES/bug--unsafe-object-flattening.md) — **critical** — cycles crash the process, throwing getters escape, no limit on attribute count.
-- [bug--log-event-tags-duplicated](ISSUES/bug--log-event-tags-duplicated.md) — LogEvent writes every tag twice, plain and under `activity.tags.`.
 - [bug--collection-tag-values-not-exportable](ISSUES/bug--collection-tag-values-not-exportable.md) — a collection passed to `Push` or `LogEvent.ActivityTags` reaches the span as an object OTLP cannot express.
 - [bug--logger-providers-registered-later-not-decorated](ISSUES/bug--logger-providers-registered-later-not-decorated.md) — DI registration is order-dependent and not idempotent.
 - [bug--span-tag-restore-assumes-lifo](ISSUES/bug--span-tag-restore-assumes-lifo.md) — out-of-order disposal leaves a stale span attribute and desynchronizes `ExportedKeys`.
@@ -21,6 +19,8 @@
 ## Backlog
 
 ## Done (recent)
+- [bug--unsafe-object-flattening](ISSUES/done/bug--unsafe-object-flattening.md) — **critical** — safe object graph flattening: cycles, throwing getters, attribute count limits, and root collection prefixes.
+- [bug--log-event-tags-duplicated](ISSUES/done/bug--log-event-tags-duplicated.md) — `LogEvent` tags deduplicated and written under plain tag names.
 - [task--ambient-context-pushed-after-scope](ISSUES/done/task--ambient-context-pushed-after-scope.md) — `IObservabilityContext` separated from `ICallContext`; properties export at push time and on the scope snapshot.
 - [bug--span-enrichment-gated-by-log-level](ISSUES/done/bug--span-enrichment-gated-by-log-level.md) — Log produces a log record only; BeginScope owns the span, independent of level filtering.
 - [task--logs-without-active-span](ISSUES/done/task--logs-without-active-span.md) — Auto-create Activity span on BeginScope with CallContext override and EntryAssembly default.
