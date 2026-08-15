@@ -1,46 +1,85 @@
-#region License
-
-/*
- * Copyright � 2002-2011 Paul Borodaev.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-#endregion
-
-#region Imports
-
+using ActDim.Practix.Collections.Concurrent;
+using Ardalis.GuardClauses;
 using System;
 using System.Reflection;
 using System.Reflection.Emit;
-using ActDim.Practix.Collections.Concurrent;
-
-#endregion
 
 namespace ActDim.Practix.TypeAccess.Reflection
 {
     using ModuleId = (string AssemblyName, string ModuleName);
-    // public record ModuleId(string AssemblyName, string ModuleName);
 
     /// <summary>
-    /// Use this class for obtaining <see cref="ModuleBuilder"/> instances for dynamic code generation.
+    /// Thread-safe manager for creating, obtaining, and caching dynamic assemblies (<see cref="AssemblyBuilder"/>)
+    /// and dynamic modules (<see cref="ModuleBuilder"/>) for runtime code generation.
     /// </summary>
-    /// <seealso cref="ActDim.Practix.TypeAccess.Reflection.DynamicReflectionManager"/>
     public sealed class DynamicCodeManager
     {
         private static readonly ConcurrentFactoryDictionary<string, AssemblyBuilder> AssemblyCache = new(CreateAssemblyBuilder);
-
         private static readonly ConcurrentFactoryDictionary<ModuleId, ModuleBuilder> ModuleCache = new(CreateModuleBuilder);
+
+        /// <summary>
+        /// Prevents direct instantiation.
+        /// </summary>
+        private DynamicCodeManager()
+        {
+            throw new InvalidOperationException("DynamicCodeManager is a static manager class.");
+        }
+
+        /// <summary>
+        /// Generates a unique name for a dynamic assembly or module combining a prefix tag, timestamp, and GUID.
+        /// </summary>
+        /// <param name="tag">A descriptive prefix tag (e.g. namespace or component name).</param>
+        /// <returns>A unique formatted dynamic name string.</returns>
+        public static string GetDynamicName(string tag)
+        {
+            Guard.Against.NullOrEmpty(tag, nameof(tag));
+            var guid = Guid.NewGuid().ToString("N");
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            return $"{tag}.{timestamp}_{guid}";
+        }
+
+        /// <summary>
+        /// Gets or creates a cached <see cref="AssemblyBuilder"/> for the specified assembly name.
+        /// </summary>
+        /// <param name="assemblyName">The name of the dynamic assembly.</param>
+        /// <returns>The cached or created <see cref="AssemblyBuilder"/>.</returns>
+        public static AssemblyBuilder GetAssemblyBuilder(string assemblyName)
+        {
+            Guard.Against.NullOrEmpty(assemblyName, nameof(assemblyName));
+            return AssemblyCache.GetOrCreateValue(assemblyName);
+        }
+
+        /// <summary>
+        /// Gets or creates a cached <see cref="ModuleBuilder"/> for the specified module identifier.
+        /// </summary>
+        /// <param name="moduleId">A tuple containing the assembly name and module name.</param>
+        /// <returns>The cached or created <see cref="ModuleBuilder"/>.</returns>
+        public static ModuleBuilder GetModuleBuilder(ModuleId moduleId)
+        {
+            Guard.Against.NullOrEmpty(moduleId.AssemblyName, nameof(moduleId.AssemblyName));
+            Guard.Against.NullOrEmpty(moduleId.ModuleName, nameof(moduleId.ModuleName));
+            return ModuleCache.GetOrCreateValue(moduleId);
+        }
+
+        /// <summary>
+        /// Gets or creates a cached <see cref="ModuleBuilder"/> for the specified assembly and module names.
+        /// </summary>
+        /// <param name="assemblyName">The name of the dynamic assembly.</param>
+        /// <param name="moduleName">The name of the dynamic module.</param>
+        /// <returns>The cached or created <see cref="ModuleBuilder"/>.</returns>
+        public static ModuleBuilder GetModuleBuilder(string assemblyName, string moduleName)
+        {
+            return GetModuleBuilder((assemblyName, moduleName));
+        }
+
+        /// <summary>
+        /// Clears all cached dynamic modules and assemblies.
+        /// </summary>
+        public static void Clear()
+        {
+            ModuleCache.Clear();
+            AssemblyCache.Clear();
+        }
 
         private static AssemblyBuilder CreateAssemblyBuilder(string assemblyName)
         {
@@ -49,11 +88,15 @@ namespace ActDim.Practix.TypeAccess.Reflection
                 Name = assemblyName
             };
 
-            var oAn = Assembly.GetExecutingAssembly().GetName();
+            var executingAssembly = Assembly.GetExecutingAssembly().GetName();
 
             try
             {
-                an.SetPublicKey(oAn.GetPublicKey());
+                var publicKey = executingAssembly.GetPublicKey();
+                if (publicKey != null && publicKey.Length > 0)
+                {
+                    an.SetPublicKey(publicKey);
+                }
             }
             catch
             {
@@ -61,65 +104,23 @@ namespace ActDim.Practix.TypeAccess.Reflection
 
             try
             {
-                an.SetPublicKeyToken(oAn.GetPublicKeyToken());
+                var token = executingAssembly.GetPublicKeyToken();
+                if (token != null && token.Length > 0)
+                {
+                    an.SetPublicKeyToken(token);
+                }
             }
             catch
             {
             }
 
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(an, AssemblyBuilderAccess.Run);
-            // RunAndCollect?
-            return assemblyBuilder;
+            return AssemblyBuilder.DefineDynamicAssembly(an, AssemblyBuilderAccess.Run);
         }
 
         private static ModuleBuilder CreateModuleBuilder(ModuleId id)
         {
             var assemblyBuilder = GetAssemblyBuilder(id.AssemblyName);
-            var moduleBuilder = assemblyBuilder.DefineDynamicModule(id.ModuleName);
-            return moduleBuilder;
-        }
-
-        /// <summary>
-        /// prevent instantiation
-        /// </summary>
-        private DynamicCodeManager()
-        {
-            throw new InvalidOperationException();
-        }
-
-        public static string GetDynamicName(string tag)
-        {
-            var guid = Guid.NewGuid().ToString("N");
-            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-            return $"{tag}.{timestamp}_{guid}";
-        }
-
-        public static AssemblyBuilder GetAssemblyBuilder(string assemblyName)
-        {
-            return AssemblyCache.GetOrCreateValue(assemblyName);
-        }
-
-        /// <summary>
-        /// Returns the <see cref="ModuleBuilder"/> for the dynamic moduleBuilder within the specified dynamic assembly.
-        /// </summary>
-        /// <remarks>
-        /// If the assembly does not exist yet, it will be created.<br/>
-        /// This factory caches any dynamic assembly it creates - calling GetModule() twice with
-        /// the same name will *not* create 2 distinct modules!
-        /// </remarks>
-        /// <param name="assemblyName">The assembly-name of the moduleBuilder to be returned</param>
-        /// <returns>the <see cref="ModuleBuilder"/> that can be used to define new types within the specified assembly</returns>
-        public static ModuleBuilder GetModuleBuilder(ModuleId moduleId)
-        {
-            return ModuleCache.GetOrCreateValue(moduleId);
-        }
-
-        /// <summary>
-        /// Removes all registered <see cref="ModuleBuilder"/>s.
-        /// </summary>
-        public static void Clear()
-        {
-            ModuleCache.Clear();
+            return assemblyBuilder.DefineDynamicModule(id.ModuleName);
         }
     }
 }

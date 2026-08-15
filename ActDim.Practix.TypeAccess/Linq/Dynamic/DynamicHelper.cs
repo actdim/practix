@@ -132,7 +132,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic // ActDim.Practix.Dynamic
 
                     //var value = CreateEvalGetter(new ParameterExpression[] { Expression.Parameter(type, string.Empty) }, property.Name, (Type)null).DynamicInvoke(parameters);
                     var value = EvalGet(property.Name, new Dictionary<string, object>() { { string.Empty, parameters } }, (Type)null);
-                    var propertyType = value.GetType(); //real property type (instead property.PropertyType)
+                    var propertyType = value?.GetType() ?? property.PropertyType;
                     signatureParameters.Add(property.Name);
                     signatureParameters.Add(propertyType);
                     parameterValues.Add(value);
@@ -162,13 +162,12 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic // ActDim.Practix.Dynamic
             var parameterValues = new List<object>();
             var signatureParameters = new List<object>();
 
-            //var parametersObject = DynamicExpression.CreateObject(parameters); //dynamic
             if (parameters != null)
             {
-                foreach (var pair in parameters) //kv/entry/item/element
+                foreach (var pair in parameters)
                 {
                     parameterValues.Add(pair.Value);
-                    var propertyType = pair.Value.GetType();
+                    var propertyType = pair.Value?.GetType() ?? typeof(object);
                     signatureParameters.Add(pair.Key);
                     signatureParameters.Add(propertyType);
                     parameterExpressions.Add(Expression.Parameter(propertyType, pair.Key));

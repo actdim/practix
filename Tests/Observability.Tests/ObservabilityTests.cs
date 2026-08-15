@@ -521,6 +521,74 @@ namespace ActDim.Practix.Observability.Tests
             Assert.Same(initialActivity, Activity.Current);
         }
 
+        [Fact]
+        public void FlattenPairs_HandlesCyclicGraph_WithoutStackOverflow()
+        {
+            var nodeA = new TestNode { Name = "NodeA" };
+            var nodeB = new TestNode { Name = "NodeB" };
+            nodeA.Next = nodeB;
+            nodeB.Next = nodeA;
+
+            var pairs = EventObservabilityHelper.Flatten(nodeA);
+
+            Assert.Equal("NodeA", pairs["name"]);
+            Assert.Equal("NodeB", pairs["next.name"]);
+            Assert.Equal("<cycle>", pairs["next.next"]);
+        }
+
+        [Fact]
+        public void FlattenPairs_HandlesThrowingPropertyGetter_WithoutThrowing()
+        {
+            var throwingObj = new TestThrowingObject { ValidProperty = "OK" };
+
+            var pairs = EventObservabilityHelper.Flatten(throwingObj);
+
+            Assert.Equal("OK", pairs["valid.property"]);
+            Assert.StartsWith("<error:", pairs["throwing.property"].ToString());
+        }
+
+        [Fact]
+        public void FlattenPairs_HandlesRootCollection_WithDefaultPrefix()
+        {
+            var list = new[] { "one", "two" };
+
+            var pairs = EventObservabilityHelper.Flatten(list);
+
+            Assert.Equal("one", pairs["items[0]"]);
+            Assert.Equal("two", pairs["items[1]"]);
+        }
+
+        [Fact]
+        public void LogEvent_Scope_DoesNotDuplicateTags_WithActivityTagsPrefix()
+        {
+            using var scope = StartTestActivity("LogEventNoDuplicationActivity");
+            var logger = _serviceProvider.GetRequiredService<ILogger<ObservabilityTests>>();
+
+            var logEvent = new LogEvent("ImportBatch", new Dictionary<string, object>
+            {
+                ["Priority"] = 5
+            });
+
+            using (logger.BeginScope(logEvent))
+            {
+                Assert.Equal(5, scope.Activity.GetTagItem("priority"));
+                Assert.Null(scope.Activity.GetTagItem("activity.tags.priority"));
+                Assert.Equal("ImportBatch", scope.Activity.GetTagItem("name"));
+            }
+        }
+
+        private class TestNode
+        {
+            public string Name { get; set; } = string.Empty;
+            public TestNode? Next { get; set; }
+        }
+
+        private class TestThrowingObject
+        {
+            public string ValidProperty { get; set; } = string.Empty;
+            public string ThrowingProperty => throw new InvalidOperationException("Getter failed");
+        }
+
         private static TestActivityScope StartTestActivity(string activityName)
         {
             return new TestActivityScope(activityName);

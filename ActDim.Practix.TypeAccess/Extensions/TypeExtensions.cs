@@ -1,29 +1,77 @@
 using ActDim.Practix.TypeAccess.Reflection;
 using System;
 using System.Linq;
+using System.Reflection;
 
-namespace ActDim.Practix.TypeAccess.Linq // ActDim.Practix.TypeAccess.Extensions
+namespace ActDim.Practix.TypeAccess.Linq
 {
     public static class TypeExtensions
     {
-        // private delegate T ObjectActivator<T>(params object[] args);
-
         public static TConstructorDelegate GetConstructor<TConstructorDelegate>(this Type type) where TConstructorDelegate : Delegate
         {
             var ctor = TypeAccessor.CreateConstructor<TConstructorDelegate>();
             return ctor;
         }
 
-        public static FastDynamicDelegate GetConstructorEx(this Type type, Type[] ctorParamTypes) // GetCtorEx
+        public static FastDynamicDelegate GetConstructorEx(this Type type, Type[] ctorParamTypes)
         {
             var ctor = TypeAccessor.GetConstructorEx(type, ctorParamTypes);
             return ctor;
         }
 
-        public static object CreateInstance(this Type type, object[] ctorArgs) // Construct
+        public static object CreateInstance(this Type type, object[] ctorArgs)
         {
-            var ctor = TypeAccessor.GetConstructorEx(type, ctorArgs.Select(a => a.GetType()).ToArray());
-            return ctor(ctorArgs);
+            if (ctorArgs == null || ctorArgs.Length == 0)
+            {
+                return type.CreateInstance();
+            }
+
+            var constructors = type.GetConstructors();
+            ConstructorInfo targetCtor = null;
+            foreach (var ctorInfo in constructors)
+            {
+                var parameters = ctorInfo.GetParameters();
+                if (parameters.Length != ctorArgs.Length)
+                {
+                    continue;
+                }
+
+                bool match = true;
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    var arg = ctorArgs[i];
+                    var paramType = parameters[i].ParameterType;
+                    if (arg == null)
+                    {
+                        if (paramType.IsValueType && Nullable.GetUnderlyingType(paramType) == null)
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
+                    else if (!paramType.IsAssignableFrom(arg.GetType()))
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                {
+                    targetCtor = ctorInfo;
+                    break;
+                }
+            }
+
+            if (targetCtor != null)
+            {
+                var invoker = TypeAccessor.GetConstructorEx(targetCtor);
+                return invoker(ctorArgs);
+            }
+
+            var argTypes = ctorArgs.Select(a => a?.GetType() ?? typeof(object)).ToArray();
+            var fallbackCtor = TypeAccessor.GetConstructorEx(type, argTypes);
+            return fallbackCtor(ctorArgs);
         }
 
         /// <summary>
@@ -31,7 +79,7 @@ namespace ActDim.Practix.TypeAccess.Linq // ActDim.Practix.TypeAccess.Extensions
         /// </summary>
         /// <param name="type">The type on which the method was invoked.</param>
         /// <returns>An instance of the <paramref name="type"/>.</returns>
-        public static object CreateInstance(this Type type) // New/NewInstance/Construct/Instantiate
+        public static object CreateInstance(this Type type)
         {
             var delegateType = TypeAccessor.GetFuncType([type]);
             var ctor = TypeAccessor.CreateConstructorEx(delegateType);
@@ -50,8 +98,6 @@ namespace ActDim.Practix.TypeAccess.Linq // ActDim.Practix.TypeAccess.Extensions
             var delegateType = TypeAccessor.GetFuncType([typeof(TArg), type]);
             var ctor = TypeAccessor.CreateConstructorEx(delegateType);
             return ctor(arg);
-            // var ctor = TypeAccessor.GetConstructor(type, [typeof(TArg)]);
-            // return ctor.DynamicInvoke(arg);
         }
 
         /// <summary>
@@ -68,8 +114,6 @@ namespace ActDim.Practix.TypeAccess.Linq // ActDim.Practix.TypeAccess.Extensions
             var delegateType = TypeAccessor.GetFuncType([typeof(TArg1), typeof(TArg2), type]);
             var ctor = TypeAccessor.CreateConstructorEx(delegateType);
             return ctor(arg1, arg2);
-            // var ctor = TypeAccessor.GetConstructor(type, [typeof(TArg1), typeof(TArg2)]);
-            // return ctor.DynamicInvoke(arg1, arg2);
         }
 
         /// <summary>
@@ -92,8 +136,6 @@ namespace ActDim.Practix.TypeAccess.Linq // ActDim.Practix.TypeAccess.Extensions
             var delegateType = TypeAccessor.GetFuncType([typeof(TArg1), typeof(TArg2), typeof(TArg3), type]);
             var ctor = TypeAccessor.CreateConstructorEx(delegateType);
             return ctor(arg1, arg2, arg3);
-            // var ctor = TypeAccessor.GetConstructor(type, [typeof(TArg1), typeof(TArg2), typeof(TArg3)]);
-            // return ctor.DynamicInvoke(arg1, arg2, arg3);
         }
 
         public static TDelegate GetStaticMethodCaller<TDelegate>(this Type type, string name)
@@ -108,12 +150,14 @@ namespace ActDim.Practix.TypeAccess.Linq // ActDim.Practix.TypeAccess.Extensions
 
         public static TDelegate GetPropertyGetter<TDelegate>(this Type type, string name) where TDelegate : Delegate
         {
-            return TypeAccessor.GetPropertyGetter(type, name) as TDelegate;
+            var propInfo = type.GetProperty(name);
+            return (TDelegate)TypeAccessor.GetPropertyGetter(propInfo);
         }
 
         public static TDelegate GetFieldGetter<TDelegate>(this Type type, string name) where TDelegate : Delegate
         {
-            return TypeAccessor.GetFieldGetter(type, name) as TDelegate;
+            var fieldInfo = type.GetField(name);
+            return (TDelegate)TypeAccessor.GetFieldGetter(fieldInfo);
         }
     }
 }

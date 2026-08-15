@@ -2,54 +2,54 @@ using ActDim.Practix.TypeAccess.Reflection;
 using Ardalis.GuardClauses;
 using System;
 
-namespace ActDim.Practix.TypeAccess.Linq //System.Reflection/ActDim.Practix.TypeAccess.Extensions/ActDim.Practix.TypeAccess.Reflection.Extensions
+namespace ActDim.Practix.TypeAccess.Linq
 {
     public static class ObjectExtensions
     {
         /// <summary>
-        /// Use ReflectionHelper<T> as Type accessor
+        /// Creates an <see cref="IObjectAccessor{T}"/> wrapper for the target object.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <returns></returns>
         public static IObjectAccessor<T> GetAccessor<T>(this T obj) where T : class
         {
             return new ObjectAccessor<T>(obj);
         }
 
-        public static TDelegate GetPropertyGetter<TDelegate>(this object obj, string name) where TDelegate : Delegate // <TProperty>
+        public static TDelegate GetPropertyGetter<TDelegate>(this object obj, string name) where TDelegate : Delegate
         {
             Guard.Against.Null(obj, nameof(obj));
             return obj.GetType().GetPropertyGetter<TDelegate>(name);
         }
 
-        public static TDelegate GetFieldGetter<TDelegate>(this object obj, string name) where TDelegate : Delegate // <TProperty>
+        public static TDelegate GetFieldGetter<TDelegate>(this object obj, string name) where TDelegate : Delegate
         {
             Guard.Against.Null(obj, nameof(obj));
-            return obj.GetType().GetFieldGetter<TDelegate>(name) as TDelegate;
+            return obj.GetType().GetFieldGetter<TDelegate>(name);
         }
 
         public static TProperty GetProperty<TProperty>(this object obj, string name)
         {
             Guard.Against.Null(obj, nameof(obj));
-            var getter = TypeAccessor.GetPropertyGetter(obj.GetType(), name);
-            return (TProperty)getter.DynamicInvoke(obj);
+            Guard.Against.NullOrEmpty(name, nameof(name));
+            var propInfo = obj.GetType().GetProperty(name);
+            Guard.Against.Null(propInfo, nameof(name), $"Property '{name}' not found on type '{obj.GetType().FullName}'.");
+            var getter = TypeAccessor.GetPropertyGetter<object, TProperty>(propInfo);
+            return getter(obj);
         }
 
         public static TField GetField<TField>(this object obj, string name)
         {
             Guard.Against.Null(obj, nameof(obj));
-            var getter = TypeAccessor.GetFieldGetter(obj.GetType(), name);
-            return (TField)getter.DynamicInvoke(obj);
+            Guard.Against.NullOrEmpty(name, nameof(name));
+            var fieldInfo = obj.GetType().GetField(name);
+            Guard.Against.Null(fieldInfo, nameof(name), $"Field '{name}' not found on type '{obj.GetType().FullName}'.");
+            var getter = TypeAccessor.GetFieldGetter<object, TField>(fieldInfo);
+            return getter(obj);
         }
 
-        // GetMethodInvoker
         public static TDelegate GetMethodCaller<TDelegate>(this object obj, string name)
         {
             Guard.Against.Null(obj, nameof(obj));
             return obj.GetType().GetMethodCaller<TDelegate>(name);
         }
-
-        // TODO: add other extension methods (based on ReflectionHelper)
     }
 }

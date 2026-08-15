@@ -1,4 +1,3 @@
-using ActDim.Practix;
 using ActDim.Practix.Collections;
 using ActDim.Practix.TypeAccess.Reflection;
 using Ardalis.GuardClauses;
@@ -9,92 +8,75 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.Serialization.Formatters;
-using System.Security;
-using System.Security.Permissions;
 
-// Replaces the former DynamicProperty class - it was essentially a (name, type) pair.
 using DynamicProperty = (string Name, System.Type Type);
 
 namespace ActDim.Practix.TypeAccess.Linq.Dynamic
 {
-    // DynamicClassFactory
-    public class DynamicTypeFactory // sealed
+    /// <summary>
+    /// Factory for generating dynamic types (<see cref="DynamicClass"/>) and instances at runtime with auto-properties, <see cref="object.Equals(object)"/>, and <see cref="object.GetHashCode"/>.
+    /// </summary>
+    public sealed class DynamicTypeFactory
     {
-        // NamingHelper.CreateUniqueName
-        private static readonly string DYNAMIC_ASSEMBLY_NAME = DynamicCodeManager.GetDynamicName(typeof(DynamicTypeFactory).Namespace);
+        private static readonly string DynamicAssemblyName = DynamicCodeManager.GetDynamicName(typeof(DynamicTypeFactory).Namespace);
+        private static readonly string DynamicModuleName = DynamicCodeManager.GetDynamicName(nameof(DynamicTypeFactory));
 
-        private static readonly string DYNAMIC_MODULE_NAME = DynamicCodeManager.GetDynamicName(nameof(DynamicTypeFactory));
-
-        public static readonly DynamicTypeFactory Instance = new DynamicTypeFactory(); // TODO: use Lazy<DynamicTypeFactory>
+        /// <summary>
+        /// Gets the singleton instance of <see cref="DynamicTypeFactory"/>.
+        /// </summary>
+        public static readonly DynamicTypeFactory Instance = new DynamicTypeFactory();
 
         static DynamicTypeFactory() { }
 
         private readonly ModuleBuilder _moduleBuilder;
-
         private readonly ConcurrentDictionary<CompositeKey, Type> _typeCache;
-
         private readonly ConcurrentDictionary<CompositeKey, Delegate> _delegateCache;
 
-        [SecurityCritical]
         private DynamicTypeFactory()
         {
-            _moduleBuilder = DynamicCodeManager.GetModuleBuilder((DYNAMIC_ASSEMBLY_NAME, DYNAMIC_MODULE_NAME));
+            _moduleBuilder = DynamicCodeManager.GetModuleBuilder(DynamicAssemblyName, DynamicModuleName);
             _typeCache = new ConcurrentDictionary<CompositeKey, Type>();
             _delegateCache = new ConcurrentDictionary<CompositeKey, Delegate>();
         }
 
-        // CreateDynamicType
+        /// <summary>
+        /// Creates or retrieves a cached dynamic type defined by the given property definitions.
+        /// </summary>
+        /// <param name="properties">An array of <see cref="PropertyInfo"/> objects specifying property names and types.</param>
+        /// <returns>A dynamically emitted <see cref="Type"/> inheriting from <see cref="DynamicClass"/>.</returns>
         public Type CreateType(PropertyInfo[] properties)
         {
+            Guard.Against.NullOrEmpty(properties, nameof(properties));
             return CreateType(properties.ToDictionary(pi => pi.Name, pi => pi.PropertyType));
         }
 
+        /// <summary>
+        /// Creates or retrieves a cached dynamic type defined by the given property name and type dictionary.
+        /// </summary>
+        /// <param name="propertyTypeMap">A dictionary mapping property names to property types.</param>
+        /// <returns>A dynamically emitted <see cref="Type"/> inheriting from <see cref="DynamicClass"/>.</returns>
         public Type CreateType(IDictionary<string, Type> propertyTypeMap)
         {
+            Guard.Against.NullOrEmpty(propertyTypeMap, nameof(propertyTypeMap));
             return CreateType(propertyTypeMap.Select(pt => (DynamicProperty)(pt.Key, pt.Value)).ToArray());
         }
 
         internal Type CreateType(DynamicProperty[] properties)
         {
-            // argument must contain at least 1 property definition
             Guard.Against.NullOrEmpty(properties, nameof(properties));
             var signature = new CompositeKey([.. properties.Cast<object>()]);
-            return _typeCache.GetOrAdd(signature, s =>
-            {
-                var type = CreateType(s, properties);
-                return type;
-            });
+            return _typeCache.GetOrAdd(signature, s => CreateTypeInternal(s, properties));
         }
 
-        private Type CreateType(CompositeKey signature, DynamicProperty[] properties)
+        private Type CreateTypeInternal(CompositeKey signature, DynamicProperty[] properties)
         {
-            //className
-            //"DynamicType"?
-            var typeName = "DynamicClass" + signature.GetHashCode().ToString(); // TODO: improve
-#if ENABLE_LINQ_PARTIAL_TRUST
-            new ReflectionPermission(PermissionState.Unrestricted).Assert();
-#endif
-            try
-            {
-                // see also: https://stackoverflow.com/questions/3862226/how-to-dynamically-create-a-class
-                // https://github.com/ValeraT1982/ObjectsComparer
-                // https://www.c-sharpcorner.com/article/using-objects-comparer-to-compare-complex-objects-in-c-sharp/
-                // https://github.com/ekonbenefits/dynamitey
+            var typeName = "DynamicClass_" + Math.Abs(signature.GetHashCode()).ToString("X");
 
-                var typeBuilder = _moduleBuilder.DefineType(typeName, TypeAttributes.Class | TypeAttributes.Public, typeof(DynamicClass)); //TypeAttributes.Serializable??
-                var fields = GenerateProperties(typeBuilder, properties);
-                GenerateEquals(typeBuilder, fields);
-                GenerateGetHashCode(typeBuilder, fields);
-                var result = typeBuilder.CreateTypeInfo();
-                return result;
-            }
-            finally
-            {
-#if ENABLE_LINQ_PARTIAL_TRUST
-                PermissionSet.RevertAssert();
-#endif
-            }
+            var typeBuilder = _moduleBuilder.DefineType(typeName, TypeAttributes.Class | TypeAttributes.Public, typeof(DynamicClass));
+            var fields = GenerateProperties(typeBuilder, properties);
+            GenerateEquals(typeBuilder, fields);
+            GenerateGetHashCode(typeBuilder, fields);
+            return typeBuilder.CreateTypeInfo();
         }
 
         private FieldInfo[] GenerateProperties(TypeBuilder typeBuilder, DynamicProperty[] properties)
@@ -103,23 +85,20 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
             for (int i = 0; i < properties.Length; i++)
             {
                 var dp = properties[i];
-                //"_" + dynamicProperty.Name
-                var fb = typeBuilder.DefineField("<" + dp.Name + ">k__BackingField", dp.Type, FieldAttributes.Private); //HasDefault?
+                var fb = typeBuilder.DefineField("<" + dp.Name + ">k__BackingField", dp.Type, FieldAttributes.Private);
                 var pb = typeBuilder.DefineProperty(dp.Name, PropertyAttributes.HasDefault, dp.Type, null);
 
-                //attributes ^ MethodAttributes.VtableLayoutMask
-                //getterBuilder
                 var mbGet = typeBuilder.DefineMethod("get_" + dp.Name,
-                    MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, //Final? Virtual?
+                    MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                     dp.Type, Type.EmptyTypes);
 
                 var getterGenerator = mbGet.GetILGenerator();
                 getterGenerator.Emit(OpCodes.Ldarg_0);
                 getterGenerator.Emit(OpCodes.Ldfld, fb);
                 getterGenerator.Emit(OpCodes.Ret);
-                //setterBuilder
+
                 var mbSet = typeBuilder.DefineMethod("set_" + dp.Name,
-                    MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, //Final? Virtual?
+                    MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                     null, new[] { dp.Type });
 
                 var setterGenerator = mbSet.GetILGenerator();
@@ -127,6 +106,7 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
                 setterGenerator.Emit(OpCodes.Ldarg_1);
                 setterGenerator.Emit(OpCodes.Stfld, fb);
                 setterGenerator.Emit(OpCodes.Ret);
+
                 pb.SetGetMethod(mbGet);
                 pb.SetSetMethod(mbSet);
                 fields[i] = fb;
@@ -140,9 +120,11 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
                 MethodAttributes.Public | MethodAttributes.ReuseSlot |
                 MethodAttributes.Virtual | MethodAttributes.HideBySig,
                 typeof(bool), new Type[] { typeof(object) });
+
             var generator = mb.GetILGenerator();
             var other = generator.DeclareLocal(typeBuilder);
             var next = generator.DefineLabel();
+
             generator.Emit(OpCodes.Ldarg_1);
             generator.Emit(OpCodes.Isinst, typeBuilder);
             generator.Emit(OpCodes.Stloc, other);
@@ -151,22 +133,27 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
             generator.Emit(OpCodes.Ldc_I4_0);
             generator.Emit(OpCodes.Ret);
             generator.MarkLabel(next);
+
             foreach (var field in fields)
             {
                 var ft = field.FieldType;
                 var ct = typeof(EqualityComparer<>).MakeGenericType(ft);
                 next = generator.DefineLabel();
-                generator.EmitCall(OpCodes.Call, ct.GetMethod("get_Default"), null);
+                var getMethod = ct.GetProperty("Default")?.GetGetMethod();
+                var equalsMethod = ct.GetMethod("Equals", new Type[] { ft, ft });
+
+                generator.EmitCall(OpCodes.Call, getMethod, null);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldfld, field);
                 generator.Emit(OpCodes.Ldloc, other);
                 generator.Emit(OpCodes.Ldfld, field);
-                generator.EmitCall(OpCodes.Callvirt, ct.GetMethod("Equals", new Type[] { ft, ft }), null);
+                generator.EmitCall(OpCodes.Callvirt, equalsMethod, null);
                 generator.Emit(OpCodes.Brtrue_S, next);
                 generator.Emit(OpCodes.Ldc_I4_0);
                 generator.Emit(OpCodes.Ret);
                 generator.MarkLabel(next);
             }
+
             generator.Emit(OpCodes.Ldc_I4_1);
             generator.Emit(OpCodes.Ret);
         }
@@ -177,57 +164,59 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
                 MethodAttributes.Public | MethodAttributes.ReuseSlot |
                 MethodAttributes.Virtual | MethodAttributes.HideBySig,
                 typeof(int), Type.EmptyTypes);
+
             var generator = mb.GetILGenerator();
             generator.Emit(OpCodes.Ldc_I4_0);
+
             foreach (FieldInfo field in fields)
             {
                 var ft = field.FieldType;
                 var ct = typeof(EqualityComparer<>).MakeGenericType(ft);
-                generator.EmitCall(OpCodes.Call, ct.GetMethod("get_Default"), null);
+                var getMethod = ct.GetProperty("Default")?.GetGetMethod();
+                var hashCodeMethod = ct.GetMethod("GetHashCode", new Type[] { ft });
+
+                generator.EmitCall(OpCodes.Call, getMethod, null);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldfld, field);
-                generator.EmitCall(OpCodes.Callvirt, ct.GetMethod("GetHashCode", new Type[] { ft }), null);
+                generator.EmitCall(OpCodes.Callvirt, hashCodeMethod, null);
                 generator.Emit(OpCodes.Xor);
             }
+
             generator.Emit(OpCodes.Ret);
         }
 
-        //Create(Object)Instance
+        /// <summary>
+        /// Creates an instance of a dynamic type populated with values from the given property values dictionary.
+        /// </summary>
+        /// <typeparam name="T">The expected object type or base type.</typeparam>
+        /// <param name="propertyValues">A dictionary of property names and initial values.</param>
+        /// <returns>An instance of the dynamic type populated with property values.</returns>
         public T CreateObject<T>(IDictionary<string, object> propertyValues)
         {
             return (T)CreateObject(propertyValues, typeof(T));
         }
 
+        /// <summary>
+        /// Creates an instance of a dynamic type populated with values from the given property values dictionary.
+        /// </summary>
+        /// <param name="propertyValues">A dictionary of property names and initial values.</param>
+        /// <param name="type">An optional explicit type to instantiate. If null, a dynamic type is generated.</param>
+        /// <returns>An instance of the dynamic type populated with property values.</returns>
         public object CreateObject(IDictionary<string, object> propertyValues, Type type = null)
         {
-            //http://msdn.microsoft.com/en-us/library/ms145822.aspx
-            //http://msdn.microsoft.com/en-us/library/system.reflection.emit.typebuilder.defineproperty(v=vs.71).aspx
-
             Guard.Against.NullOrEmpty(propertyValues, nameof(propertyValues));
 
-            var propertyTypeMap = propertyValues.ToDictionary(pair => pair.Key, pair => pair.Value == null ? typeof(object) : pair.Value.GetType());
+            var propertyTypeMap = propertyValues.ToDictionary(
+                pair => pair.Key,
+                pair => pair.Value == null ? typeof(object) : pair.Value.GetType()
+            );
+
             if (type == null)
             {
                 type = CreateType(propertyTypeMap);
             }
 
-            //var ctor = TypeAccessor.GetConstructor(type);
-            //var obj = ctor(); // target
-            //var setters = new Dictionary<string, Delegate>();
-            //foreach (var pair in propertyValues)
-            //{
-            //	if (!setters.TryGetValue(pair.Key, out var setter))
-            //	{
-            //		setter = TypeAccessor.GetPropertySetter(type.GetProperty(pair.Key));
-            //		setters.Add(pair.Key, setter);
-            //	}
-            //	setter.DynamicInvoke(obj, pair.Value);
-            //}
-            //return obj;
-
-            // fastest solution in this particular case
             var signature = new CompositeKey([.. propertyTypeMap.Cast<object>(), type]);
-            //var signature = new CompositeKey([.. propertyValues.Select(pair => pair.Key).Cast<object>(), type]);
 
             var multiSetter = _delegateCache.GetOrAdd(signature, s =>
             {
@@ -240,13 +229,14 @@ namespace ActDim.Practix.TypeAccess.Linq.Dynamic
                     parameterExpressions.Add(parameterExpression);
                     bindings.Add(Expression.Bind(type.GetProperty(pair.Key), parameterExpression));
                 }
+
                 return Expression.Lambda(
-                    Expression.MemberInit(Expression.New(type), bindings.ToArray()), parameterExpressions.ToArray()
+                    Expression.MemberInit(Expression.New(type), bindings.ToArray()),
+                    parameterExpressions.ToArray()
                 ).Compile();
             });
 
-            var obj = multiSetter.DynamicInvoke(propertyValues.Select(pair => pair.Value).ToArray()); //target
-            return obj;
+            return multiSetter.DynamicInvoke(propertyValues.Select(pair => pair.Value).ToArray());
         }
     }
 }

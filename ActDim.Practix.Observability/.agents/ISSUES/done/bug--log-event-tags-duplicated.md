@@ -1,7 +1,7 @@
 ---
 slug: log-event-tags-duplicated
 type: bug
-status: open
+status: done
 priority: high
 created: 2026-08-15
 updated: 2026-08-15
@@ -24,6 +24,6 @@ Half of the attributes are noise, and they double the exported payload for the m
 Flatten only the domain-meaningful part of `LogEvent` — the `Name` — and let the explicit `ActivityTags` loop own the tag names, or exclude `ActivityTags` from the reflection walk. The `activity.tags.` prefix has no reason to exist in the exported data.
 
 ## Acceptance
-- [ ] A `LogEvent` scope produces one attribute per entry of `ActivityTags`.
-- [ ] `name` is still written.
-- [ ] A test asserts the absence of the `activity.tags.` prefix.
+- [x] A `LogEvent` scope produces one attribute per entry of `ActivityTags`.
+- [x] `name` is still written.
+- [x] A test asserts the absence of the `activity.tags.` prefix.

@@ -192,14 +192,18 @@ namespace ActDim.Practix.Observability
                 {
                     if (activeScope != null && !EventObservabilityHelper.IsSimple(activeScope))
                     {
-                        collector.WriteRange(EventObservabilityHelper.FlattenPairs(activeScope));
+                        collector.WriteRange(EventObservabilityHelper.FlattenPairs(activeScope, maxDepth: _options.MaxFlattenDepth, maxAttributes: _options.MaxFlattenAttributes));
                     }
                 }, spanTags);
             }
 
             if (state is LogEvent logEvent)
             {
-                spanTags.WriteRange(EventObservabilityHelper.FlattenPairs(logEvent));
+                if (!string.IsNullOrWhiteSpace(logEvent.Name))
+                {
+                    spanTags.Write("name", logEvent.Name);
+                }
+
                 foreach (var kv in logEvent.ActivityTags)
                 {
                     spanTags.Write(EventObservabilityHelper.ToOtelName(kv.Key), kv.Value);
@@ -207,7 +211,7 @@ namespace ActDim.Practix.Observability
             }
             else if (state != null && !EventObservabilityHelper.IsSimple(state))
             {
-                spanTags.WriteRange(EventObservabilityHelper.FlattenPairs(state));
+                spanTags.WriteRange(EventObservabilityHelper.FlattenPairs(state, maxDepth: _options.MaxFlattenDepth, maxAttributes: _options.MaxFlattenAttributes));
             }
 
             ApplySpanTags(activity, spanTags);

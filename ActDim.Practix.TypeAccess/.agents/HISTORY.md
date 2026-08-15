@@ -1,4 +1,1 @@
-# History
-
-_Index of sessions (newest last). One line per session:_
-_<YYYY-MM-DD> — <slug> — <agent> — <summary> — <relative link>_
+2026-08-15 — refactor-typeaccess — Gemini 3.6 Flash — Polished DynamicCodeManager and DynamicTypeFactory, added GetModuleBuilder overload, removed obsolete CAS attributes, added XML docs, and created DynamicCodeManagerTests (53 passing tests).
