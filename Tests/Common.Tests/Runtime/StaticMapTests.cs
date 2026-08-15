@@ -55,8 +55,10 @@ namespace ActDim.Practix.Common.Tests.Runtime
         [Fact]
         public void MapImmutability()
         {
-            var list = new List<KeyValuePair<string,int>>();
-            list.Add(new KeyValuePair<string,int>("p",5));
+            var list = new List<KeyValuePair<string, int>>
+            {
+                new KeyValuePair<string, int>("p", 5)
+            };
             int fallback(string key) => -1;
             var map = StaticMap.Create(list, fallback);
 

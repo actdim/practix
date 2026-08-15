@@ -17,8 +17,9 @@
       breaks URL routes; distinct keys can also collide after filename sanitisation
 - [ ] read-lock-persists-mutations — the read path persists the whole record, so a mutation made under
       a read lock reaches storage and concurrent readers can race
+- [ ] [feat--async-enumerable-blob-find](ISSUES/feat--async-enumerable-blob-find.md) — Support IAsyncEnumerable streaming in IBlobStorage.FindAsync with EnumeratorCancellation.
 - [ ] batch-content-delete — bulk deletion deletes content one key at a time
 
-## Done (recent)
+## Backlog
 
 - [x] delete-blob-content — all deletion paths now remove the stored bytes too (2026-08-05)

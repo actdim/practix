@@ -15,8 +15,8 @@ Create a dedicated project/package (`ActDim.Practix.Observability.Console` or `A
 ## Key Requirements
 1. **Braille Spinner & Progress Animation:**
    - Render smooth Braille character animations (dot spinners e.g. `⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏`).
-   - Dynamic progress percentage bar for `CallContextPropertyNames.Progress`.
+   - Dynamic progress percentage bar for `ObservabilityContextPropertyNames.Progress`.
 2. **Icon & Status Visualization:**
-   - Display active emoji/icon (`CallContextPropertyNames.Icon`) alongside status text (`CallContextPropertyNames.Status`).
+   - Display active emoji/icon (`ObservabilityContextPropertyNames.Icon`) alongside status text (`ObservabilityContextPropertyNames.Status`).
 3. **ANSI & Terminal Fallbacks:**
    - Detect terminal capability for ANSI color codes and UTF-8 Braille rendering with clean fallbacks.

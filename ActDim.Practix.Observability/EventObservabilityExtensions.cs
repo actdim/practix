@@ -33,7 +33,8 @@ namespace ActDim.Practix.Observability
                 services.Configure(configureOptions);
             }
 
-            services.TryAddSingleton<ICallContextProvider>(sp => CallContextProvider.Instance);
+            services.TryAddSingleton<IAmbientContextProvider>(sp => AmbientContextProvider.Instance);
+            services.TryAddSingleton<IObservabilityContext>(sp => new ObservabilityContext(sp.GetRequiredService<IAmbientContextProvider>()));
 
             services.AddLogging(builder =>
             {
@@ -75,11 +76,11 @@ namespace ActDim.Practix.Observability
                         }
 
                         var options = sp.GetRequiredService<IOptions<EventObservabilityOptions>>().Value;
-                        var callContextProvider = sp.GetService<ICallContextProvider>();
+                        var ambientContextProvider = sp.GetService<IAmbientContextProvider>();
                         var scopeProvider = sp.GetService<IExternalScopeProvider>();
                         var alias = EventObservabilityLoggerFactory.ResolveProviderAlias(innerProvider, options);
 
-                        return new EventObservabilityProviderDecorator(innerProvider, alias, callContextProvider, scopeProvider);
+                        return new EventObservabilityProviderDecorator(innerProvider, alias, ambientContextProvider, scopeProvider);
                     },
                     descriptor.Lifetime));
             }
@@ -112,10 +113,10 @@ namespace ActDim.Practix.Observability
                         }
 
                         var options = sp.GetRequiredService<IOptions<EventObservabilityOptions>>().Value;
-                        var callContextProvider = sp.GetService<ICallContextProvider>();
+                        var ambientContextProvider = sp.GetService<IAmbientContextProvider>();
                         var scopeProvider = sp.GetService<IExternalScopeProvider>();
 
-                        return new EventObservabilityLoggerFactory(innerFactory, callContextProvider, scopeProvider, options);
+                        return new EventObservabilityLoggerFactory(innerFactory, ambientContextProvider, scopeProvider, options);
                     },
                     factoryDescriptor.Lifetime));
             }
@@ -124,11 +125,11 @@ namespace ActDim.Practix.Observability
                 services.AddSingleton<ILoggerFactory>(sp =>
                 {
                     var options = sp.GetRequiredService<IOptions<EventObservabilityOptions>>().Value;
-                    var callContextProvider = sp.GetService<ICallContextProvider>();
+                    var ambientContextProvider = sp.GetService<IAmbientContextProvider>();
                     var scopeProvider = sp.GetService<IExternalScopeProvider>();
 
                     var innerLoggerFactory = LoggerFactory.Create(_ => { });
-                    return new EventObservabilityLoggerFactory(innerLoggerFactory, callContextProvider, scopeProvider, options);
+                    return new EventObservabilityLoggerFactory(innerLoggerFactory, ambientContextProvider, scopeProvider, options);
                 });
             }
         }

@@ -11,21 +11,40 @@ namespace ActDim.Practix.Observability
     /// </summary>
     public static class EventObservabilityHelper
     {
+        /// <summary>
+        /// Flattens the object into a dictionary of dotted OpenTelemetry attribute names.
+        /// Names that collapse into the same key after normalization are resolved last-write-wins and are therefore
+        /// invisible; use <see cref="FlattenPairs"/> when such collisions must stay observable.
+        /// </summary>
         public static Dictionary<string, object> Flatten(object obj, string prefix = "")
         {
             var result = new Dictionary<string, object>();
+            foreach (var pair in FlattenPairs(obj, prefix))
+            {
+                result[pair.Key] = pair.Value;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Streams the flattened object as name/value pairs, preserving duplicates so that the caller can detect
+        /// names collapsing into the same OpenTelemetry attribute.
+        /// </summary>
+        public static IEnumerable<KeyValuePair<string, object>> FlattenPairs(object obj, string prefix = "")
+        {
             if (obj == null)
             {
-                return result;
+                yield break;
             }
 
             if (IsSimple(obj))
             {
                 if (!string.IsNullOrEmpty(prefix))
                 {
-                    result[prefix] = obj;
+                    yield return new KeyValuePair<string, object>(prefix, obj);
                 }
-                return result;
+                yield break;
             }
 
             if (obj is IDictionary dictionary)
@@ -35,9 +54,9 @@ namespace ActDim.Practix.Observability
                     var rawKey = entry.Key?.ToString() ?? string.Empty;
                     var otelKey = ToOtelName(rawKey);
                     var key = string.IsNullOrEmpty(prefix) ? otelKey : $"{prefix}.{otelKey}";
-                    result[key] = entry.Value!;
+                    yield return new KeyValuePair<string, object>(key, entry.Value!);
                 }
-                return result;
+                yield break;
             }
 
             if (obj is IEnumerable enumerable && !(obj is string))
@@ -46,13 +65,13 @@ namespace ActDim.Practix.Observability
                 foreach (var item in enumerable)
                 {
                     var key = $"{prefix}[{i}]";
-                    foreach (var kv in Flatten(item, key))
+                    foreach (var kv in FlattenPairs(item, key))
                     {
-                        result[kv.Key] = kv.Value!;
+                        yield return kv;
                     }
                     i++;
                 }
-                return result;
+                yield break;
             }
 
             foreach (var prop in obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -68,18 +87,16 @@ namespace ActDim.Practix.Observability
 
                 if (value == null || IsSimple(value))
                 {
-                    result[key] = value!;
+                    yield return new KeyValuePair<string, object>(key, value!);
                 }
                 else
                 {
-                    foreach (var kv in Flatten(value, key))
+                    foreach (var kv in FlattenPairs(value, key))
                     {
-                        result[kv.Key] = kv.Value!;
+                        yield return kv;
                     }
                 }
             }
-
-            return result;
         }
 
         public static bool IsSimple(object value)
@@ -103,6 +120,12 @@ namespace ActDim.Practix.Observability
             }
 
             name = name.Trim('{', '}');
+
+            // Structured logging destructuring hints ({@value} / {$value}) are not part of the attribute name
+            if (name.Length > 1 && (name[0] == '@' || name[0] == '$'))
+            {
+                name = name.Substring(1);
+            }
 
             var result = new System.Text.StringBuilder();
             for (var i = 0; i < name.Length; i++)

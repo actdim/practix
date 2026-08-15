@@ -3,31 +3,41 @@ using ActDim.Practix.Abstractions.Context;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace ActDim.Practix.Observability
 {
     /// <summary>
-    /// Event-centric observability bridge implementing <see cref="ILogger"/> that performs DTO object flattening and 
-    /// enriches current OpenTelemetry <see cref="Activity"/> spans with dotted OpenTelemetry attributes.
-    /// Supports ambient properties from <see cref="ICallContextProvider"/> and external scopes via <see cref="IExternalScopeProvider"/>.
+    /// Event-centric observability bridge implementing <see cref="ILogger"/> that performs DTO object flattening and
+    /// enriches <see cref="Activity"/> spans with dotted OpenTelemetry attributes.
+    /// Supports ambient properties from <see cref="IAmbientContextProvider"/> and external scopes via <see cref="IExternalScopeProvider"/>.
     /// Selective per-provider suppression is performed dynamically by decorated logger providers.
     /// </summary>
+    /// <remarks>
+    /// The two signals are kept strictly separate. <see cref="BeginScope{TState}"/> owns the trace side: it starts an
+    /// <see cref="Activity"/> when none is current and writes the scope state, the exported ambient telemetry properties
+    /// and optionally external scopes as <see cref="Activity"/> tags, independently of any log level filtering.
+    /// <see cref="Log{TState}"/> owns the log side and produces a log record only; the trace context of that record is
+    /// attached by the logging pipeline itself. The single exception is <see cref="Exception"/> recording, which is
+    /// reported to the current span through <see cref="Activity.AddException"/> so that failures never stay invisible
+    /// in traces — see <see cref="EventObservabilityOptions.RecordExceptionsOnSpan"/>.
+    /// </remarks>
     public sealed class EventObservabilityBridge : ILogger, ISupportExternalScope
     {
         private readonly ILogger _inner;
-        private readonly ICallContextProvider? _callContextProvider;
+        private readonly IAmbientContextProvider? _ambientContextProvider;
         private readonly EventObservabilityOptions _options;
         private IExternalScopeProvider? _scopeProvider;
 
         public EventObservabilityBridge(
             ILogger inner,
-            ICallContextProvider? callContextProvider = null,
+            IAmbientContextProvider? ambientContextProvider = null,
             EventObservabilityOptions? options = null)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
-            _callContextProvider = callContextProvider;
+            _ambientContextProvider = ambientContextProvider;
             _options = options ?? new EventObservabilityOptions();
         }
 
@@ -47,12 +57,28 @@ namespace ActDim.Practix.Observability
 
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull
         {
-            if (state != null)
+            Activity? createdActivity = null;
+
+            if (Activity.Current == null && _options.AutoCreateActivityOnScope)
             {
-                EnrichActivityFromState(state);
+                var sourceName = ResolveActivitySourceName();
+                if (!string.IsNullOrWhiteSpace(sourceName))
+                {
+                    var source = ActivitySourceRegistry.GetOrAdd(sourceName);
+                    createdActivity = source.StartActivity(ResolveOperationName(state));
+                }
             }
 
-            return _inner.BeginScope(state);
+            EnrichSpanFromScope(state, spanWasCreated: createdActivity != null);
+
+            var innerScope = _inner.BeginScope(state);
+
+            if (createdActivity != null)
+            {
+                return new ScopeDisposable(createdActivity, innerScope);
+            }
+
+            return innerScope;
         }
 
         public void Log<TState>(
@@ -62,195 +88,170 @@ namespace ActDim.Practix.Observability
             Exception? exception,
             Func<TState, Exception?, string> formatter)
         {
-            if (IsEnabled(logLevel))
+            // A log call produces a log record. The span is owned by BeginScope and is deliberately left untouched here,
+            // so that trace content never depends on log level filtering. Failures are the only exception to that rule.
+            if (exception != null && _options.RecordExceptionsOnSpan)
             {
-                EnrichActivityFromLogCall(eventId, state, exception, formatter);
+                var activity = Activity.Current;
+                if (activity != null)
+                {
+                    SpanExceptionRecorder.TryRecordOnce(activity, exception);
+                }
             }
 
             _inner.Log(logLevel, eventId, state, exception, formatter);
         }
 
-        private static void EnrichActivityFromState(object state)
+        private string ResolveActivitySourceName()
         {
-            var activity = Activity.Current;
-
-            if (state is LogEvent logEvent)
+            if (_ambientContextProvider?.Get()?.Properties.TryGetValue(ObservabilityContextPropertyNames.ActivitySourceName, out var customVal) == true
+                && customVal is string customName && !string.IsNullOrWhiteSpace(customName))
             {
-                var name = string.IsNullOrEmpty(logEvent.Name) ? logEvent.GetType().Name : logEvent.Name;
-                var flat = EventObservabilityHelper.Flatten(logEvent);
-                foreach (var kv in logEvent.ActivityTags)
-                {
-                    flat[EventObservabilityHelper.ToOtelName(kv.Key)] = kv.Value;
-                }
-
-                if (activity != null)
-                {
-                    foreach (var kv in flat)
-                    {
-                        activity.SetTag(kv.Key, kv.Value);
-                    }
-                }
-                return;
+                return customName;
             }
 
-            if (EventObservabilityHelper.IsSimple(state))
-            {
-                return;
-            }
-
-            var flatScope = EventObservabilityHelper.Flatten(state);
-            if (activity != null && flatScope.Count > 0)
-            {
-                foreach (var kv in flatScope)
-                {
-                    activity.SetTag(kv.Key, kv.Value);
-                }
-            }
+            return _options.DefaultActivitySourceName;
         }
 
-        private void EnrichActivityFromLogCall<TState>(
-            EventId eventId,
-            TState state,
-            Exception? exception,
-            Func<TState, Exception?, string>? formatter)
+        /// <summary>
+        /// Derives a low-cardinality span name from the scope state. The formatted state is never used:
+        /// span names identify an operation and must not carry per-call values.
+        /// </summary>
+        private static string ResolveOperationName<TState>(TState state)
+        {
+            if (state is LogEvent logEvent && !string.IsNullOrWhiteSpace(logEvent.Name))
+            {
+                return logEvent.Name;
+            }
+
+            if (state is IEnumerable<KeyValuePair<string, object>> values)
+            {
+                foreach (var value in values)
+                {
+                    if (string.Equals(value.Key, "{OriginalFormat}", StringComparison.Ordinal))
+                    {
+                        var template = value.Value?.ToString();
+                        if (!string.IsNullOrWhiteSpace(template))
+                        {
+                            return template;
+                        }
+                    }
+                }
+            }
+
+            if (state is string text && !string.IsNullOrWhiteSpace(text))
+            {
+                return text;
+            }
+
+            if (state != null)
+            {
+                var type = state.GetType();
+                if (!type.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false))
+                {
+                    return type.Name;
+                }
+            }
+
+            return "Scope";
+        }
+
+        /// <summary>
+        /// Writes explicitly exported telemetry properties, external scopes (if enabled) and the scope state onto the current span.
+        /// External scopes are collected only for a span started here, since scopes opened earlier had no span to write to.
+        /// </summary>
+        private void EnrichSpanFromScope(object? state, bool spanWasCreated)
         {
             var activity = Activity.Current;
-
-            string eventName = !string.IsNullOrEmpty(eventId.Name)
-                ? eventId.Name
-                : (eventId.Id != 0 ? $"Event_{eventId.Id}" : "LogMessage");
-
-            var tags = new Dictionary<string, object>();
-
-            if (eventId.Id != 0)
+            if (activity == null)
             {
-                tags["event.id"] = eventId.Id;
+                return;
             }
 
-            // Explicitly record formatted log message
-            if (formatter != null && state != null)
+            var ambientProperties = _ambientContextProvider?.Get()?.Properties;
+            var includeExternalScopes = ResolveFlag(ambientProperties, ObservabilityContextPropertyNames.IncludeExternalScopes, _options.IncludeExternalScopes);
+
+            var spanTags = new TelemetryTagCollector(_options.TagCollisions);
+
+            if (ambientProperties != null
+                && ambientProperties.TryGetValue(ObservabilityContextPropertyNames.ExportedKeys, out var rawKeys)
+                && rawKeys is ImmutableHashSet<string> exportedKeys)
             {
-                try
+                foreach (var key in exportedKeys)
                 {
-                    var formattedMessage = formatter(state, exception);
-                    if (!string.IsNullOrEmpty(formattedMessage))
+                    if (ambientProperties.TryGetValue(key, out var val))
                     {
-                        tags["message"] = formattedMessage;
+                        spanTags.Write(EventObservabilityHelper.ToOtelName(key), val);
                     }
                 }
-                catch
-                {
-                    // Ignore formatting errors during telemetry enrichment
-                }
             }
 
-            // Exception details
-            if (exception != null)
+            if (spanWasCreated && includeExternalScopes)
             {
-                tags["exception.type"] = exception.GetType().FullName ?? exception.GetType().Name;
-                tags["exception.message"] = exception.Message;
-                tags["exception.stacktrace"] = exception.ToString();
-            }
-
-            var callContextData = _callContextProvider?.Get()?.Data;
-
-            // Resolve dynamic suppression flags from CallContext or fallback to options
-            bool includeCallContext = _options.IncludeCallContext;
-            if (callContextData != null && callContextData.TryGetValue(CallContextPropertyNames.IncludeCallContext, out var incCc) && incCc is bool incCcBool)
-            {
-                includeCallContext = incCcBool;
-            }
-
-            bool includeExternalScopes = _options.IncludeExternalScopes;
-            if (callContextData != null && callContextData.TryGetValue(CallContextPropertyNames.IncludeExternalScopes, out var incExt) && incExt is bool incExtBool)
-            {
-                includeExternalScopes = incExtBool;
-            }
-
-            // 1. Ambient properties from CallContextProvider (if enabled)
-            if (includeCallContext && callContextData != null)
-            {
-                foreach (var kv in callContextData)
-                {
-                    // Skip internal control flags from being exported as telemetry tags
-                    if (kv.Key.StartsWith("__Practix_", StringComparison.Ordinal))
-                    {
-                        continue;
-                    }
-
-                    var otelKey = EventObservabilityHelper.ToOtelName(kv.Key);
-                    tags[otelKey] = kv.Value;
-                }
-            }
-
-            // 2. Active external scopes from IExternalScopeProvider (if enabled)
-            if (includeExternalScopes)
-            {
-                _scopeProvider?.ForEachScope((activeScope, _) =>
+                _scopeProvider?.ForEachScope((activeScope, collector) =>
                 {
                     if (activeScope != null && !EventObservabilityHelper.IsSimple(activeScope))
                     {
-                        var flatScope = EventObservabilityHelper.Flatten(activeScope);
-                        foreach (var kv in flatScope)
-                        {
-                            tags[kv.Key] = kv.Value;
-                        }
+                        collector.WriteRange(EventObservabilityHelper.FlattenPairs(activeScope));
                     }
-                }, (object?)null);
+                }, spanTags);
             }
 
-            // 3. Log call state (LogEvent / FormattedLogValues / DTO)
             if (state is LogEvent logEvent)
             {
-                eventName = string.IsNullOrEmpty(logEvent.Name) ? logEvent.GetType().Name : logEvent.Name;
-                var flatEvt = EventObservabilityHelper.Flatten(logEvent);
-                foreach (var kv in flatEvt)
-                {
-                    tags[kv.Key] = kv.Value;
-                }
+                spanTags.WriteRange(EventObservabilityHelper.FlattenPairs(logEvent));
                 foreach (var kv in logEvent.ActivityTags)
                 {
-                    tags[EventObservabilityHelper.ToOtelName(kv.Key)] = kv.Value;
-                }
-            }
-            else if (state is IEnumerable<KeyValuePair<string, object>> kvList)
-            {
-                foreach (var kv in kvList)
-                {
-                    if (string.Equals(kv.Key, "{OriginalFormat}", StringComparison.Ordinal))
-                    {
-                        continue;
-                    }
-
-                    var otelKey = EventObservabilityHelper.ToOtelName(kv.Key);
-                    var value = kv.Value;
-
-                    if (value == null || EventObservabilityHelper.IsSimple(value))
-                    {
-                        tags[otelKey] = value!;
-                    }
-                    else
-                    {
-                        var flatObj = EventObservabilityHelper.Flatten(value, otelKey);
-                        foreach (var fkv in flatObj)
-                        {
-                            tags[fkv.Key] = fkv.Value;
-                        }
-                    }
+                    spanTags.Write(EventObservabilityHelper.ToOtelName(kv.Key), kv.Value);
                 }
             }
             else if (state != null && !EventObservabilityHelper.IsSimple(state))
             {
-                var flatState = EventObservabilityHelper.Flatten(state);
-                foreach (var kv in flatState)
-                {
-                    tags[kv.Key] = kv.Value;
-                }
+                spanTags.WriteRange(EventObservabilityHelper.FlattenPairs(state));
             }
 
-            if (activity != null && (tags.Count > 0 || !string.IsNullOrEmpty(eventName)))
+            ApplySpanTags(activity, spanTags);
+        }
+
+        private static bool ResolveFlag(IReadOnlyDictionary<string, object>? ambientProperties, string key, bool fallback)
+        {
+            if (ambientProperties != null && ambientProperties.TryGetValue(key, out var raw) && raw is bool value)
             {
-                activity.AddEvent(new ActivityEvent(eventName, tags: [.. tags.Select(kv => new KeyValuePair<string, object?>(kv.Key, kv.Value))]));
+                return value;
+            }
+
+            return fallback;
+        }
+
+        private static void ApplySpanTags(Activity activity, TelemetryTagCollector spanTags)
+        {
+            foreach (var kv in spanTags.Tags)
+            {
+                activity.SetTag(kv.Key, kv.Value);
+            }
+
+            if (spanTags.CollisionCount > 0)
+            {
+                var previous = activity.GetTagItem(ObservabilityTagNames.Collisions) as int? ?? 0;
+                activity.SetTag(ObservabilityTagNames.Collisions, previous + spanTags.CollisionCount);
+            }
+        }
+
+        private sealed class ScopeDisposable : IDisposable
+        {
+            private readonly IDisposable? _activityScope;
+            private readonly IDisposable? _innerScope;
+
+            public ScopeDisposable(IDisposable? activityScope, IDisposable? innerScope)
+            {
+                _activityScope = activityScope;
+                _innerScope = innerScope;
+            }
+
+            public void Dispose()
+            {
+                _innerScope?.Dispose();
+                _activityScope?.Dispose();
             }
         }
     }

@@ -11,23 +11,23 @@ namespace ActDim.Practix.Observability
 {
     /// <summary>
     /// Decorator over <see cref="ILoggerFactory"/> that decorates registered <see cref="ILoggerProvider"/> instances 
-    /// to support per-provider selective suppression based on ProviderAliasAttribute and <see cref="CallContextPropertyNames"/>.
+    /// to support per-provider selective suppression based on ProviderAliasAttribute and <see cref="ObservabilityContextPropertyNames"/>.
     /// </summary>
     public sealed class EventObservabilityLoggerFactory : ILoggerFactory, ISupportExternalScope
     {
         private readonly ILoggerFactory _inner;
-        private readonly ICallContextProvider? _callContextProvider;
+        private readonly IAmbientContextProvider? _ambientContextProvider;
         private readonly EventObservabilityOptions _options;
         private IExternalScopeProvider? _scopeProvider;
 
         public EventObservabilityLoggerFactory(
             ILoggerFactory inner,
-            ICallContextProvider? callContextProvider = null,
+            IAmbientContextProvider? ambientContextProvider = null,
             IExternalScopeProvider? scopeProvider = null,
             EventObservabilityOptions? options = null)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
-            _callContextProvider = callContextProvider;
+            _ambientContextProvider = ambientContextProvider;
             _scopeProvider = scopeProvider;
             _options = options ?? new EventObservabilityOptions();
 
@@ -49,7 +49,7 @@ namespace ActDim.Practix.Observability
         public ILogger CreateLogger(string categoryName)
         {
             var innerLogger = _inner.CreateLogger(categoryName);
-            var logger = new EventObservabilityBridge(innerLogger, _callContextProvider, _options);
+            var logger = new EventObservabilityBridge(innerLogger, _ambientContextProvider, _options);
             if (_scopeProvider != null)
             {
                 logger.SetScopeProvider(_scopeProvider);
@@ -66,7 +66,7 @@ namespace ActDim.Practix.Observability
             }
 
             var alias = ResolveProviderAlias(provider, _options);
-            var decoratedProvider = new EventObservabilityProviderDecorator(provider, alias, _callContextProvider, _scopeProvider);
+            var decoratedProvider = new EventObservabilityProviderDecorator(provider, alias, _ambientContextProvider, _scopeProvider);
 
             if (_scopeProvider != null && decoratedProvider is ISupportExternalScope support)
             {
@@ -119,25 +119,25 @@ namespace ActDim.Practix.Observability
     {
         private readonly ILoggerProvider _inner;
         private readonly string _alias;
-        private readonly ICallContextProvider? _callContextProvider;
+        private readonly IAmbientContextProvider? _ambientContextProvider;
         private IExternalScopeProvider? _scopeProvider;
 
         public EventObservabilityProviderDecorator(
             ILoggerProvider inner,
             string alias,
-            ICallContextProvider? callContextProvider,
+            IAmbientContextProvider? ambientContextProvider,
             IExternalScopeProvider? scopeProvider)
         {
             _inner = inner;
             _alias = alias;
-            _callContextProvider = callContextProvider;
+            _ambientContextProvider = ambientContextProvider;
             _scopeProvider = scopeProvider;
         }
 
         public ILogger CreateLogger(string categoryName)
         {
             var innerLogger = _inner.CreateLogger(categoryName);
-            return new EventObservabilityProviderLogger(innerLogger, _alias, _callContextProvider);
+            return new EventObservabilityProviderLogger(innerLogger, _alias, _ambientContextProvider);
         }
 
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)
@@ -159,13 +159,13 @@ namespace ActDim.Practix.Observability
     {
         private readonly ILogger _inner;
         private readonly string _alias;
-        private readonly ICallContextProvider? _callContextProvider;
+        private readonly IAmbientContextProvider? _ambientContextProvider;
 
-        public EventObservabilityProviderLogger(ILogger inner, string alias, ICallContextProvider? callContextProvider)
+        public EventObservabilityProviderLogger(ILogger inner, string alias, IAmbientContextProvider? ambientContextProvider)
         {
             _inner = inner;
             _alias = alias;
-            _callContextProvider = callContextProvider;
+            _ambientContextProvider = ambientContextProvider;
         }
 
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull
@@ -180,18 +180,18 @@ namespace ActDim.Practix.Observability
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            var callContextData = _callContextProvider?.Get()?.Data;
-            if (callContextData != null)
+            var ambientProperties = _ambientContextProvider?.Get()?.Properties;
+            if (ambientProperties != null)
             {
                 // Check SuppressConsole flag
-                bool suppressConsole = callContextData.TryGetValue(CallContextPropertyNames.SuppressConsole, out var suppCon) && suppCon is bool suppConBool && suppConBool;
+                bool suppressConsole = ambientProperties.TryGetValue(ObservabilityContextPropertyNames.SuppressConsole, out var suppCon) && suppCon is bool suppConBool && suppConBool;
                 if (suppressConsole && string.Equals(_alias, "Console", StringComparison.OrdinalIgnoreCase))
                 {
                     return;
                 }
 
                 // Check SuppressedProviders list
-                if (callContextData.TryGetValue(CallContextPropertyNames.SuppressedProviders, out var suppProvs) && suppProvs is HashSet<string> suppressedSet)
+                if (ambientProperties.TryGetValue(ObservabilityContextPropertyNames.SuppressedProviders, out var suppProvs) && suppProvs is HashSet<string> suppressedSet)
                 {
                     if (suppressedSet.Contains(_alias) || suppressedSet.Contains(_inner.GetType().Name))
                     {

@@ -1,3 +1,4 @@
+#nullable enable
 using ActDim.Practix.Abstractions.Context;
 using ActDim.Practix.Disposal;
 using Ardalis.GuardClauses;
@@ -8,29 +9,29 @@ using System.Threading;
 namespace ActDim.Practix.Context
 {
     /// <inheritdoc />
-    public sealed class CallContextProvider : ICallContextProvider
+    public sealed class AmbientContextProvider : IAmbientContextProvider
     {
         private readonly AsyncLocal<ImmutableDictionary<string, object>> _current = new();
 
-        private readonly CallContext _facade;
+        private readonly AmbientContext _facade;
 
-        private CallContextProvider()
+        private AmbientContextProvider()
         {
-            _facade = new CallContext(this);
+            _facade = new AmbientContext(this);
         }
 
-        private static readonly Lazy<CallContextProvider> InternalInstance =
-            new(() => new CallContextProvider());
+        private static readonly Lazy<AmbientContextProvider> InternalInstance =
+            new(() => new AmbientContextProvider());
 
-        public static CallContextProvider Instance => InternalInstance.Value;
+        public static AmbientContextProvider Instance => InternalInstance.Value;
 
         /// <inheritdoc />
-        public ICallContext Get()
+        public IAmbientContext Get()
         {
             return _facade;
         }
 
-        internal ImmutableDictionary<string, object> Data
+        internal ImmutableDictionary<string, object> Properties
         {
             get
             {
@@ -38,7 +39,7 @@ namespace ActDim.Practix.Context
             }
         }
 
-        internal IDisposable Push(string name, object value)
+        internal IDisposable PushProperty(string name, object value)
         {
             Guard.Against.NullOrEmpty(name, nameof(name));
 
