@@ -12,6 +12,11 @@ namespace ActDim.Practix.Caching
         private readonly IDistributedCache _cache;
         private readonly IBinarySerializer _serializer;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DistributedCachingProxy"/> class with the specified distributed cache and binary serializer.
+        /// </summary>
+        /// <param name="cache">The distributed cache instance.</param>
+        /// <param name="serializer">The binary serializer for caching payloads.</param>
         public DistributedCachingProxy(IDistributedCache cache, IBinarySerializer serializer)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));

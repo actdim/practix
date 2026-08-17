@@ -6,8 +6,12 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace ActDim.Practix.Common.Json
 {
+    /// <summary>
+    /// Extends <see cref="DefaultJsonTypeInfoResolver"/> to apply custom <see cref="JsonNamingAttribute"/> policies to serialized type properties.
+    /// </summary>
     public class NamingPolicyResolver : DefaultJsonTypeInfoResolver
     {
+        /// <inheritdoc />
         public override JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options)
         {
             var info = base.GetTypeInfo(type, options);
@@ -15,21 +19,28 @@ namespace ActDim.Practix.Common.Json
             return info;
         }
 
+        /// <summary>
+        /// Applies the naming policy defined by <see cref="JsonNamingAttribute"/> to the specified <paramref name="info"/>.
+        /// </summary>
+        /// <param name="info">The target JSON type information metadata.</param>
         public static void Apply(JsonTypeInfo info)
         {
             var attr = info.Type.GetCustomAttribute<JsonNamingAttribute>();
             if (attr == null)
+            {
                 return;
+            }
 
             foreach (var prop in info.Properties)
             {
-                var hasExplicitName =
-                    prop.AttributeProvider?
-                        .GetCustomAttributes(typeof(JsonPropertyNameAttribute), false)
-                        .Length > 0;
+                var hasExplicitName = prop.AttributeProvider?
+                    .GetCustomAttributes(typeof(JsonPropertyNameAttribute), false)
+                    .Length > 0;
 
                 if (hasExplicitName)
+                {
                     continue;
+                }
 
                 if (prop.AttributeProvider is MemberInfo member)
                 {

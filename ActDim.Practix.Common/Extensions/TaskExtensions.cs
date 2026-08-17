@@ -90,6 +90,9 @@ namespace ActDim.Practix.Extensions
         /// <summary>
         /// Converts an iterator sequence of tasks into a single task that evaluates the sequence asynchronously step-by-step.
         /// </summary>
+        /// <remarks>
+        /// Iterator task execution pattern based on: http://www.codeproject.com/Articles/504197/Await-Tasks-in-Csharp-using-Iterators
+        /// </remarks>
         /// <typeparam name="TResult">The expected final result type.</typeparam>
         /// <param name="tasks">The sequence of tasks.</param>
         /// <returns>A task representing the completed iterator sequence.</returns>
@@ -120,6 +123,7 @@ namespace ActDim.Practix.Extensions
                 }
                 else if ((status = completedTask.Status) == TaskStatus.Canceled)
                 {
+                    // Check status of previous nested task, and stop if Canceled or Faulted.
                     taskEnumerator.Dispose();
                     completionSource.SetCanceled();
                     return;
@@ -140,6 +144,7 @@ namespace ActDim.Practix.Extensions
             bool haveMore;
             try
             {
+                // Find the next Task in the iterator; handle cancellation and other exceptions.
                 haveMore = taskEnumerator.MoveNext();
             }
             catch (OperationCanceledException)
@@ -155,6 +160,7 @@ namespace ActDim.Practix.Extensions
 
             if (!haveMore)
             {
+                // No more tasks; set the result (if any) from the last completed task.
                 if (typeof(TResult) == typeof(VoidResult))
                 {
                     completionSource.SetResult(default(TResult));
@@ -174,6 +180,7 @@ namespace ActDim.Practix.Extensions
             }
             else
             {
+                // When the nested task completes, continue by performing this function again.
                 taskEnumerator.Current.ContinueWith(
                     nextTask => ToTaskDoOneStep(taskEnumerator, taskScheduler, completionSource, nextTask),
                     taskScheduler);
@@ -217,22 +224,31 @@ namespace ActDim.Practix.Extensions
             return TimeoutAfter<VoidTypeStruct>(task, millisecondsTimeout);
         }
 
+        /// <summary>
+        /// Private helper for task timeout execution.
+        /// </summary>
+        /// <remarks>
+        /// TimeoutAfter implementation based on: http://blogs.msdn.com/b/pfxteam/archive/2011/11/10/10235834.aspx
+        /// </remarks>
         private static Task<TResult> TimeoutAfter<TResult>(Task task, int millisecondsTimeout)
         {
             var tcs = new TaskCompletionSource<TResult>();
 
+            // Short-circuit #1: infinite timeout or task already completed
             if (task.IsCompleted || (millisecondsTimeout == Timeout.Infinite))
             {
                 MarshalTaskResults(task, tcs);
                 return tcs.Task;
             }
 
+            // Short-circuit #2: zero timeout
             if (millisecondsTimeout == 0)
             {
                 tcs.SetException(new TimeoutException());
                 return tcs.Task;
             }
 
+            // Set up a timer to complete after the specified timeout period
             var timer = new Timer(state =>
             {
                 var taskCompletionSource = (TaskCompletionSource<TResult>)state;

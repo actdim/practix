@@ -5,6 +5,7 @@ _Solution-level issues board. Project-specific issues live in their respective s
 ## Active
 
 ## Backlog
+- `feat--dynamic-array-json-converter`: Evaluate DynamicArray wrapper for JSON array deserialization in ObjectJsonConverter
 - `debt--enumerable-dead-code`: Remove dead/obsolete code from EnumerableExtensions
 - `debt--factorydict-replace-rwlock`: Replace ReaderWriterLockSlim in FactoryDictionary with ConcurrentDictionary
 - `debt--stringsplit-regex-cache`: Cache compiled regex in StringExtensions.Split

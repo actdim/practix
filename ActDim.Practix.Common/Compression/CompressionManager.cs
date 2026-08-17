@@ -48,6 +48,9 @@ namespace ActDim.Practix.Compression
     [Obfuscation(Exclude = true)]
     public class CompressionManager : ICompressionManager
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CompressionManager"/> class.
+        /// </summary>
         public CompressionManager()
         {
         }

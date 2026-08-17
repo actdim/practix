@@ -10,6 +10,10 @@ namespace ActDim.Practix.Caching
     {
         private readonly IMemoryCache _cache;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MemoryCachingProxy"/> class with the specified memory cache.
+        /// </summary>
+        /// <param name="cache">The memory cache instance.</param>
         public MemoryCachingProxy(IMemoryCache cache)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));

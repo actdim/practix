@@ -8,6 +8,9 @@ namespace ActDim.Practix.Config
     /// <inheritdoc />
     public class JsonConfigurationManager : IJsonConfigurationManager
     {
+        /// <summary>
+        /// Default JSON Schema reference URI.
+        /// </summary>
         public const string DefaultSchema = "http://json-schema.org/latest/json-schema-core.html#rfc.section.9.1";
 
         private const int BufferSize = 4 * 1024;
@@ -17,6 +20,10 @@ namespace ActDim.Practix.Config
 
         private readonly IJsonSerializer _serializer;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonConfigurationManager"/> class with the specified serializer.
+        /// </summary>
+        /// <param name="serializer">The JSON serializer implementation.</param>
         public JsonConfigurationManager(IJsonSerializer serializer)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));

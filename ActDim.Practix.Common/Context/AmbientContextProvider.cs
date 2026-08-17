@@ -12,7 +12,6 @@ namespace ActDim.Practix.Context
     public sealed class AmbientContextProvider : IAmbientContextProvider
     {
         private readonly AsyncLocal<ImmutableDictionary<string, object>> _current = new();
-
         private readonly AmbientContext _facade;
 
         private AmbientContextProvider()
@@ -20,9 +19,11 @@ namespace ActDim.Practix.Context
             _facade = new AmbientContext(this);
         }
 
-        private static readonly Lazy<AmbientContextProvider> InternalInstance =
-            new(() => new AmbientContextProvider());
+        private static readonly Lazy<AmbientContextProvider> InternalInstance = new(() => new AmbientContextProvider());
 
+        /// <summary>
+        /// Gets the singleton instance of <see cref="AmbientContextProvider"/>.
+        /// </summary>
         public static AmbientContextProvider Instance => InternalInstance.Value;
 
         /// <inheritdoc />

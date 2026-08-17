@@ -16,6 +16,7 @@ namespace ActDim.Practix.Extensions
 
         static TypeExtensions()
         {
+            // Primitive/simple types: Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32, Int64, UInt64, IntPtr, UIntPtr, Char, Double, Single, Decimal, DateTime, DateTimeOffset, TimeSpan, Guid, string, Enum
             var types = new[]
             {
                 typeof(Enum),

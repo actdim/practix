@@ -1,23 +1,3 @@
-#region License
-
-/*
- * Copyright 2002-2010 Paul Borodaev.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-#endregion
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -27,383 +7,354 @@ using System.Reflection;
 
 namespace ActDim.Practix.Collections.Generic.Specialized
 {
-	public static class StaticStringDictionary
-	{
+    /// <summary>
+    /// Factory for creating compiled expression tree switch dictionaries over static string keys.
+    /// </summary>
+    public static class StaticStringDictionary
+    {
+        /// <summary>
+        /// Creates a <see cref="StaticStringDictionary{TVal}"/> compiled switch mapping over the provided key-value dictionary.
+        /// </summary>
+        /// <typeparam name="TVal">The value type.</typeparam>
+        /// <param name="dict">The source key-value dictionary.</param>
+        /// <param name="fallback">Fallback delegate called on missing keys.</param>
+        /// <returns>A new <see cref="StaticStringDictionary{TVal}"/> instance.</returns>
+        public static StaticStringDictionary<TVal> Create<TVal>(IEnumerable<KeyValuePair<string, TVal>> dict, Func<string, TVal> fallback)
+        {
+            return new StaticStringDictionary<TVal>(dict, fallback);
+        }
+    }
 
-		public static StaticStringDictionary<Type> Create<Type>(IEnumerable<KeyValuePair<string, Type>> dict, Func<string, Type> fallback)
-		{
-			return new StaticStringDictionary<Type>(dict, fallback);
-		}
-	}
+    /// <summary>
+    /// A high-performance read-only dictionary compiled as expression tree char-matching switches over static string keys.
+    /// </summary>
+    /// <typeparam name="TVal">The value type.</typeparam>
+    public class StaticStringDictionary<TVal> : IDictionary<string, TVal>
+    {
+        private readonly Func<string, TVal> _fallback;
+        private readonly Func<string, TVal> _switchFunction;
 
-	public class StaticStringDictionary<Type> : IDictionary<string, Type>
-	{
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StaticStringDictionary{TVal}"/> class.
+        /// </summary>
+        /// <param name="dict">The key-value pairs.</param>
+        /// <param name="fallback">Fallback delegate for missing keys.</param>
+        public StaticStringDictionary(IEnumerable<KeyValuePair<string, TVal>> dict, Func<string, TVal> fallback)
+        {
+            _fallback = fallback;
+            _switchFunction = CreateSwitch(dict);
+        }
 
-		private readonly Func<string, Type> _fallback;
-		private readonly Func<string, Type> _switchFunction;
+        private struct SwitchCase
+        {
+            public readonly string Key;
+            public readonly TVal Value;
 
-		public StaticStringDictionary(IEnumerable<KeyValuePair<string, Type>> dict, Func<string, Type> fallback)
-		{
-			this._fallback = fallback;
-			this._switchFunction = CreateSwitch(dict);
-		}
+            public SwitchCase(string key, TVal value)
+            {
+                Key = key;
+                Value = value;
+            }
 
-		private struct SwitchCase
-		{
-			public readonly string Key;
-			public readonly Type Value;
-			public SwitchCase(string key, Type value)
-			{
-				Key = key;
-				Value = value;
-			}
-			public override string ToString()
-			{
-				return Key + " " + Value.ToString();
-			}
-		}
+            public override string ToString()
+            {
+                return Key + " " + Value.ToString();
+            }
+        }
 
-		private Func<string, Type> CreateSwitch(IEnumerable<KeyValuePair<string, Type>> dict)
-		{
-			var cases = dict.Select(pair => new SwitchCase(pair.Key, pair.Value)).ToList();
-			ParameterExpression keyParameter = Expression.Parameter(typeof(string), "key");
-			var expr = Expression.Lambda<Func<string, Type>>(
-				SwitchOnLength(keyParameter, cases.OrderBy(switchCase => switchCase.Key.Length).ToArray(), 0, cases.Count - 1),
-				new ParameterExpression[] { keyParameter }
-			);
-			var del = expr.Compile();
-			return del;
-		}
+        private Func<string, TVal> CreateSwitch(IEnumerable<KeyValuePair<string, TVal>> dict)
+        {
+            var cases = dict.Select(pair => new SwitchCase(pair.Key, pair.Value)).ToList();
+            ParameterExpression keyParameter = Expression.Parameter(typeof(string), "key");
+            var expr = Expression.Lambda<Func<string, TVal>>(
+                SwitchOnLength(keyParameter, cases.OrderBy(switchCase => switchCase.Key.Length).ToArray(), 0, cases.Count - 1),
+                new ParameterExpression[] { keyParameter }
+            );
+            var del = expr.Compile();
+            return del;
+        }
 
-		private Expression SwitchOnLength(ParameterExpression keyParameter, SwitchCase[] switchCases, int lower, int upper)
-		{
-			if (switchCases[lower].Key.Length == switchCases[upper].Key.Length)
-			{
-				return SwitchOnChar(keyParameter, switchCases.Skip(lower).Take(upper - lower + 1).ToArray(), 0, 0, upper - lower);
-			}
-			int middle = GetIndexOfFirstDifferentCaseFromUp(switchCases, lower, MidPoint(lower, upper), upper, switchCase => switchCase.Key.Length);
-			if (middle == -1)
-			{
-				throw new InvalidOperationException();
-			}
-			return Expression.Condition(
-				Expression.LessThan(Expression.Call(keyParameter, stringLength), Expression.Constant(switchCases[middle + 1].Key.Length)),
-				SwitchOnLength(keyParameter, switchCases, lower, middle),
-				SwitchOnLength(keyParameter, switchCases, middle + 1, upper));
-		}
+        private Expression SwitchOnLength(ParameterExpression keyParameter, SwitchCase[] switchCases, int lower, int upper)
+        {
+            if (switchCases[lower].Key.Length == switchCases[upper].Key.Length)
+            {
+                return SwitchOnChar(keyParameter, switchCases.Skip(lower).Take(upper - lower + 1).ToArray(), 0, 0, upper - lower);
+            }
 
-		private Expression SwitchOnChar(ParameterExpression keyParameter, SwitchCase[] switchCases, int index, int lower, int upper)
-		{
-			if (index == switchCases[upper].Key.Length)
-			{
-				return null;
-			}
+            int middle = GetIndexOfFirstDifferentCaseFromUp(switchCases, lower, MidPoint(lower, upper), upper, switchCase => switchCase.Key.Length);
+            if (middle == -1)
+            {
+                throw new InvalidOperationException();
+            }
 
-			if (lower == upper)
-			{
-				return Expression.Condition(
-					Expression.Call(stringEquals, keyParameter, Expression.Constant(switchCases[lower].Key)),
-					Expression.Convert(Expression.Constant(switchCases[lower].Value), typeof(Type)),
-					Expression.Invoke(Expression.Constant(_fallback), keyParameter));
-			}
+            return Expression.Condition(
+                Expression.LessThan(Expression.Call(keyParameter, StringLength), Expression.Constant(switchCases[middle + 1].Key.Length)),
+                SwitchOnLength(keyParameter, switchCases, lower, middle),
+                SwitchOnLength(keyParameter, switchCases, middle + 1, upper));
+        }
 
-			switchCases = switchCases.Skip(lower).Take(upper - lower + 1)
-				.OrderBy(switchCase => switchCase.Key, StaticStringDictionaryComparer.For(index)).ToArray();
+        private Expression SwitchOnChar(ParameterExpression keyParameter, SwitchCase[] switchCases, int index, int lower, int upper)
+        {
+            if (index == switchCases[upper].Key.Length)
+            {
+                return null;
+            }
 
-			upper = upper - lower;
-			lower = 0;
+            if (lower == upper)
+            {
+                return Expression.Condition(
+                    Expression.Call(StringEquals, keyParameter, Expression.Constant(switchCases[lower].Key)),
+                    Expression.Convert(Expression.Constant(switchCases[lower].Value), typeof(TVal)),
+                    Expression.Invoke(Expression.Constant(_fallback), keyParameter));
+            }
 
-			int middle = MidPoint(lower, upper);
+            switchCases = switchCases.Skip(lower).Take(upper - lower + 1)
+                .OrderBy(switchCase => switchCase.Key, StaticStringDictionaryComparer.For(index)).ToArray();
 
-			if (switchCases[lower].Key[index] == switchCases[middle].Key[index])
-			{
-				var result = SwitchOnChar(keyParameter, switchCases, index + 1, lower, upper);
-				if (result != null)
-				{
-					return result;
-				}
-			}
+            upper = upper - lower;
+            lower = 0;
 
-			middle = GetIndexOfFirstDifferentCaseFromUp(switchCases, lower, middle, upper, switchCase => switchCase.Key[index]);
-			if (middle == -1)
-			{
-				return null;
-			}
+            int middle = MidPoint(lower, upper);
 
-			var trueBranch = SwitchOnChar(keyParameter, switchCases, index, lower, middle);
-			if (trueBranch == null)
-			{
-				return null;
-			}
+            if (switchCases[lower].Key[index] == switchCases[middle].Key[index])
+            {
+                var result = SwitchOnChar(keyParameter, switchCases, index + 1, lower, upper);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
 
-			var falseBranch = SwitchOnChar(keyParameter, switchCases, index, middle + 1, upper);
-			if (falseBranch == null)
-			{
-				return null;
-			}
+            middle = GetIndexOfFirstDifferentCaseFromUp(switchCases, lower, middle, upper, switchCase => switchCase.Key[index]);
+            if (middle == -1)
+            {
+                return null;
+            }
 
-			return Expression.Condition(
-				Expression.LessThan(Expression.Call(keyParameter, stringIndex, Expression.Constant(index)),
-					Expression.Constant(switchCases[middle + 1].Key[index])),
-					trueBranch,
-					falseBranch);
-		}
+            var trueBranch = SwitchOnChar(keyParameter, switchCases, index, lower, middle);
+            if (trueBranch == null)
+            {
+                return null;
+            }
 
-		private static int MidPoint(int lower, int upper)
-		{
-			return ((upper - lower + 1) / 2) + lower;
-		}
+            var falseBranch = SwitchOnChar(keyParameter, switchCases, index, middle + 1, upper);
+            if (falseBranch == null)
+            {
+                return null;
+            }
 
-		private static int GetIndexOfFirstDifferentCaseFromUp<T>(SwitchCase[] cases, int lower, int middle, int upper, Func<SwitchCase, T> selector)
-		{
-			T firstValue = selector(cases[middle]);
-			for (int i = middle - 1; i >= lower; --i)
-			{
-				if (!firstValue.Equals(selector(cases[i])))
-				{
-					return i;
-				}
-			}
-			for (int i = middle + 1; i <= upper; ++i)
-			{
-				if (!firstValue.Equals(selector(cases[i])))
-				{
-					return i - 1;
-				}
-			}
-			return -1;
-		}
+            return Expression.Condition(
+                Expression.LessThan(Expression.Call(keyParameter, StringIndex, Expression.Constant(index)),
+                    Expression.Constant(switchCases[middle + 1].Key[index])),
+                    trueBranch,
+                    falseBranch);
+        }
 
-		private static MethodInfo stringLength = typeof(string).GetMethod("get_Length");
-		private static MethodInfo stringIndex = typeof(string).GetMethod("get_Chars");
-		private static MethodInfo stringEquals = typeof(string).GetMethod("Equals", new[] { typeof(string), typeof(string) });
+        private static int MidPoint(int lower, int upper)
+        {
+            return ((upper - lower + 1) / 2) + lower;
+        }
 
-		public void Add(string key, Type value)
-		{
-			throw new InvalidOperationException();
-		}
+        private static int GetIndexOfFirstDifferentCaseFromUp<T>(SwitchCase[] cases, int lower, int middle, int upper, Func<SwitchCase, T> selector)
+        {
+            T firstValue = selector(cases[middle]);
+            for (int i = middle - 1; i >= lower; --i)
+            {
+                if (!firstValue.Equals(selector(cases[i])))
+                {
+                    return i;
+                }
+            }
 
-		public bool ContainsKey(string key)
-		{
-			throw new InvalidOperationException();
-		}
+            for (int i = middle + 1; i <= upper; ++i)
+            {
+                if (!firstValue.Equals(selector(cases[i])))
+                {
+                    return i - 1;
+                }
+            }
 
-		public ICollection<string> Keys
-		{
-			get { throw new InvalidOperationException(); }
-		}
+            return -1;
+        }
 
-		public bool Remove(string key)
-		{
-			throw new InvalidOperationException();
-		}
+        private static readonly MethodInfo StringLength = typeof(string).GetMethod("get_Length");
+        private static readonly MethodInfo StringIndex = typeof(string).GetMethod("get_Chars");
+        private static readonly MethodInfo StringEquals = typeof(string).GetMethod("Equals", new[] { typeof(string), typeof(string) });
 
-		public bool TryGetValue(string key, out Type value)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public void Add(string key, TVal value) => throw new InvalidOperationException();
 
-		public ICollection<Type> Values
-		{
-			get { throw new InvalidOperationException(); }
-		}
+        /// <inheritdoc />
+        public bool ContainsKey(string key) => throw new InvalidOperationException();
 
-		public Type this[string key]
-		{
-			get { return string.IsNullOrEmpty(key) ? _fallback(key) : _switchFunction(key); }
-			set { throw new InvalidOperationException(); }
-		}
+        /// <inheritdoc />
+        public ICollection<string> Keys => throw new InvalidOperationException();
 
-		public void Add(KeyValuePair<string, Type> item)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public bool Remove(string key) => throw new InvalidOperationException();
 
-		public void Clear()
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public bool TryGetValue(string key, out TVal value) => throw new InvalidOperationException();
 
-		public bool Contains(KeyValuePair<string, Type> item)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public ICollection<TVal> Values => throw new InvalidOperationException();
 
-		public void CopyTo(KeyValuePair<string, Type>[] array, int arrayIndex)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public TVal this[string key]
+        {
+            get => string.IsNullOrEmpty(key) ? _fallback(key) : _switchFunction(key);
+            set => throw new InvalidOperationException();
+        }
 
-		public int Count
-		{
-			get { throw new InvalidOperationException(); }
-		}
+        /// <inheritdoc />
+        public void Add(KeyValuePair<string, TVal> item) => throw new InvalidOperationException();
 
-		public bool IsReadOnly
-		{
-			get { return true; }
-		}
+        /// <inheritdoc />
+        public void Clear() => throw new InvalidOperationException();
 
-		public bool Remove(KeyValuePair<string, Type> item)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public bool Contains(KeyValuePair<string, TVal> item) => throw new InvalidOperationException();
 
-		public IEnumerator<KeyValuePair<string, Type>> GetEnumerator()
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public void CopyTo(KeyValuePair<string, TVal>[] array, int arrayIndex) => throw new InvalidOperationException();
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			throw new InvalidOperationException();
-		}
-	}
+        /// <inheritdoc />
+        public int Count => throw new InvalidOperationException();
 
-	internal class StaticStringDictionaryComparer : IComparer<string>
-	{
+        /// <inheritdoc />
+        public bool IsReadOnly => true;
 
-		private readonly int startIndex;
-		public StaticStringDictionaryComparer(int startIndex)
-		{
-			this.startIndex = startIndex;
-		}
+        /// <inheritdoc />
+        public bool Remove(KeyValuePair<string, TVal> item) => throw new InvalidOperationException();
 
-		private static Dictionary<int, IComparer<string>> comparers = new Dictionary<int, IComparer<string>>();
+        /// <inheritdoc />
+        public IEnumerator<KeyValuePair<string, TVal>> GetEnumerator() => throw new InvalidOperationException();
 
-		public static IComparer<string> For(int startIndex)
-		{
-			IComparer<string> comparer;
-			if (!comparers.TryGetValue(startIndex, out comparer))
-			{
-				comparer = new StaticStringDictionaryComparer(startIndex);
-				comparers.Add(startIndex, comparer);
-			}
-			return comparer;
-		}
+        /// <inheritdoc />
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
 
-		public int Compare(string x, string y)
-		{
+    internal class StaticStringDictionaryComparer : IComparer<string>
+    {
+        private readonly int _startIndex;
 
-			if (x.Length != y.Length)
-			{
-				throw new InvalidOperationException();
-			}
+        public StaticStringDictionaryComparer(int startIndex)
+        {
+            _startIndex = startIndex;
+        }
 
-			for (int i = startIndex; i < x.Length; i++)
-			{
-				if (x[i] > y[i])
-				{
-					return 1;
-				}
-				else if (x[i] < y[i])
-				{
-					return -1;
-				}
-			}
+        private static readonly Dictionary<int, IComparer<string>> Comparers = new();
 
-			return 0;
-		}
-	}
+        public static IComparer<string> For(int startIndex)
+        {
+            if (!Comparers.TryGetValue(startIndex, out var comparer))
+            {
+                comparer = new StaticStringDictionaryComparer(startIndex);
+                Comparers.Add(startIndex, comparer);
+            }
 
-	public static class DoubleStaticStringDictionary
-	{
+            return comparer;
+        }
 
-		public static DoubleStaticStringDictionary<Type> Create<Type>(IEnumerable<KeyValuePair<string, Type>> dict, Func<string, Type> fallback, Func<Type, string> reverseFallback)
-		{
-			return new DoubleStaticStringDictionary<Type>(dict, fallback, reverseFallback);
-		}
-	}
+        public int Compare(string x, string y)
+        {
+            if (x.Length != y.Length)
+            {
+                throw new InvalidOperationException();
+            }
 
-	public class DoubleStaticStringDictionary<Type> : StaticStringDictionary<Type>, IDictionary<Type, string>
-	{
+            for (int i = _startIndex; i < x.Length; i++)
+            {
+                if (x[i] > y[i])
+                {
+                    return 1;
+                }
 
-		private Func<Type, string> reverseFallback;
-		private IDictionary<Type, string> reverseDict;
+                if (x[i] < y[i])
+                {
+                    return -1;
+                }
+            }
 
-		public DoubleStaticStringDictionary(IEnumerable<KeyValuePair<string, Type>> dict, Func<string, Type> fallback, Func<Type, string> reverseFallback)
-			: base(dict, fallback)
-		{
+            return 0;
+        }
+    }
 
-			this.reverseFallback = reverseFallback;
+    /// <summary>
+    /// Factory for creating bi-directional compiled switch dictionaries mapping string keys to value types.
+    /// </summary>
+    public static class DoubleStaticStringDictionary
+    {
+        /// <summary>
+        /// Creates a new <see cref="DoubleStaticStringDictionary{TVal}"/> instance.
+        /// </summary>
+        public static DoubleStaticStringDictionary<TVal> Create<TVal>(IEnumerable<KeyValuePair<string, TVal>> dict, Func<string, TVal> fallback, Func<TVal, string> reverseFallback)
+        {
+            return new DoubleStaticStringDictionary<TVal>(dict, fallback, reverseFallback);
+        }
+    }
 
-			reverseDict = new Dictionary<Type, string>();
-			foreach (KeyValuePair<string, Type> pair in dict)
-			{
-				reverseDict.Add(pair.Value, pair.Key);
-			}
-		}
+    /// <summary>
+    /// Bi-directional compiled switch dictionary allowing high-performance string-to-value and value-to-string lookups.
+    /// </summary>
+    /// <typeparam name="TVal">The value type.</typeparam>
+    public class DoubleStaticStringDictionary<TVal> : StaticStringDictionary<TVal>, IDictionary<TVal, string>
+    {
+        private readonly Func<TVal, string> _reverseFallback;
+        private readonly IDictionary<TVal, string> _reverseDict;
 
-		public void Add(Type key, string value)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DoubleStaticStringDictionary{TVal}"/> class.
+        /// </summary>
+        public DoubleStaticStringDictionary(IEnumerable<KeyValuePair<string, TVal>> dict, Func<string, TVal> fallback, Func<TVal, string> reverseFallback)
+            : base(dict, fallback)
+        {
+            _reverseFallback = reverseFallback;
+            _reverseDict = new Dictionary<TVal, string>();
+            foreach (KeyValuePair<string, TVal> pair in dict)
+            {
+                _reverseDict.Add(pair.Value, pair.Key);
+            }
+        }
 
-		public bool ContainsKey(Type key)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public void Add(TVal key, string value) => throw new InvalidOperationException();
 
-		public new ICollection<Type> Keys
-		{
-			get { throw new InvalidOperationException(); }
-		}
+        /// <inheritdoc />
+        public bool ContainsKey(TVal key) => throw new InvalidOperationException();
 
-		public bool Remove(Type key)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public new ICollection<TVal> Keys => throw new InvalidOperationException();
 
-		public bool TryGetValue(Type key, out string value)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public bool Remove(TVal key) => throw new InvalidOperationException();
 
-		public new ICollection<string> Values
-		{
-			get { throw new InvalidOperationException(); }
-		}
+        /// <inheritdoc />
+        public bool TryGetValue(TVal key, out string value) => throw new InvalidOperationException();
 
-		public string this[Type key]
-		{
-			get
-			{
-				string result;
-				if (reverseDict.TryGetValue(key, out result))
-				{
-					return result;
-				}
-				else
-				{
-					return reverseFallback(key);
-				}
-			}
-			set { throw new InvalidOperationException(); }
-		}
+        /// <inheritdoc />
+        public new ICollection<string> Values => throw new InvalidOperationException();
 
-		public void Add(KeyValuePair<Type, string> item)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public string this[TVal key]
+        {
+            get => _reverseDict.TryGetValue(key, out var result) ? result : _reverseFallback(key);
+            set => throw new InvalidOperationException();
+        }
 
-		public bool Contains(KeyValuePair<Type, string> item)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public void Add(KeyValuePair<TVal, string> item) => throw new InvalidOperationException();
 
-		public void CopyTo(KeyValuePair<Type, string>[] array, int arrayIndex)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public bool Contains(KeyValuePair<TVal, string> item) => throw new InvalidOperationException();
 
-		public bool Remove(KeyValuePair<Type, string> item)
-		{
-			throw new InvalidOperationException();
-		}
+        /// <inheritdoc />
+        public void CopyTo(KeyValuePair<TVal, string>[] array, int arrayIndex) => throw new InvalidOperationException();
 
-		public new IEnumerator<KeyValuePair<Type, string>> GetEnumerator()
-		{
-			throw new InvalidOperationException();
-		}
-	}
+        /// <inheritdoc />
+        public bool Remove(KeyValuePair<TVal, string> item) => throw new InvalidOperationException();
+
+        /// <inheritdoc />
+        public new IEnumerator<KeyValuePair<TVal, string>> GetEnumerator() => throw new InvalidOperationException();
+    }
 }
