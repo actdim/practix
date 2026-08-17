@@ -76,8 +76,11 @@ string output1 = template.Interpolate(new
     OrderId = 1001, 
     Customer = "Acme Corp", 
     Status = "SHIPPED", 
-    Date = DateTime.UtcNow 
+    Date = new DateTime(2026, 8, 17) 
 });
+
+Console.WriteLine(output1);
+// Output: Order #1001 for Acme Corp is SHIPPED on 2026-08-17.
 
 // 2. Or compile explicitly into a reusable, high-performance delegate
 var formatter = Interpolator.Compile(template);
@@ -87,8 +90,11 @@ string output2 = formatter(new
     OrderId = 1002, 
     Customer = "Globex", 
     Status = "PENDING", 
-    Date = DateTime.UtcNow 
+    Date = new DateTime(2026, 8, 18) 
 });
+
+Console.WriteLine(output2);
+// Output: Order #1002 for Globex is PENDING on 2026-08-18.
 ```
 
 ### 4. Custom Parameter Variable Name
