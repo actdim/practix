@@ -178,7 +178,9 @@ namespace ActDim.Practix.Common.Json
             foreach (var resolver in source.TypeInfoResolverChain)
             {
                 if (!target.TypeInfoResolverChain.Contains(resolver))
+                {
                     target.TypeInfoResolverChain.Add(resolver);
+                }
             }
 
             foreach (var converter in source.Converters)

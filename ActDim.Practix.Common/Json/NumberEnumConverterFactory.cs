@@ -14,14 +14,20 @@ namespace ActDim.Practix.Common.Json
     /// </summary>
     public class NumberEnumConverterFactory : JsonConverterFactory
     {
+        /// <inheritdoc />
         public override bool CanConvert(Type typeToConvert)
         {
-            if (!typeToConvert.IsEnum) return false;
+            if (!typeToConvert.IsEnum)
+            {
+                return false;
+            }
+
             // Yield to types with their own [JsonConverter] — global converters would otherwise
             // shadow type-level attributes (STJ priority: property attr > global > type attr)
             return typeToConvert.GetCustomAttributes(typeof(JsonConverterAttribute), inherit: false).Length == 0;
         }
 
+        /// <inheritdoc />
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             var factoryType = typeof(JsonNumberEnumConverter<>).MakeGenericType(typeToConvert);

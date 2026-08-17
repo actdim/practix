@@ -7,12 +7,13 @@ using System.Text.Json.Serialization.Metadata;
 namespace ActDim.Practix.Common.Json
 {
     /// <summary>
-    /// Extends DefaultJsonTypeInfoResolver to honor [JsonIgnoreEmpty] attributes:
-    /// collection properties marked with [JsonIgnoreEmpty] are omitted from JSON output
+    /// Extends <see cref="DefaultJsonTypeInfoResolver"/> to honor <see cref="JsonIgnoreEmptyAttribute"/> attributes:
+    /// collection properties marked with <see cref="JsonIgnoreEmptyAttribute"/> are omitted from JSON output
     /// when the collection is null or empty.
     /// </summary>
     public class EmptyCollectionIgnoreResolver : DefaultJsonTypeInfoResolver
     {
+        /// <inheritdoc />
         public override JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options)
         {
             var typeInfo = base.GetTypeInfo(type, options);
@@ -20,6 +21,10 @@ namespace ActDim.Practix.Common.Json
             return typeInfo;
         }
 
+        /// <summary>
+        /// Applies empty collection suppression rules to the specified <paramref name="typeInfo"/>.
+        /// </summary>
+        /// <param name="typeInfo">The target JSON type information.</param>
         public static void Apply(JsonTypeInfo typeInfo)
         {
             foreach (var property in typeInfo.Properties)
@@ -29,7 +34,9 @@ namespace ActDim.Practix.Common.Json
                     .Length > 0;
 
                 if (!hasAttr)
+                {
                     continue;
+                }
 
                 var existing = property.ShouldSerialize;
 
@@ -41,9 +48,21 @@ namespace ActDim.Practix.Common.Json
 
         private static bool IsEmpty(object val)
         {
-            if (val is null) return true;
-            if (val is ICollection c) return c.Count == 0;
-            if (val is IEnumerable e) return !e.Cast<object>().Any();
+            if (val is null)
+            {
+                return true;
+            }
+
+            if (val is ICollection c)
+            {
+                return c.Count == 0;
+            }
+
+            if (val is IEnumerable e)
+            {
+                return !e.Cast<object>().Any();
+            }
+
             return false;
         }
     }

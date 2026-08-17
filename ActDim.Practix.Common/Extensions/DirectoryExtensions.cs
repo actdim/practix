@@ -1,20 +1,22 @@
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
-namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
+namespace ActDim.Practix.Extensions
 {
+    /// <summary>
+    /// Extension methods for file system directory operations.
+    /// </summary>
     public static class DirectoryExtensions
     {
         /// <summary>
-        ///
+        /// Loads all assemblies (`*.dll`) found in the specified directory path.
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="errHandler">onError</param>
-        /// <returns></returns>
-        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <param name="path">The directory path containing assembly DLL files.</param>
+        /// <param name="errHandler">An optional error handler callback. Returns true to swallow and continue loading; false to break iteration.</param>
+        /// <returns>An enumerable sequence of successfully loaded assemblies.</returns>
+        /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="path"/> does not exist.</exception>
         public static IEnumerable<Assembly> LoadAssemblies(string path, Func<Exception, bool> errHandler = default)
         {
             if (!Directory.Exists(path))
@@ -26,7 +28,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
             foreach (var dllFile in dllFiles)
             {
-                Assembly assembly = default;
+                Assembly assembly;
                 try
                 {
                     assembly = Assembly.LoadFrom(dllFile);
@@ -35,15 +37,17 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
                 {
                     if (errHandler != default)
                     {
-                        // $"Failed to load assembly from '{dllFile}': {ex.Message}"
                         if (errHandler(ex))
                         {
                             continue;
                         }
+
                         break;
                     }
+
                     throw;
                 }
+
                 yield return assembly;
             }
         }

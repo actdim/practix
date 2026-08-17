@@ -1,4 +1,3 @@
-
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Reflection;
@@ -6,28 +5,23 @@ using System.Threading.Tasks;
 
 namespace ActDim.Practix.Caching
 {
-    // MemoizingProxy
     /// <inheritdoc />
     public class MemoryCachingProxy : IMemoryCachingProxy
     {
-        private readonly IMemoryCache _cache = null;
+        private readonly IMemoryCache _cache;
 
         public MemoryCachingProxy(IMemoryCache cache)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
-        /// <summary>
-        /// Wraps <paramref name="func"/> into a memoizing delegate: on each call it first tries to
-        /// read the value from the cache, and only invokes <paramref name="func"/> on a miss,
-        /// storing the produced value under the same key. Values are kept in memory as-is (no
-        /// serialization), so a cache hit returns the very same instance. When <typeparamref name="T"/>
-        /// is an awaitable (<see cref="Task{TResult}"/> / <see cref="ValueTask{TResult}"/>) the
-        /// lookup, the invocation and the store are all performed asynchronously.
-        /// </summary>
+        /// <inheritdoc />
         public Func<string, T> Get<T>(Func<string, T> func, MemoryCacheEntryOptions options)
         {
-            if (func == null) throw new ArgumentNullException(nameof(func));
+            if (func == null)
+            {
+                throw new ArgumentNullException(nameof(func));
+            }
 
             var resultType = CachingProxyHelper.GetAwaitableResultType(typeof(T), out var isValueTask);
             if (resultType != null)
@@ -41,7 +35,9 @@ namespace ActDim.Practix.Caching
             return key =>
             {
                 if (_cache.TryGetValue(key, out T cached))
+                {
                     return cached;
+                }
 
                 var value = func(key);
                 _cache.Set(key, value, options);
@@ -49,31 +45,33 @@ namespace ActDim.Practix.Caching
             };
         }
 
-        // func is Func<string, Task<TResult>>; result is Func<string, Task<TResult>>.
         private Func<string, Task<TResult>> BuildTask<TResult>(object funcObj, MemoryCacheEntryOptions options)
         {
             var func = (Func<string, Task<TResult>>)funcObj;
             return async key =>
             {
                 if (_cache.TryGetValue(key, out TResult cached))
+                {
                     return cached;
+                }
 
-                var value = await func(key).ConfigureAwait(false);
+                var value = await func(key);
                 _cache.Set(key, value, options);
                 return value;
             };
         }
 
-        // func is Func<string, ValueTask<TResult>>; result is Func<string, ValueTask<TResult>>.
         private Func<string, ValueTask<TResult>> BuildValueTask<TResult>(object funcObj, MemoryCacheEntryOptions options)
         {
             var func = (Func<string, ValueTask<TResult>>)funcObj;
             return async key =>
             {
                 if (_cache.TryGetValue(key, out TResult cached))
+                {
                     return cached;
+                }
 
-                var value = await func(key).ConfigureAwait(false);
+                var value = await func(key);
                 _cache.Set(key, value, options);
                 return value;
             };

@@ -93,10 +93,6 @@ namespace ActDim.Practix.Compression
         /// Creates the scratch stream used whenever a method has to materialize a payload it must hand back
         /// or re-read. Pooled and seekable; the owner disposes it.
         /// </summary>
-        /// <remarks>
-        /// TODO: implement a special version of the compression manager for large payloads (spill to a
-        /// temporary FileStream instead of memory).
-        /// </remarks>
         protected virtual Stream CreateTempStream()
         {
             return MemoryManager.Default.GetStream(nameof(CompressionManager));

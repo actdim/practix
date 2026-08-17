@@ -13,14 +13,33 @@ namespace ActDim.Practix.Common.Json
     /// </summary>
     public class FloatingPointConverterFactory : JsonConverterFactory
     {
-        public override bool CanConvert(Type typeToConvert) =>
-            typeToConvert == typeof(double) || typeToConvert == typeof(double?) ||
-            typeToConvert == typeof(float) || typeToConvert == typeof(float?);
+        /// <inheritdoc />
+        public override bool CanConvert(Type typeToConvert)
+        {
+            return typeToConvert == typeof(double) || typeToConvert == typeof(double?) ||
+                   typeToConvert == typeof(float) || typeToConvert == typeof(float?);
+        }
 
-        public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
-            typeToConvert == typeof(double) ? new DoubleConverter() :
-            typeToConvert == typeof(double?) ? new NullableDoubleConverter() :
-            typeToConvert == typeof(float) ? new FloatConverter() : new NullableFloatConverter();
+        /// <inheritdoc />
+        public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (typeToConvert == typeof(double))
+            {
+                return new DoubleConverter();
+            }
+
+            if (typeToConvert == typeof(double?))
+            {
+                return new NullableDoubleConverter();
+            }
+
+            if (typeToConvert == typeof(float))
+            {
+                return new FloatConverter();
+            }
+
+            return new NullableFloatConverter();
+        }
 
         private static readonly NumberFormatInfo Nfi = new() { NumberDecimalSeparator = "." };
 
@@ -31,6 +50,7 @@ namespace ActDim.Practix.Common.Json
             {
                 s += ".0";
             }
+
             return s;
         }
 
@@ -40,10 +60,12 @@ namespace ActDim.Practix.Common.Json
             {
                 return "NaN";
             }
+
             if (float.IsPositiveInfinity(value))
             {
                 return "Infinity";
             }
+
             if (float.IsNegativeInfinity(value))
             {
                 return "-Infinity";
@@ -54,6 +76,7 @@ namespace ActDim.Practix.Common.Json
             {
                 s += ".0";
             }
+
             return s;
         }
 
@@ -91,15 +114,18 @@ namespace ActDim.Practix.Common.Json
 
         private sealed class DoubleConverter : JsonConverter<double>
         {
+            /// <inheritdoc />
             public override double Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 if (reader.TokenType == JsonTokenType.String)
                 {
                     return ReadDouble(ref reader);
                 }
+
                 return reader.GetDouble();
             }
 
+            /// <inheritdoc />
             public override void Write(Utf8JsonWriter writer, double value, JsonSerializerOptions options)
             {
                 WriteDouble(writer, value);
@@ -108,15 +134,18 @@ namespace ActDim.Practix.Common.Json
 
         private sealed class NullableDoubleConverter : JsonConverter<double?>
         {
+            /// <inheritdoc />
             public override double? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 if (reader.TokenType == JsonTokenType.String)
                 {
                     return ReadDouble(ref reader);
                 }
+
                 return reader.TokenType == JsonTokenType.Null ? null : reader.GetDouble();
             }
 
+            /// <inheritdoc />
             public override void Write(Utf8JsonWriter writer, double? value, JsonSerializerOptions options)
             {
                 if (value is null)
@@ -132,6 +161,7 @@ namespace ActDim.Practix.Common.Json
 
         private sealed class FloatConverter : JsonConverter<float>
         {
+            /// <inheritdoc />
             public override float Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 if (reader.TokenType == JsonTokenType.String)
@@ -145,18 +175,26 @@ namespace ActDim.Practix.Common.Json
                         _ => float.Parse(s, CultureInfo.InvariantCulture)
                     };
                 }
+
                 return reader.GetSingle();
             }
 
+            /// <inheritdoc />
             public override void Write(Utf8JsonWriter writer, float value, JsonSerializerOptions options)
-                => writer.WriteRawValue(Format(value));
+            {
+                writer.WriteRawValue(Format(value));
+            }
         }
 
         private sealed class NullableFloatConverter : JsonConverter<float?>
         {
+            /// <inheritdoc />
             public override float? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-                => reader.TokenType == JsonTokenType.Null ? null : reader.GetSingle();
+            {
+                return reader.TokenType == JsonTokenType.Null ? null : reader.GetSingle();
+            }
 
+            /// <inheritdoc />
             public override void Write(Utf8JsonWriter writer, float? value, JsonSerializerOptions options)
             {
                 if (value is null)

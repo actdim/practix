@@ -99,6 +99,7 @@ namespace ActDim.Practix.Pooling
         /// <see cref="IMemoryCache"/> post-eviction callback when the pool's sliding
         /// expiration lapses, so idle instances do not stay resident indefinitely.
         /// </summary>
+        /// <inheritdoc />
         public async ValueTask DisposeAsync()
         {
             if (Interlocked.Exchange(ref _disposed, 1) != 0)

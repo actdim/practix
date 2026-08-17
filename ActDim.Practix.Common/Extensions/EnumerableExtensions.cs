@@ -436,10 +436,6 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             return result;
         }
 
-        // TODO: EstimateValue/EstimateAggregation/EstimateComposition/EstimateProduct
-
-        // TODO: Any (Some)
-
         /// <summary>
         /// Every
         /// </summary>
