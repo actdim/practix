@@ -5,24 +5,25 @@ Current state snapshot of `actdim/practix` (.NET).
 ## Current Solution Architecture
 
 ### Autonomous Engine Libraries (`ActDim.*`)
-- **`ActDim.Emitron`**: Roslyn-based C# script engine (`ScriptEngine`), template interpolation compiler (`Interpolator`), string extension helper (`template.Interpolate(input)`), with collision-free `@params` property binding on `ScriptGlobals` (`@params` default, customizable via `inputParameterName`). [Packable NuGet Package]
-- **`ActDim.Reflectron`**: High-performance reflection access (`TypeAccess`, `ObjectAccess`) and expression-tree property getters. [Packable NuGet Package]
-- **`ActDim.Three`**: 3D graphics engine math, geometry, and scene graph library. [Packable NuGet Package]
-- **`ActDim.BlobManager`**: Keyed blob storage with sharded physical data store (`FileSystemBlobDataStore`), SQLite registry (`SQLiteBlobRegistry`), TTL expiration, and modular DI extension methods (`AddFileSystemBlobDataStore()`, `AddSQLiteBlobRegistry()`, `AddBlobManager()`).
-- **`ActDim.Observability`**: OpenTelemetry-centric telemetry, ambient context management (`IObservabilityContext`, `EventObservabilityBridge`), and `AddEventObservability()` DI helper.
+- **`ActDim.Emitron`**: Roslyn-based C# script engine (`ScriptEngine`), template interpolation compiler (`Interpolator`), string extension helper (`template.Interpolate(input)`), with `@params` property binding. [Packable NuGet Package w/ README]
+- **`ActDim.Reflectron`**: High-performance reflection engine (`TypeAccess`, compiled expression tree property getters/setters, fast dynamic delegates). [Packable NuGet Package w/ README]
+- **`ActDim.Three`**: 3D graphics engine math, geometry, materials, lighting, scene graph, and JSON scene graph serialization (`ThreeSerializer`). [Packable NuGet Package w/ README]
+- **`ActDim.BlobManager`**: Keyed blob storage with sharded physical data store (`FileSystemBlobDataStore`), SQLite registry (`SQLiteBlobRegistry`), TTL expiration, and DI helpers (`AddBlobManager()`). [Packable NuGet Package w/ README]
+- **`ActDim.Observability`**: OpenTelemetry-centric telemetry, ambient context management (`IObservabilityContext`, `EventObservabilityBridge`), and `AddEventObservability()` DI helper. [Packable NuGet Package w/ README]
 
 ### Framework & Application Assemblies (`ActDim.Practix.*`)
-- **`ActDim.Practix.Abstractions`**: Framework base interfaces and domain abstractions. [Packable NuGet Package]
-- **`ActDim.Practix.Common`**: Shared utilities, concurrent collection factories, compression, caching proxies, and granular Microsoft DI extensions (`AddAmbientContext()`, `AddCompressionManager()`, `AddMemoryCachingProxy()`, `AddDistributedCachingProxy()`). [Packable NuGet Package]
-- **`ActDim.Practix.Json`**: Dedicated JSON serialization assembly (`CoreJsonSerializer`, custom converters, policies, resolvers) leveraging `ActDim.Reflectron` for fast property setters and Microsoft DI extensions (`AddPractixJson()`, `AddJsonSerializer()`). [Packable NuGet Package]
-- **`ActDim.Practix.DataAccess`**: Data access layer and ORM integration.
-- **`ActDim.Practix.Service`**: Primary backend service host using standard Microsoft DI (`IServiceCollection` / `AddCoreService()`).
+- **`ActDim.Practix.Abstractions`**: Framework base interfaces, contracts, and domain abstractions. [Packable NuGet Package w/ README]
+- **`ActDim.Practix.Common`**: Shared utilities, concurrent collection factories (`ConcurrentFactoryDictionary`), compression (`CompressionManager`), caching proxies, and granular Microsoft DI extensions (`AddAmbientContext()`, `AddCompressionManager()`, `AddMemoryCachingProxy()`, `AddDistributedCachingProxy()`). [Packable NuGet Package w/ README]
+- **`ActDim.Practix.Json`**: Dedicated JSON serialization assembly (`CoreJsonSerializer`, custom converters, policies, attributes) leveraging `ActDim.Reflectron` for fast property setters and Microsoft DI extensions (`AddPractixJson()`). [Packable NuGet Package w/ README]
+- **`ActDim.Practix.DataAccess`**: Data access layer. [Non-Packable Application Assembly]
+- **`ActDim.Practix.Service`**: Primary backend service host using standard Microsoft DI (`IServiceCollection`). [Non-Packable Application Assembly]
 
-## Dependency Injection Standard
-- **Zero Autofac dependency**: Solution standardized completely on `Microsoft.Extensions.DependencyInjection` via granular extension methods (`AddAmbientContext`, `AddCompressionManager`, `AddMemoryCachingProxy`, `AddDistributedCachingProxy`, `AddPractixJson`, `AddCoreService`, `AddFileSystemBlobDataStore`, `AddSQLiteBlobRegistry`, `AddBlobManager`, `AddEventObservability`).
+## Packaging & Dependency Injection Standard
+- **NuGet Packaging Standard**: 8 library projects configured for NuGet package creation with centralized `Directory.Build.props` metadata, explicit `<IsPackable>true</IsPackable>`, `<PackageReadmeFile>README.md</PackageReadmeFile>`, and embedded `README.md` files. Internal application/repo projects explicitly set `<IsPackable>false</IsPackable>`.
+- **Zero Autofac Dependency**: Solution standardized completely on `Microsoft.Extensions.DependencyInjection` via granular extension methods (`AddAmbientContext`, `AddCompressionManager`, `AddMemoryCachingProxy`, `AddDistributedCachingProxy`, `AddPractixJson`, `AddFileSystemBlobDataStore`, `AddSQLiteBlobRegistry`, `AddBlobManager`, `AddEventObservability`).
 
 ## Solution Health & Verification
-- **Solution Build & Pack**: 15/15 projects building and packaging cleanly (`dotnet pack ActDim.Practix.sln --configuration Release --output ./nupkgs`).
+- **Solution Build & Pack**: 15/15 projects building cleanly. All 8 NuGet packages generate `.nupkg` and `.snupkg` symbol packages with 0 missing README warnings (`dotnet pack ActDim.Practix.sln`).
 - **Total Test Suite**: 493 tests passing across 6 test assemblies:
   - `ActDim.Practix.Json.Tests` (101 tests)
   - `ActDim.Practix.Common.Tests` (213 tests)

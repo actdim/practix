@@ -13,6 +13,20 @@ A lightweight, OpenTelemetry-centric observability library for .NET applications
 - **Selective Provider & Scope Suppression:** Dynamically suppress console loggers, specific logger providers, or external scope export per async flow (`observability.SuppressConsole()`, `observability.SuppressProviders("File")`, `observability.SuppressExternalScopes()`).
 - **Provider Alias Resolution:** Automatically resolves provider aliases via official .NET `[ProviderAlias]` attributes or custom provider mappings.
 
+## Installation
+
+Install via the .NET CLI:
+
+```bash
+dotnet add package ActDim.Observability
+```
+
+Or via Package Manager Console:
+
+```powershell
+Install-Package ActDim.Observability
+```
+
 ## Registration
 
 Register observability in your `IServiceCollection`:
