@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using ActDim.Three.Core;
 using ActDim.Three.Materials;

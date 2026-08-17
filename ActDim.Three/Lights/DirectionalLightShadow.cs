@@ -1,4 +1,4 @@
-﻿using ActDim.Three.Cameras;
+using ActDim.Three.Cameras;
 
 namespace ActDim.Three.Lights
 {

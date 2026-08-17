@@ -1,4 +1,4 @@
-﻿namespace ActDim.Three.Math
+namespace ActDim.Three.Math
 {
     /// <summary>
     /// Class representing a 3D vector.

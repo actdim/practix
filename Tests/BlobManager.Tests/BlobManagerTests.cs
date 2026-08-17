@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace ActDim.BlobManager.Tests
@@ -1279,6 +1280,118 @@ namespace ActDim.BlobManager.Tests
                 catch { }
 
                 return ValueTask.CompletedTask;
+            }
+        }
+
+        [Fact]
+        public void AddFileSystemBlobDataStore_RegistersDataStoreWithOptions()
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), "blob_fs_test_" + Guid.NewGuid().ToString("N"));
+
+            try
+            {
+                var services = new ServiceCollection();
+                services.AddFileSystemBlobDataStore(options => options.BaseDirectory = tempDir);
+
+                var provider = services.BuildServiceProvider();
+                var dataStore = provider.GetService<IBlobDataStore>();
+
+                Assert.NotNull(dataStore);
+                Assert.IsType<FileSystemBlobDataStore>(dataStore);
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                {
+                    try { Directory.Delete(tempDir, true); } catch { }
+                }
+            }
+        }
+
+        [Fact]
+        public void AddSQLiteBlobRegistry_RegistersRegistryWithOptions()
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), "blob_reg_test_" + Guid.NewGuid().ToString("N"));
+            const string customDb = "app_registry.sqlite";
+
+            try
+            {
+                var services = new ServiceCollection();
+                services.AddSQLiteBlobRegistry(options =>
+                {
+                    options.BaseDirectory = tempDir;
+                    options.DatabaseName = customDb;
+                });
+
+                var provider = services.BuildServiceProvider();
+                var registry = provider.GetService<IBlobRegistry>();
+
+                Assert.NotNull(registry);
+                Assert.IsType<SQLiteBlobRegistry>(registry);
+                Assert.True(File.Exists(Path.Combine(tempDir, customDb)));
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                {
+                    try { Directory.Delete(tempDir, true); } catch { }
+                }
+            }
+        }
+
+        [Fact]
+        public void AddBlobManager_CustomOptions_ConfiguresDatabaseNameAndDirectory()
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), "blob_test_" + Guid.NewGuid().ToString("N"));
+            const string customDbName = "custom_registry.sqlite";
+
+            try
+            {
+                var services = new ServiceCollection();
+                services.AddBlobManager(tempDir, customDbName);
+
+                var provider = services.BuildServiceProvider();
+                var manager = provider.GetService<IBlobManager>();
+                var dataStore = provider.GetService<IBlobDataStore>();
+                var registry = provider.GetService<IBlobRegistry>();
+
+                Assert.NotNull(manager);
+                Assert.NotNull(dataStore);
+                Assert.NotNull(registry);
+                Assert.True(File.Exists(Path.Combine(tempDir, customDbName)));
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                {
+                    try { Directory.Delete(tempDir, true); } catch { }
+                }
+            }
+        }
+
+        [Fact]
+        public void AddBlobManager_ExistingDataStore_PreservesCustomDataStore()
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), "blob_test_" + Guid.NewGuid().ToString("N"));
+            var customDataStore = new FileSystemBlobDataStore(tempDir);
+
+            try
+            {
+                var services = new ServiceCollection();
+                services.AddSingleton<IBlobDataStore>(customDataStore);
+                services.AddBlobManager(tempDir);
+
+                var provider = services.BuildServiceProvider();
+                var resolvedDataStore = provider.GetService<IBlobDataStore>();
+
+                Assert.Same(customDataStore, resolvedDataStore);
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                {
+                    try { Directory.Delete(tempDir, true); } catch { }
+                }
             }
         }
     }

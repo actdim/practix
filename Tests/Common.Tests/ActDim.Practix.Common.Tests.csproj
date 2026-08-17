@@ -25,6 +25,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\ActDim.Practix.Common\ActDim.Practix.Common.csproj" />
+	  <ProjectReference Include="..\..\ActDim.Practix.Json\ActDim.Practix.Json.csproj" />
 	</ItemGroup>
 
 </Project>

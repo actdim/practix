@@ -1,4 +1,4 @@
-﻿namespace ActDim.Three.Core
+namespace ActDim.Three.Core
 {
     public interface IGeometry : IElement
     {

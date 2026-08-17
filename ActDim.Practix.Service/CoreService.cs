@@ -1,11 +1,10 @@
 
 using ActDim.Practix.Service.OpenApi;
 using ActDim.Practix.Service.Settings;
+using ActDim.Practix.Service.Extensions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
-using Autofac;
-using Autofac.Core;
-using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
@@ -45,22 +44,12 @@ namespace ActDim.Practix.Service
 
         private readonly Lock _syncRoot = new();
 
-        private readonly IModule[] _modules;
-
         public CoreService(string[] args,
-            IEnumerable<IModule> modules = default,
-            // Action<Action, IConfigurationBuilder> configureAppConfiguration = default,
             Action<Action, ILoggingBuilder, Func<IServiceProvider>> configureLogging = default,
             Action<Action, IServiceCollection, Func<IServiceProvider>> configureServices = default,
-            Action<Action, ContainerBuilder, Func<IServiceProvider>> configureContainer = default,
             Action<Action, IWebHostBuilder, Func<IServiceProvider>> configureWebHost = default,
             Action<JsonOptions> configureJsonOptions = default)
         {
-            // old way:
-
-            // new CommonModule()
-            _modules = [.. (modules ?? [])];
-
             _configuration = InitConfiguration(new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()), GetEnvName(), args).Build();
 
             var hostBuilder = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args);
@@ -91,8 +80,6 @@ namespace ActDim.Practix.Service
                     @default();
                 }
             });
-
-            hostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
             hostBuilder.ConfigureServices((builderContext, services) =>
             {
@@ -149,24 +136,6 @@ namespace ActDim.Practix.Service
                 // GetOrUpdateServiceProvider(() => CreateServiceProvider(services), true);
             });
 
-            hostBuilder.ConfigureContainer<ContainerBuilder>((builderContext, containerBuilder) =>
-            {
-                var serviceProviderFactory = () => ServiceProvider;
-
-                void @default() => ConfigureContainer(containerBuilder);
-                if (configureContainer != default)
-                {
-                    configureContainer(@default,
-                        containerBuilder,
-                        serviceProviderFactory
-                        );
-                }
-                else
-                {
-                    @default();
-                }
-            });
-
             hostBuilder.ConfigureHostOptions((builderContext, hostOptions) =>
             {
 
@@ -178,13 +147,14 @@ namespace ActDim.Practix.Service
                 var serviceProviderFactory = () =>
                 {
                     var serviceCollection = new ServiceCollection();
+                    if (_configuration != null)
+                    {
+                        serviceCollection.AddSingleton<IConfiguration>(_configuration);
+                    }
                     serviceCollection.Configure<AppSettings>(_configuration);
                     // serviceCollection.Configure<AppSettings>(builderContext.Configuration.GetSection("AppSettings"));
 
-                    return GetOrUpdateServiceProvider(() => CreateServiceProvider(serviceCollection, containerBuilder =>
-                    {
-                        containerBuilder.RegisterInstance(_configuration).As<IConfiguration>();
-                    }), true);
+                    return GetOrUpdateServiceProvider(() => CreateServiceProvider(serviceCollection), true);
                 };
 
                 void @default() => ConfigureWebHost(webHostBuilder, serviceProviderFactory);
@@ -230,10 +200,10 @@ namespace ActDim.Practix.Service
 
             ConfigureServices(builder.Services, config, serviceProvider, defaultApiVersion);
 
-            builder.Host.ConfigureContainer<ContainerBuilder>((builderContext, containerBuilder) =>
-            {
-                ConfigureContainer(containerBuilder, modules, builderContext.Configuration);
-            });
+            // builder.Host.ConfigureContainer<ContainerBuilder>((builderContext, containerBuilder) =>
+            // {
+            //     ConfigureContainer(containerBuilder, modules, builderContext.Configuration);
+            // });
 
             // builder.Host.ConfigureWebHostDefaults(hostBuilder =>
             // {
@@ -297,20 +267,15 @@ namespace ActDim.Practix.Service
             }
         }
 
-        private AutofacServiceProvider CreateServiceProvider(IServiceCollection services = default, Action<ContainerBuilder> setup = null)
+        private IServiceProvider CreateServiceProvider(IServiceCollection services = default)
         {
-            var containerBuilder = new ContainerBuilder();
-            if (services != default)
+            services ??= new ServiceCollection();
+            if (_configuration != null)
             {
-                containerBuilder.Populate(services); // important for logging!
+                services.TryAddSingleton<IConfiguration>(_configuration);
             }
-            ConfigureContainer(containerBuilder);
-            if (setup != default)
-            {
-                setup(containerBuilder);
-            }
-            var container = containerBuilder.Build();
-            return new AutofacServiceProvider(container);
+            services.AddCoreService();
+            return services.BuildServiceProvider();
         }
 
         protected bool IsDevelopment(string env)
@@ -377,25 +342,7 @@ namespace ActDim.Practix.Service
             return configBuilder;
         }
 
-        private void ConfigureContainer(ContainerBuilder builder)
-        {
-            if (_modules != default)
-            {
-                foreach (var module in _modules)
-                {
-                    builder.RegisterModule(module);
-                }
-            }
 
-            // var assemblies = DirectoryExtensions.LoadAssemblies(Directory.GetCurrentDirectory()).ToArray();
-            // var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            // builder.RegisterAssemblyModules(assemblies);
-
-            // builder.RegisterAssemblyTypes(assemblies)
-            //    // .AsImplementedInterfaces()
-            //    .AsSelf()
-            //    .InstancePerDependency();
-        }
 
         protected virtual void ConfigureLogging(ILoggingBuilder logBuilder)
         {

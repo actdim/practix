@@ -13,8 +13,11 @@ _Solution-level issues board. Project-specific issues live in their respective s
   - `debt--stringsplit-regex-cache`
   - `feat--encoding-async-extensions`
   - `feat--enumerable-estimation-extensions`
+  - `feat--iconfiguration-application-config-manager`
   - `feat--large-payload-compression`
 
 ## Done (recent)
+- `debt--remove-autofac-dependency`: Remove Autofac dependency and migrate to standard Microsoft Dependency Injection
+- `feat--extract-practix-json-assembly`: Extract JSON serialization subsystem into dedicated ActDim.Practix.Json assembly
 - `debt--json-serializer-reflectron-optimization`: Replace un-cached reflection in StandardJsonSerializer with fast compiled expression tree setters and property metadata cache
 - `feat--emitron-tests`: Create ActDim.Emitron unit test coverage for Roslyn compilation and evaluation

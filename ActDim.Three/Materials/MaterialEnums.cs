@@ -1,4 +1,4 @@
-﻿namespace ActDim.Three.Materials
+namespace ActDim.Three.Materials
 {
     // TODO: add more
     // see https://threejs.org/docs/#api/en/constants/Materials
