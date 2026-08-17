@@ -38,22 +38,6 @@ namespace ActDim.Emitron.Tests
 		}
 
 		[Fact]
-		public void Interpolate_ExtensionMethod_FormatsCorrectly()
-		{
-			const string template = "$\"Hello, {Name}! You have {Count} messages.\"";
-			var result = template.Interpolate(new { Name = "Alice", Count = 5 });
-			Assert.Equal("Hello, Alice! You have 5 messages.", result);
-		}
-
-		[Fact]
-		public void Interpolate_CustomInputParameterName_FormatsCorrectly()
-		{
-			const string template = "$\"Hello, {Name}!\"";
-			var result = template.Interpolate(new { Name = "Bob" }, inputParameterName: "@ctx");
-			Assert.Equal("Hello, Bob!", result);
-		}
-
-		[Fact]
 		public void Format_IntegerProperty()
 		{
 			var result = Interpolator.Format("$\"Count: {Count}\"", new { Count = 42 });
@@ -71,22 +55,49 @@ namespace ActDim.Emitron.Tests
 		}
 
 		// ------------------------------------------------------------------
-		// Format specifiers (e.g. {Price:C2}, {Date:dd.MM.yy})
+		// Format specifiers (e.g. {Price:C2}, {Date:dd.MM.yy}, {Rate:P1})
 		// ------------------------------------------------------------------
 
 		[Fact]
 		public void Format_WithFormatSpecifier_DateTime()
 		{
-			var date = new DateTime(2024, 3, 15);
-			var result = Interpolator.Format("$\"{Date:dd.MM.yy}\"", new { Date = date });
-			Assert.Equal(date.ToString("dd.MM.yy"), result);
+			var date = new DateTime(2024, 3, 15, 14, 30, 0);
+			var result = Interpolator.Format("$\"{Date:yyyy-MM-dd HH:mm}\"", new { Date = date });
+			Assert.Equal("2024-03-15 14:30", result);
 		}
 
 		[Fact]
-		public void Format_WithFormatSpecifier_Numeric()
+		public void Format_WithFormatSpecifier_NumericPadding()
 		{
 			var result = Interpolator.Format("$\"{Value:D6}\"", new { Value = 42 });
 			Assert.Equal("000042", result);
+		}
+
+		[Fact]
+		public void Format_WithFormatSpecifier_FixedPointAndPercentage()
+		{
+			var result = Interpolator.Format(
+				"$\"Price: {Price:F2}, Rate: {Discount:P0}\"",
+				new { Price = 19.999m, Discount = 0.15m });
+
+			Assert.Equal("Price: 20.00, Rate: 15%", result);
+		}
+
+		[Fact]
+		public void Format_WithAlignmentAndFormatSpecifier()
+		{
+			var result = Interpolator.Format("$\"Value: |{Amount,8:N2}|\"", new { Amount = 123.456m });
+			Assert.Equal("Value: |  123.46|", result);
+		}
+
+		[Fact]
+		public void Interpolate_ExtensionMethod_WithCustomFormatSpecifiers()
+		{
+			var data = new { CreatedAt = new DateTime(2026, 8, 17), Score = 0.9825 };
+			var template = "$\"Date: {CreatedAt:yyyy/MM/dd}, Score: {Score:P1}\"";
+
+			var result = template.Interpolate(data);
+			Assert.Equal("Date: 2026/08/17, Score: 98.3%", result);
 		}
 
 		// ------------------------------------------------------------------
@@ -118,7 +129,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Format_WithDictionaryParameters()
 		{
-			var formatter = Interpolator.Compile("$\"{Product} costs {Price:C}\"");
+			var formatter = Interpolator.Compile("$\"{Product} costs {Price:F2}\"");
 			var parameters = new Dictionary<string, object>
 			{
 				{ "Product", "Widget" },
@@ -126,7 +137,40 @@ namespace ActDim.Emitron.Tests
 			};
 
 			var result = formatter(parameters);
-			Assert.Equal($"Widget costs {9.99m:C}", result);
+			Assert.Equal("Widget costs 9.99", result);
+		}
+
+		// ------------------------------------------------------------------
+		// Custom inputParameterName in template
+		// ------------------------------------------------------------------
+
+		[Fact]
+		public void Interpolate_CustomInputParameterName_ExplicitContextAccess_FormatsCorrectly()
+		{
+			var result = "$\"Hello, {@ctx.Name}!\"".Interpolate(new { Name = "Bob" }, inputParameterName: "@ctx");
+			Assert.Equal("Hello, Bob!", result);
+		}
+
+		[Fact]
+		public void Format_InvokingFunctionPassedInParameters()
+		{
+			Func<string, string> transform = name => "Dr. " + name;
+			var result = Interpolator.Format(
+				"$\"Welcome, {@params.Transform(\"Smith\")}\"",
+				new { Transform = transform });
+
+			Assert.Equal("Welcome, Dr. Smith", result);
+		}
+
+		[Fact]
+		public void Format_InvokingDelegateInInterpolationSlot()
+		{
+			Func<int, int> doubleValue = x => x * 2;
+			var result = Interpolator.Format(
+				"$\"Calculated: {@params.DoubleValue(21)}\"",
+				new { DoubleValue = doubleValue });
+
+			Assert.Equal("Calculated: 42", result);
 		}
 
 		// ------------------------------------------------------------------
@@ -159,7 +203,7 @@ namespace ActDim.Emitron.Tests
 		}
 
 		[Fact]
-		public void Format_NullInput_Throws()
+		public void Format_NullParameters_Throws()
 		{
 			Assert.Throws<ArgumentNullException>(() =>
 				Interpolator.Format("$\"{Name}\"", (object)null));

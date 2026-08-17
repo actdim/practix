@@ -23,10 +23,10 @@ Current state snapshot of `actdim/practix` (.NET).
 
 ## Solution Health & Verification
 - **Solution Build & Pack**: 15/15 projects building and packaging cleanly (`dotnet pack ActDim.Practix.sln --configuration Release --output ./nupkgs`).
-- **Total Test Suite**: 489 tests passing across 6 test assemblies:
+- **Total Test Suite**: 493 tests passing across 6 test assemblies:
   - `ActDim.Practix.Json.Tests` (101 tests)
   - `ActDim.Practix.Common.Tests` (213 tests)
-  - `ActDim.Emitron.Tests` (37 tests)
+  - `ActDim.Emitron.Tests` (41 tests)
   - `ActDim.Reflectron.Tests` (42 tests)
   - `ActDim.BlobManager.Tests` (68 tests)
   - `ActDim.Observability.Tests` (28 tests)
