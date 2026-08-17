@@ -80,6 +80,9 @@ namespace ActDim.Practix.Common.Json
             return s;
         }
 
+        /// <summary>
+        /// Reads a <see cref="double"/> floating-point value from a JSON reader, handling string representations of NaN and Infinity.
+        /// </summary>
         public static double ReadDouble(ref Utf8JsonReader reader)
         {
             var s = reader.GetString();
@@ -92,6 +95,9 @@ namespace ActDim.Practix.Common.Json
             };
         }
 
+        /// <summary>
+        /// Writes a <see cref="double"/> floating-point value to a JSON writer, emitting strings for NaN and Infinity.
+        /// </summary>
         public static void WriteDouble(Utf8JsonWriter writer, double value)
         {
             if (double.IsNaN(value))

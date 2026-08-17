@@ -21,7 +21,7 @@ namespace ActDim.Practix.Pooling
     /// pool has been disposed. If no <c>disposer</c> is provided the pool does not touch the
     /// objects' lifecycle — ownership is an explicit, opt-in contract, never inferred.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of pooled objects.</typeparam>
     public sealed class AsyncObjectPool<T> : IAsyncDisposable where T : class
     {
         private readonly Channel<T> _channel;
@@ -31,6 +31,9 @@ namespace ActDim.Practix.Pooling
         private int _createdCount;
         private int _disposed;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AsyncObjectPool{T}"/> class.
+        /// </summary>
         /// <param name="factory">Creates a new pooled instance when the pool grows.</param>
         /// <param name="maxSize">Maximum number of live instances the pool may hold.</param>
         /// <param name="disposer">
@@ -54,6 +57,11 @@ namespace ActDim.Practix.Pooling
             _channel = Channel.CreateBounded<T>(options);
         }
 
+        /// <summary>
+        /// Asynchronously acquires a pooled object wrapper from the pool.
+        /// </summary>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A <see cref="PooledObject"/> handle that returns the item to the pool upon disposal.</returns>
         public async Task<PooledObject> GetAsync(CancellationToken cancellationToken = default)
         {
             if (!_channel.Reader.TryRead(out var item))
@@ -83,20 +91,17 @@ namespace ActDim.Practix.Pooling
 
         private ValueTask ReturnAsync(T item)
         {
-            // If the pool has been disposed (e.g. evicted from the cache) the channel
-            // is completed and TryWrite fails. In that case — as well as any unexpected
-            // overflow — the object must not be leaked: dispose it so native resources
-            // are released instead of throwing.
             if (Volatile.Read(ref _disposed) != 0 || !_channel.Writer.TryWrite(item))
             {
                 return DisposeItemAsync(item);
             }
+
             return ValueTask.CompletedTask;
         }
 
         /// <summary>
         /// Drains and disposes every idle object still parked in the pool. Invoked by the
-        /// <see cref="IMemoryCache"/> post-eviction callback when the pool's sliding
+        /// <see cref="Microsoft.Extensions.Caching.Memory.IMemoryCache"/> post-eviction callback when the pool's sliding
         /// expiration lapses, so idle instances do not stay resident indefinitely.
         /// </summary>
         /// <inheritdoc />
@@ -120,20 +125,31 @@ namespace ActDim.Practix.Pooling
             return _disposer?.Invoke(item) ?? ValueTask.CompletedTask;
         }
 
+        /// <summary>
+        /// A leased handle wrapping a pooled object of type <typeparamref name="T"/>.
+        /// </summary>
         public sealed class PooledObject : IAsyncDisposable
         {
             private T _item;
             private readonly AsyncObjectPool<T> _pool;
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="PooledObject"/> class.
+            /// </summary>
+            /// <param name="item">The pooled instance.</param>
+            /// <param name="pool">The owning object pool.</param>
             public PooledObject(T item, AsyncObjectPool<T> pool)
             {
                 _item = item;
                 _pool = pool;
             }
 
-            public T Item =>
-                _item ?? throw new ObjectDisposedException(nameof(PooledObject));
+            /// <summary>
+            /// Gets the leased pooled object item.
+            /// </summary>
+            public T Item => _item ?? throw new ObjectDisposedException(nameof(PooledObject));
 
+            /// <inheritdoc />
             public ValueTask DisposeAsync()
             {
                 var item = Interlocked.Exchange(ref _item, null);

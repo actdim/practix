@@ -106,7 +106,7 @@ namespace ActDim.Practix.Collections.Concurrent // Specialized
 		/// <summary>
 		/// Gets or creates a value for a key.
 		/// If value does not exist for a key then it's created using
-		/// Activator.CreateInstance<V>().
+		/// Activator.CreateInstance&lt;V&gt;().
 		/// </summary>
 		/// <param name="key">A key to get or create value for.</param>
 		/// <returns>A value for the key.</returns>

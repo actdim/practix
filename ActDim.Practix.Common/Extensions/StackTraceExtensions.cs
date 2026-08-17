@@ -1,14 +1,20 @@
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Diagnostics;
 
-namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
+namespace ActDim.Practix.Extensions
 {
     /// <summary>
-    /// StackTraceExtensions extensions
+    /// Extension methods for inspecting stack frames and unwrapping async state machine stack traces on <see cref="StackTrace"/>.
     /// </summary>
     public static class StackTraceExtensions
     {
+        /// <summary>
+        /// Retrieves the method info associated with the specified stack frame index, resolving real async methods from state machines if present.
+        /// </summary>
+        /// <param name="stackTrace">The stack trace.</param>
+        /// <param name="index">The 0-based frame index (defaults to 1 for immediate caller).</param>
+        /// <returns>The <see cref="MethodBase"/> executing at the target frame index.</returns>
         public static MethodBase GetMethod(this StackTrace stackTrace, int index = 1)
         {
             StackFrame sf = stackTrace.GetFrame(index);
@@ -16,14 +22,9 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             if ("Void MoveNext()".Equals(method.ToString()) &&
                 method.DeclaringType.GetCustomAttribute<CompilerGeneratedAttribute>() != null)
             {
-                // var baseType = value.GetType();
-                // var wrappedMethod = st.GetFrames().Skip(1).Select(x => x.GetMethod()).FirstOrDefault(x => x.DeclaringType == baseType);
-                // if (wrappedMethod != null)
-                // {
-                // 	return wrappedMethod;
-                // }
                 return method.GetRealMethodFromAsyncMethod();
             }
+
             return method;
         }
     }

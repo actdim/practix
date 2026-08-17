@@ -8,16 +8,17 @@ using System.Text.Json.Serialization.Metadata;
 namespace ActDim.Practix.Common.Json
 {
     /// <summary>
-    /// Honors [DefaultValue], [JsonDefaultValue], and [JsonIgnoreDefault] attributes on properties:
+    /// Honors <see cref="DefaultValueAttribute"/>, <see cref="JsonDefaultValueAttribute"/>, and <see cref="JsonIgnoreDefaultAttribute"/> attributes on properties:
     /// <list type="bullet">
-    ///   <item>[DefaultValue] — used as a default for [JsonIgnoreDefault] comparisons (no populate during deserialization).</item>
-    ///   <item>[JsonDefaultValue] — used as the default for [JsonIgnoreDefault], and can populate during deserialization when Populate = true.</item>
-    ///   <item>[JsonIgnoreDefault] — omits the property from JSON output when its value equals the default
-    ///         (taken from [JsonDefaultValue] if present, otherwise [DefaultValue], otherwise the CLR default for the type).</item>
+    ///   <item><see cref="DefaultValueAttribute"/> — used as a default for <see cref="JsonIgnoreDefaultAttribute"/> comparisons (no populate during deserialization).</item>
+    ///   <item><see cref="JsonDefaultValueAttribute"/> — used as the default for <see cref="JsonIgnoreDefaultAttribute"/>, and can populate during deserialization when Populate = true.</item>
+    ///   <item><see cref="JsonIgnoreDefaultAttribute"/> — omits the property from JSON output when its value equals the default
+    ///         (taken from <see cref="JsonDefaultValueAttribute"/> if present, otherwise <see cref="DefaultValueAttribute"/>, otherwise the CLR default for the type).</item>
     /// </list>
     /// </summary>
     public class DefaultValueAwareResolver : DefaultJsonTypeInfoResolver
     {
+        /// <inheritdoc />
         public override JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options)
         {
             var typeInfo = base.GetTypeInfo(type, options);
@@ -25,10 +26,16 @@ namespace ActDim.Practix.Common.Json
             return typeInfo;
         }
 
+        /// <summary>
+        /// Applies default-value resolution and serialization suppression rules to the specified <paramref name="typeInfo"/>.
+        /// </summary>
+        /// <param name="typeInfo">The JSON type information metadata.</param>
         public static void Apply(JsonTypeInfo typeInfo)
         {
             if (typeInfo.Kind != JsonTypeInfoKind.Object)
+            {
                 return;
+            }
 
             var defaults = new List<(JsonPropertyInfo prop, object defaultValue)>();
 
@@ -40,7 +47,6 @@ namespace ActDim.Practix.Common.Json
                 var jsonDefaultValueAttr = attrs.OfType<JsonDefaultValueAttribute>().FirstOrDefault();
                 var ignoreDefaultAttr = attrs.OfType<JsonIgnoreDefaultAttribute>().FirstOrDefault();
 
-                // [JsonIgnoreDefault] — omit during serialization when value equals the default
                 if (ignoreDefaultAttr != null)
                 {
                     var ignoreValue =
@@ -52,19 +58,24 @@ namespace ActDim.Practix.Common.Json
                     property.ShouldSerialize = (obj, value) =>
                     {
                         if (prevShouldSerialize != null && !prevShouldSerialize(obj, value))
+                        {
                             return false;
+                        }
 
                         return !Equals(value, ignoreValue);
                     };
                 }
 
-                // [JsonDefaultValue] — pre-set before deserialization when Populate = true
                 if (jsonDefaultValueAttr != null && jsonDefaultValueAttr.Populate && property.Set != null)
+                {
                     defaults.Add((property, jsonDefaultValueAttr.Value));
+                }
             }
 
             if (defaults.Count == 0)
+            {
                 return;
+            }
 
             var arr = defaults.ToArray();
 
@@ -73,7 +84,9 @@ namespace ActDim.Practix.Common.Json
             {
                 previous?.Invoke(obj);
                 foreach (var (prop, defaultValue) in arr)
+                {
                     prop.Set!(obj, defaultValue);
+                }
             };
         }
 
@@ -83,5 +96,3 @@ namespace ActDim.Practix.Common.Json
         }
     }
 }
-
-

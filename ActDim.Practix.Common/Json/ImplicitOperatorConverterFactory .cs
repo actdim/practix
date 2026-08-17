@@ -15,14 +15,19 @@ namespace ActDim.Practix.Common.Json
     {
         private static readonly Type[] TargetPrimitives =
         [
+            // Boolean
             typeof(bool),
+            // Integer (narrow to wide)
             typeof(int),
             typeof(long),
+            // Floating point (narrow to wide)
             typeof(float),
             typeof(double),
             typeof(decimal),
+            // Date/time (DateTime has no timezone, DateTimeOffset is wider)
             typeof(DateTime),
             typeof(DateTimeOffset),
+            // String — widest, last
             typeof(string),
         ];
 

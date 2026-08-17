@@ -6,6 +6,9 @@ namespace ActDim.Practix.Extensions
     /// <summary>
     /// Extension methods for <see cref="TaskFactory"/> and <see cref="TaskFactory{TResult}"/>.
     /// </summary>
+    /// <remarks>
+    /// Reference implementations based on ParallelExtensionsExtras project and https://gist.github.com/dgrunwald/1961087
+    /// </remarks>
     public static partial class TaskFactoryExtensions
     {
         /// <summary>

@@ -222,12 +222,18 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         //     }
         // }
 
-        public static Dictionary<TKey, TElement> ToDictionaryNonGreedy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector) //Lazy
+        /// <summary>
+        /// Converts an <see cref="IEnumerable{TSource}"/> to a <see cref="Dictionary{TKey, TElement}"/> keeping the first value encountered for duplicate keys (non-greedy).
+        /// </summary>
+        public static Dictionary<TKey, TElement> ToDictionaryNonGreedy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector)
         {
             return source.ToDictionaryNonGreedy(keySelector, elementSelector, EqualityComparer<TKey>.Default);
         }
 
-        public static Dictionary<TKey, TElement> ToDictionaryNonGreedy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer) //Lazy
+        /// <summary>
+        /// Converts an <see cref="IEnumerable{TSource}"/> to a <see cref="Dictionary{TKey, TElement}"/> with a custom key comparer, keeping the first value encountered for duplicate keys (non-greedy).
+        /// </summary>
+        public static Dictionary<TKey, TElement> ToDictionaryNonGreedy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer)
         {
             Guard.Against.Null(source, nameof(source));
             Guard.Against.Null(keySelector, nameof(keySelector));
@@ -248,12 +254,18 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             return result;
         }
 
-        public static Dictionary<TKey, TElement> ToDictionaryGreedy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector) //Lazy
+        /// <summary>
+        /// Converts an <see cref="IEnumerable{TSource}"/> to a <see cref="Dictionary{TKey, TElement}"/> where subsequent duplicate keys overwrite previous values.
+        /// </summary>
+        public static Dictionary<TKey, TElement> ToDictionaryGreedy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector)
         {
             return source.ToDictionaryGreedy(keySelector, elementSelector, EqualityComparer<TKey>.Default);
         }
 
-        public static Dictionary<TKey, TElement> ToDictionaryGreedy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer) //Lazy
+        /// <summary>
+        /// Converts an <see cref="IEnumerable{TSource}"/> to a <see cref="Dictionary{TKey, TElement}"/> with a custom key comparer where subsequent duplicate keys overwrite previous values.
+        /// </summary>
+        public static Dictionary<TKey, TElement> ToDictionaryGreedy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer)
         {
             Guard.Against.Null(source, nameof(source));
             Guard.Against.Null(keySelector, nameof(keySelector));
@@ -261,7 +273,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
             var result = new Dictionary<TKey, TElement>(comparer);
 
-            foreach (var item in source) //element
+            foreach (var item in source)
             {
                 result[keySelector(item)] = elementSelector(item);
             }
@@ -269,11 +281,17 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             return result;
         }
 
+        /// <summary>
+        /// Converts an <see cref="IEnumerable{TSource}"/> to a <see cref="Dictionary{TKey, TElement}"/> using index-aware key and element selectors.
+        /// </summary>
         public static Dictionary<TKey, TElement> ToDictionary<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, int, TKey> keySelector, Func<TSource, int, TElement> elementSelector)
         {
             return source.ToDictionary(keySelector, elementSelector, EqualityComparer<TKey>.Default);
         }
 
+        /// <summary>
+        /// Converts an <see cref="IEnumerable{TSource}"/> to a <see cref="Dictionary{TKey, TElement}"/> using index-aware key and element selectors and a custom key comparer.
+        /// </summary>
         public static Dictionary<TKey, TElement> ToDictionary<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, int, TKey> keySelector, Func<TSource, int, TElement> elementSelector, IEqualityComparer<TKey> comparer)
         {
             var result = new Dictionary<TKey, TElement>(comparer);
@@ -285,12 +303,15 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
                 result.Add(key, element);
                 i++;
             }
-            return result; ;
+            return result;
         }
 
+        /// <summary>
+        /// Returns true when the sequence is null or contains no elements.
+        /// </summary>
         public static bool IsNullOrEmpty<T>(this IEnumerable<T> source)
         {
-            return source == null || !source.Any(); // Smart enough (checked source) to discern lazy IEnumerable from ICollection with known Count
+            return source == null || !source.Any();
         }
 
         /// <summary>
@@ -351,25 +372,19 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             return defaultValue;
         }
 
-        // public static void CopyTo<T>(this IEnumerable<T> source, T[] array, int startIndex)
-        // {
-        // 	int lowerBound = array.GetLowerBound(0);
-        // 	int upperBound = array.GetUpperBound(0);
-        // 	if (startIndex < lowerBound)
-        // 		throw new ArgumentOutOfRangeException(nameof(startIndex), "The start index must be greater than or equal to the array lower bound");
-        // 	if (startIndex > upperBound)
-        // 		throw new ArgumentOutOfRangeException(nameof(startIndex), "The start index must be less than or equal to the array upper bound");
-        // 	int i = 0;
-        // 	foreach (var item in source)
-        // 	{
-        // 		if (startIndex + i > upperBound)
-        // 			throw new ArgumentException("The array capacity is insufficient to copy all items from the source sequence", nameof(startIndex));
-        // 		array[startIndex + i] = item;
-        // 		//Buffer.BlockCopy(...)?
-        // 		i++;
-        // 	}
-        // }
 
+
+        /// <summary>
+        /// Returns the 0-based index of the first element in the sequence matching the predicate, or -1 if not found.
+        /// </summary>
+        public static int IndexOf<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        {
+            return source.IndexOf((item, index) => predicate(item));
+        }
+
+        /// <summary>
+        /// Returns the 0-based index of the first element in the sequence matching the index-aware predicate, or -1 if not found.
+        /// </summary>
         public static int IndexOf<T>(this IEnumerable<T> source, Func<T, int, bool> predicate)
         {
             var index = -1;
@@ -385,12 +400,12 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
                     return index;
                 }
             }
-            return index;
+            return -1;
         }
 
-        // LazyCount
-        // EstimatedCount
-        // filterPredicate/wherePredicate
+        /// <summary>
+        /// Evaluates whether the count of items in the sequence matching the predicate reaches or exceeds <paramref name="max"/>.
+        /// </summary>
         public static bool EstimateCount<T>(this IEnumerable<T> source, int max, Func<T, bool> predicate)
         {
             var i = 0;
@@ -412,13 +427,16 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             return result;
         }
 
+        /// <summary>
+        /// Evaluates whether the count of items in the sequence matching the index-aware predicate reaches or exceeds <paramref name="max"/>.
+        /// </summary>
         public static bool EstimateCount<T>(this IEnumerable<T> source, int max, Func<T, int, bool> predicate)
         {
             var i = 0;
             var j = 0;
             var result = false;
 
-            foreach (var item in source) // element
+            foreach (var item in source)
             {
                 if (result = (i >= max))
                 {
@@ -437,12 +455,8 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         /// <summary>
-        /// Every
+        /// Determines whether all elements of a sequence satisfy an index-aware condition.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="source"></param>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
         [DebuggerNonUserCode]
         public static bool All<T>(this IEnumerable<T> source, Func<T, int, bool> predicate)
         {
@@ -451,7 +465,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
             var i = 0;
 
-            foreach (var item in source) // element
+            foreach (var item in source)
             {
                 if (!predicate(item, i))
                 {
@@ -464,7 +478,9 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             return true;
         }
 
-        // selector - descendBy
+        /// <summary>
+        /// Recursively yields the current elements and all their descendants selected by <paramref name="selector"/>.
+        /// </summary>
         public static IEnumerable<T> DescendantsAndSelf<T>(this IEnumerable<T> source, Func<T, IEnumerable<T>> selector) where T : class
         {
             foreach (var element in source)
@@ -476,6 +492,9 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             }
         }
 
+        /// <summary>
+        /// Recursively yields the root item and all its descendants selected by <paramref name="selector"/>.
+        /// </summary>
         public static IEnumerable<T> DescendantsAndSelf<T>(this T source, Func<T, IEnumerable<T>> selector) where T : class
         {
             yield return source;
@@ -488,57 +507,34 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             }
         }
 
+        /// <summary>
+        /// Recursively yields all descendants of the sequence elements selected by <paramref name="selector"/>.
+        /// </summary>
         public static IEnumerable<T> Descendants<T>(this IEnumerable<T> source, Func<T, IEnumerable<T>> selector) where T : class
         {
             return source.SelectMany(element => element.Descendants(selector));
         }
 
+        /// <summary>
+        /// Recursively yields all descendants of the specified root element selected by <paramref name="selector"/>.
+        /// </summary>
         public static IEnumerable<T> Descendants<T>(this T source, Func<T, IEnumerable<T>> selector) where T : class
         {
             return selector(source).SelectMany(element => element.DescendantsAndSelf(selector));
         }
 
-        // Traverse/DeepMap/Unfold
-        // static public IEnumerable<T> Descendants<T>(this IEnumerable<T> source, Func<T, IEnumerable<T>> selector)
-        // {
-        //     foreach (var element in source)
-        //     {
-        //         yield return element;
-        //         foreach (var descendant in selector(element).Descendants(selector))
-        //         {
-        //             yield return descendant;
-        //         }
-        //     }
-        // }
-
-        // Each
         /// <summary>
-        /// Executes the action for each item in the IEnumerable
+        /// Executes a callback for each element while the condition remains true.
         /// </summary>
-        /// <typeparam name="T">Object type</typeparam>
-        /// <param name="source">IEnumerable to iterate over</param>
-        /// <param name="action">Action to do</param>
-        /// <returns>The original list</returns>
-        [DebuggerNonUserCode]
-        public static IEnumerable<T> ForEach<T>(this IEnumerable<T> source, Action<T> action)
-        {
-            Guard.Against.Null(source, nameof(source));
-            Guard.Against.Null(action, nameof(action));
-
-            foreach (T item in source)
-            {
-                action(item);
-            }
-
-            return source;
-        }
-
         [DebuggerNonUserCode]
         public static void While<T>(this IEnumerable<T> source, Func<T, bool> callback)
         {
             source.While((element, index) => callback(element));
         }
 
+        /// <summary>
+        /// Executes an index-aware callback for each element while the condition remains true.
+        /// </summary>
         [DebuggerNonUserCode]
         public static void While<T>(this IEnumerable<T> source, Func<T, int, bool> callback)
         {
@@ -557,12 +553,18 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             }
         }
 
+        /// <summary>
+        /// Executes a callback for each element until the condition becomes true.
+        /// </summary>
         [DebuggerNonUserCode]
         public static void Until<T>(this IEnumerable<T> source, Func<T, bool> callback)
         {
             source.While((element, index) => !callback(element));
         }
 
+        /// <summary>
+        /// Executes an index-aware callback for each element until the condition becomes true.
+        /// </summary>
         [DebuggerNonUserCode]
         public static void Until<T>(this IEnumerable<T> source, Func<T, int, bool> callback)
         {
