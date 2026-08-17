@@ -14,5 +14,6 @@
 - [ ] feat--enumerable-estimation-extensions — Enumerable estimation and predicate extensions.
 
 ## Done (recent)
+- [x] debt--json-serializer-reflectron-optimization (2026-08-17) — Replace un-cached reflection in StandardJsonSerializer with fast compiled expression tree setters and property metadata cache.
 - [x] compression-manager-net10 (2026-08-04) — full `ICompressionManager` implementation on .NET 10 BCL.
 - [x] stream-extensions-hardening (2026-08-04) — correctness + zero-alloc rework.

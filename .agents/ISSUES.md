@@ -16,4 +16,5 @@ _Solution-level issues board. Project-specific issues live in their respective s
   - `feat--large-payload-compression`
 
 ## Done (recent)
+- `debt--json-serializer-reflectron-optimization`: Replace un-cached reflection in StandardJsonSerializer with fast compiled expression tree setters and property metadata cache
 - `feat--emitron-tests`: Create ActDim.Emitron unit test coverage for Roslyn compilation and evaluation

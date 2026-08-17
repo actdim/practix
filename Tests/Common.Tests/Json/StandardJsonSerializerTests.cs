@@ -686,6 +686,45 @@ public class StandardJsonSerializerTests
         Assert.Null(ex);
     }
 
+    [Fact]
+    public void PopulateObject_PolymorphicTargetAsObject_PopulatesProperties()
+    {
+        object target = new MutablePerson { Name = "Old", Age = 10 };
+        _ser.Populate("{\"Name\":\"Polymorphic\",\"Age\":42}", target);
+        var person = (MutablePerson)target;
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("Polymorphic", person.Name);
+            Assert.Equal(42, person.Age);
+        });
+    }
+
+    [Fact]
+    public void PopulateObject_CustomNamingPolicy_PopulatesProperties()
+    {
+        var options = _ser.CreateDefaultOptions();
+        options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        var target = new MutablePerson { Name = "Initial", Age = 1 };
+        _ser.Populate("{\"name\":\"CamelCase\",\"age\":99}", target, options);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("CamelCase", target.Name);
+            Assert.Equal(99, target.Age);
+        });
+    }
+
+    [Fact]
+    public void PopulateObject_RepeatedCalls_UsesCachedFastSetters()
+    {
+        for (int i = 0; i < 50; i++)
+        {
+            var target = new MutablePerson { Name = "Before", Age = i };
+            _ser.Populate($"{{\"Name\":\"After_{i}\",\"Age\":{i + 100}}}", target);
+            Assert.Equal($"After_{i}", target.Name);
+            Assert.Equal(i + 100, target.Age);
+        }
+    }
+
     // ── FormatPropertyName ───────────────────────────────────────────────────
 
     [Fact]
