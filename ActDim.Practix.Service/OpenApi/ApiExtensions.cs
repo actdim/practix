@@ -2,7 +2,6 @@ using ActDim.Practix.Abstractions.Json;
 using ActDim.Practix.Service.Settings;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
-using Autofac.Util;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -16,6 +15,18 @@ namespace ActDim.Practix.Service.OpenApi
 {
     public static partial class ApiExtensions
     {
+        private static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
+        {
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                return ex.Types.Where(t => t != null);
+            }
+        }
+
         public static IEnumerable<Type> GetControllerTypes()
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();

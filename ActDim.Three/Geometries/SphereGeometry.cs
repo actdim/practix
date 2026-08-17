@@ -1,4 +1,4 @@
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
 using ActDim.Three.Core;
 
 namespace ActDim.Three.Geometries

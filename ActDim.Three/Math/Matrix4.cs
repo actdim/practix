@@ -1,4 +1,4 @@
-﻿namespace ActDim.Three.Math
+namespace ActDim.Three.Math
 {
     /// <summary>
     /// A class representing a 4x4 matrix.

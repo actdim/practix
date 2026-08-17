@@ -1,4 +1,4 @@
-﻿namespace ActDim.AppRegistry.Domain.Security
+namespace ActDim.AppRegistry.Domain.Security
 {
     public class TokenInfo
     {

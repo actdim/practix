@@ -1,4 +1,4 @@
-﻿namespace ActDim.Three.Lights
+namespace ActDim.Three.Lights
 {
     /// <summary>
     /// This light globally illuminates all objects in the scene equally.

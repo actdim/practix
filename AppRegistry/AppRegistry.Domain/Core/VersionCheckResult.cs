@@ -1,4 +1,4 @@
-﻿namespace ActDim.AppRegistry.Domain.Core
+namespace ActDim.AppRegistry.Domain.Core
 {
     public class VersionCheckResult
     {

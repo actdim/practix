@@ -1,4 +1,4 @@
-﻿using ActDim.Three.Core;
+using ActDim.Three.Core;
 
 namespace ActDim.Three.Objects
 {

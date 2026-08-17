@@ -1,4 +1,4 @@
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
 using ActDim.Three.Core;
 using ActDim.Three.Math;
 

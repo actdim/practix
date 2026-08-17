@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
 
 namespace ActDim.AppRegistry.Domain.Core

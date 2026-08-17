@@ -12,28 +12,26 @@ namespace ActDim.Reflectron.Tests
 #pragma warning restore CS0659
         {
             public static TestClass1 Default = new TestClass1();
-            public static readonly string NameOf_TestRefProp1_1 = nameof(TestRefProp1_1);
-            public TestClass2 TestRefProp1_1 { get; set; }
-            public static readonly string NameOf_TestValProp1_1 = nameof(TestValProp1_1);
-            public string TestValProp1_1 { get; set; }
+            public TestClass2 RefProperty { get; set; }
+            public string StringProperty { get; set; }
 
             public string TestField = "FieldInitial";
 
             public TestClass1()
             {
-                TestRefProp1_1 = TestClass2.Default;
-                TestValProp1_1 = nameof(TestValProp1_1);
+                RefProperty = TestClass2.Default;
+                StringProperty = nameof(StringProperty);
             }
 
-            public TestClass1(TestClass2 testRefProp1_1, string testValProp1_1)
+            public TestClass1(TestClass2 refProperty, string stringProperty)
             {
-                TestRefProp1_1 = testRefProp1_1;
-                TestValProp1_1 = testValProp1_1;
+                RefProperty = refProperty;
+                StringProperty = stringProperty;
             }
 
             public string TestMethod(string arg1)
             {
-                return TestValProp1_1 + TestRefProp1_1.TestValProp2_1 + arg1;
+                return StringProperty + RefProperty.TextProperty + arg1;
             }
 
             public static string TestStaticMethod(string arg1, string arg2)
@@ -48,21 +46,26 @@ namespace ActDim.Reflectron.Tests
 
             public bool Equals(TestClass1 other)
             {
-                if (ReferenceEquals(null, other)) return false;
-                if (ReferenceEquals(this, other)) return true;
-                if (!Equals(TestRefProp1_1, other.TestRefProp1_1) || TestValProp1_1 != other.TestValProp1_1) return false;
-                return true;
+                if (ReferenceEquals(null, other))
+                {
+                    return false;
+                }
+                if (ReferenceEquals(this, other))
+                {
+                    return true;
+                }
+                return Equals(RefProperty, other.RefProperty) && StringProperty == other.StringProperty;
             }
         }
 
         public class TestClass2
         {
             public static TestClass2 Default = new TestClass2();
-            public string TestValProp2_1 { get; set; }
+            public string TextProperty { get; set; }
 
             public TestClass2()
             {
-                TestValProp2_1 = nameof(TestValProp2_1);
+                TextProperty = nameof(TextProperty);
             }
         }
 
@@ -81,32 +84,32 @@ namespace ActDim.Reflectron.Tests
         public void GetProperty_ReferenceTypeProperty_ReturnsValue()
         {
             var obj1 = new TestClass1(new TestClass2(), "test");
-            var p = obj1.GetProperty<TestClass2>(TestClass1.NameOf_TestRefProp1_1);
-            Assert.Equal(obj1.TestRefProp1_1, p);
+            var p = obj1.GetProperty<TestClass2>(nameof(TestClass1.RefProperty));
+            Assert.Equal(obj1.RefProperty, p);
         }
 
         [Fact]
         public void GetProperty_StringTypeProperty_ReturnsValue()
         {
             var obj1 = new TestClass1(new TestClass2(), "test");
-            var p = obj1.GetProperty<string>(TestClass1.NameOf_TestValProp1_1);
-            Assert.Equal(obj1.TestValProp1_1, p);
+            var p = obj1.GetProperty<string>(nameof(TestClass1.StringProperty));
+            Assert.Equal(obj1.StringProperty, p);
         }
 
         [Fact]
         public void GetPropertyGetter_TypedDelegate_ReturnsValue()
         {
             var obj1 = new TestClass1(new TestClass2(), "test");
-            var getter = TypeAccess<TestClass1>.GetPropertyGetter<TestClass2>(TestClass1.NameOf_TestRefProp1_1);
+            var getter = TypeAccess<TestClass1>.GetPropertyGetter<TestClass2>(nameof(TestClass1.RefProperty));
             var p = getter(obj1);
-            Assert.Equal(obj1.TestRefProp1_1, p);
+            Assert.Equal(obj1.RefProperty, p);
         }
 
         [Fact]
         public void GetPropertyGetter_Performance_OutperformsFastMember()
         {
             var obj1 = new TestClass1(new TestClass2(), "test");
-            var getter = TypeAccess<TestClass1>.GetPropertyGetter<TestClass2>(TestClass1.NameOf_TestRefProp1_1);
+            var getter = TypeAccess<TestClass1>.GetPropertyGetter<TestClass2>(nameof(TestClass1.RefProperty));
             var accessor = FastMember.TypeAccessor.Create(typeof(TestClass1));
 
             var sw1 = Stopwatch.StartNew();
@@ -119,10 +122,10 @@ namespace ActDim.Reflectron.Tests
             var sw2 = Stopwatch.StartNew();
             for (var i = 0; i < 100_000; i++)
             {
-                var p = accessor[obj1, TestClass1.NameOf_TestRefProp1_1];
+                var p = accessor[obj1, nameof(TestClass1.RefProperty)];
             }
             sw2.Stop();
-            
+
             Assert.True(sw2.Elapsed > sw1.Elapsed);
         }
 
@@ -130,19 +133,19 @@ namespace ActDim.Reflectron.Tests
         public void GetPropertyGetter_TypedValueDelegate_ReturnsValue()
         {
             var obj1 = new TestClass1(new TestClass2(), "test");
-            var getter = TypeAccess<TestClass1>.GetPropertyGetter<string>(TestClass1.NameOf_TestValProp1_1);
+            var getter = TypeAccess<TestClass1>.GetPropertyGetter<string>(nameof(TestClass1.StringProperty));
             var p = getter(obj1);
-            Assert.Equal(obj1.TestValProp1_1, p);
+            Assert.Equal(obj1.StringProperty, p);
         }
 
         [Fact]
         public void GetPropertySetter_SetsPropertyValueCorrectly()
         {
             var obj1 = new TestClass1();
-            var propInfo = typeof(TestClass1).GetProperty(TestClass1.NameOf_TestValProp1_1);
+            var propInfo = typeof(TestClass1).GetProperty(nameof(TestClass1.StringProperty));
             var setter = TypeAccess.GetPropertySetter(propInfo);
             setter.DynamicInvoke(obj1, "NewVal");
-            Assert.Equal("NewVal", obj1.TestValProp1_1);
+            Assert.Equal("NewVal", obj1.StringProperty);
         }
 
         // ------------------------------------------------------------------
@@ -176,8 +179,8 @@ namespace ActDim.Reflectron.Tests
         {
             var obj1 = new TestClass1(new TestClass2(), "test");
             var accessor = obj1.GetAccessor();
-            var p = accessor.GetProperty<TestClass2>(TestClass1.NameOf_TestRefProp1_1);
-            Assert.Equal(obj1.TestRefProp1_1, p);
+            var p = accessor.GetProperty<TestClass2>(nameof(TestClass1.RefProperty));
+            Assert.Equal(obj1.RefProperty, p);
         }
 
         [Fact]
@@ -185,8 +188,8 @@ namespace ActDim.Reflectron.Tests
         {
             var obj1 = new TestClass1(new TestClass2(), "test");
             var accessor = obj1.GetAccessor();
-            var p = accessor.GetProperty<string>(TestClass1.NameOf_TestValProp1_1);
-            Assert.Equal(obj1.TestValProp1_1, p);
+            var p = accessor.GetProperty<string>(nameof(TestClass1.StringProperty));
+            Assert.Equal(obj1.StringProperty, p);
         }
 
         [Fact]
@@ -251,18 +254,18 @@ namespace ActDim.Reflectron.Tests
         public void GetPropertyGetter_FuncDelegate_ReturnsValue()
         {
             var obj1 = new TestClass1(new TestClass2(), "test");
-            var d = obj1.GetPropertyGetter<Func<TestClass1, TestClass2>>(TestClass1.NameOf_TestRefProp1_1);
+            var d = obj1.GetPropertyGetter<Func<TestClass1, TestClass2>>(nameof(TestClass1.RefProperty));
             var p = d(obj1);
-            Assert.Equal(p, obj1.TestRefProp1_1);
+            Assert.Equal(p, obj1.RefProperty);
         }
 
         [Fact]
         public void GetPropertyGetter_StringFuncDelegate_ReturnsValue()
         {
             var obj1 = new TestClass1(new TestClass2(), "test");
-            var d = obj1.GetPropertyGetter<Func<TestClass1, string>>(TestClass1.NameOf_TestValProp1_1);
+            var d = obj1.GetPropertyGetter<Func<TestClass1, string>>(nameof(TestClass1.StringProperty));
             var p = d(obj1);
-            Assert.Equal(p, obj1.TestValProp1_1);
+            Assert.Equal(p, obj1.StringProperty);
         }
 
         // ------------------------------------------------------------------
@@ -370,9 +373,9 @@ namespace ActDim.Reflectron.Tests
         [Fact]
         public void GetMemberInfo_LambdaExpression_ReturnsMemberInfo()
         {
-            var memberInfo = TypeAccess.GetMemberInfo((TestClass1 c) => c.TestValProp1_1);
+            var memberInfo = TypeAccess.GetMemberInfo((TestClass1 c) => c.StringProperty);
             Assert.NotNull(memberInfo);
-            Assert.Equal(nameof(TestClass1.TestValProp1_1), memberInfo.Name);
+            Assert.Equal(nameof(TestClass1.StringProperty), memberInfo.Name);
         }
 
         [Fact]

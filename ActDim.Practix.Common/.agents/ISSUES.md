@@ -1,6 +1,7 @@
 # Issues   (glyphs: [ ] open  [~] in-progress  [!] blocked  [x] done)
 
 ## Active
+- [ ] feat--iconfiguration-application-config-manager — Convenient application configuration manager based on IConfiguration.
 - [~] debt--compression-interface-cleanup — 14 documented problems in `ICompressionManager` / `IArchiveEntry` / `ArchiveEntrySource`.
 - [ ] task--compression-large-payload-spill — `CompressionManager.CreateTempStream` memory vs FileStream spilling.
 - [ ] task--adaptive-stream — read-only seekable `Stream` for memory/temp-file spilling.
@@ -14,6 +15,8 @@
 - [ ] feat--enumerable-estimation-extensions — Enumerable estimation and predicate extensions.
 
 ## Done (recent)
+- [x] debt--remove-autofac-dependency (2026-08-17) — Remove Autofac dependency and migrate to standard Microsoft Dependency Injection.
+- [x] feat--extract-practix-json-assembly (2026-08-17) — Extract JSON serialization subsystem into dedicated ActDim.Practix.Json assembly.
 - [x] debt--json-serializer-reflectron-optimization (2026-08-17) — Replace un-cached reflection in StandardJsonSerializer with fast compiled expression tree setters and property metadata cache.
 - [x] compression-manager-net10 (2026-08-04) — full `ICompressionManager` implementation on .NET 10 BCL.
 - [x] stream-extensions-hardening (2026-08-04) — correctness + zero-alloc rework.

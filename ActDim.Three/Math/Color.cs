@@ -1,4 +1,4 @@
-﻿namespace ActDim.Three.Math
+namespace ActDim.Three.Math
 {
     public class Color
     {
