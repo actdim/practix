@@ -1,5 +1,6 @@
 using ActDim.Practix.Abstractions.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 
 namespace ActDim.Practix.Json.Extensions
@@ -10,7 +11,7 @@ namespace ActDim.Practix.Json.Extensions
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds <c>ActDim.Practix.Json</c> serialization services to the specified <see cref="IServiceCollection"/>.
+        /// Adds <c>ActDim.Practix.Json</c> serialization services (<see cref="IJsonSerializer"/> backed by <see cref="CoreJsonSerializer"/>) to the specified <see cref="IServiceCollection"/>.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
         /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
@@ -21,9 +22,18 @@ namespace ActDim.Practix.Json.Extensions
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddSingleton<IJsonSerializer, CoreJsonSerializer>();
-
+            services.TryAddSingleton<IJsonSerializer, CoreJsonSerializer>();
             return services;
+        }
+
+        /// <summary>
+        /// Adds <c>ActDim.Practix.Json</c> serialization services to the specified <see cref="IServiceCollection"/>.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+        /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+        public static IServiceCollection AddJsonSerializer(this IServiceCollection services)
+        {
+            return services.AddPractixJson();
         }
     }
 }
