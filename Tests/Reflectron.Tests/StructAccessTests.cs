@@ -1,6 +1,5 @@
 using System;
 using Xunit;
-
 using ActDim.Reflectron;
 
 namespace ActDim.Reflectron.Tests
@@ -25,7 +24,7 @@ namespace ActDim.Reflectron.Tests
         }
 
         [Fact]
-        public void CanReadStructPropertyAndField()
+        public void ObjectExtensions_StructInstance_ReadsPropertyAndField()
         {
             var p = new PointStruct(10, 20);
             var xProp = p.GetProperty<int>(nameof(PointStruct.X));
@@ -36,7 +35,7 @@ namespace ActDim.Reflectron.Tests
         }
 
         [Fact]
-        public void CanGetTypedGetterForStruct()
+        public void GetPropertyGetterAndFieldGetter_StructType_ReadsValuesCorrectly()
         {
             var p = new PointStruct(15, 25);
             var xGetter = TypeAccess<PointStruct>.GetPropertyGetter<int>(nameof(PointStruct.X));
@@ -47,7 +46,7 @@ namespace ActDim.Reflectron.Tests
         }
 
         [Fact]
-        public void CanInvokeMethodOnStruct()
+        public void GetMethodCaller_StructMethod_InvokesAndReturnsSum()
         {
             var p = new PointStruct(30, 40);
             var methodCaller = TypeAccess.GetMethodCaller<Func<PointStruct, int>>(typeof(PointStruct).GetMethod(nameof(PointStruct.GetSum)));
