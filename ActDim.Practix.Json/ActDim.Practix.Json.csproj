@@ -7,8 +7,8 @@
 		<Nullable>disable</Nullable>
 		<IsPackable>true</IsPackable>
 		<PackageId>ActDim.Practix.Json</PackageId>
-		<Description>High-performance JSON serialization subsystem for ActDim.Practix backed by System.Text.Json and ActDim.Reflectron.</Description>
-		<PackageTags>actdim;practix;json;serialization;fast-reflection</PackageTags>
+		<Description>High-performance JSON serialization subsystem for ActDim.Practix backed by System.Text.Json.</Description>
+		<PackageTags>actdim;practix;json;serialization;system-text-json</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
@@ -29,7 +29,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\ActDim.Practix.Abstractions\ActDim.Practix.Abstractions.csproj" />
 		<ProjectReference Include="..\ActDim.Practix.Common\ActDim.Practix.Common.csproj" />
-		<ProjectReference Include="..\ActDim.Reflectron\ActDim.Reflectron.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -1,10 +1,10 @@
 using ActDim.Practix.Abstractions.Json;
 using ActDim.Practix.Abstractions.Serialization;
-using ActDim.Reflectron;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -149,35 +149,41 @@ namespace ActDim.Practix.Json
             return options;
         }
 
+        private static readonly Action<JsonSerializerOptions, JsonSerializerOptions> CopyPropertiesAction = BuildCopyAction();
+
+        private static Action<JsonSerializerOptions, JsonSerializerOptions> BuildCopyAction()
+        {
+            var targetParam = Expression.Parameter(typeof(JsonSerializerOptions), "target");
+            var sourceParam = Expression.Parameter(typeof(JsonSerializerOptions), "source");
+
+            var properties = typeof(JsonSerializerOptions)
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanRead && p.CanWrite && p.GetIndexParameters().Length == 0);
+
+            var expressions = new List<Expression>();
+            foreach (var prop in properties)
+            {
+                var getter = Expression.Property(sourceParam, prop);
+                var setter = Expression.Assign(Expression.Property(targetParam, prop), getter);
+                expressions.Add(setter);
+            }
+
+            if (expressions.Count == 0)
+            {
+                return (_, _) => { };
+            }
+
+            var block = Expression.Block(expressions);
+            return Expression.Lambda<Action<JsonSerializerOptions, JsonSerializerOptions>>(block, targetParam, sourceParam).Compile();
+        }
+
         public void CopyOptions(
             JsonSerializerOptions target,
             JsonSerializerOptions source = default)
         {
             source ??= _options;
-            target.AllowTrailingCommas = source.AllowTrailingCommas;
-            target.DefaultBufferSize = source.DefaultBufferSize;
-            target.DefaultIgnoreCondition = source.DefaultIgnoreCondition;
-            target.DictionaryKeyPolicy = source.DictionaryKeyPolicy;
-            target.Encoder = source.Encoder;
-            target.IgnoreReadOnlyFields = source.IgnoreReadOnlyFields;
-            target.IgnoreReadOnlyProperties = source.IgnoreReadOnlyProperties;
-            target.IncludeFields = source.IncludeFields;
-            target.IndentCharacter = source.IndentCharacter;
-            target.IndentSize = source.IndentSize;
-            target.MaxDepth = source.MaxDepth;
-            target.NewLine = source.NewLine;
-            target.NumberHandling = source.NumberHandling;
-            target.PreferredObjectCreationHandling = source.PreferredObjectCreationHandling;
-            target.PropertyNameCaseInsensitive = source.PropertyNameCaseInsensitive;
-            target.PropertyNamingPolicy = source.PropertyNamingPolicy;
-            target.ReadCommentHandling = source.ReadCommentHandling;
-            target.ReferenceHandler = source.ReferenceHandler;
-            target.RespectNullableAnnotations = source.RespectNullableAnnotations;
-            target.RespectRequiredConstructorParameters = source.RespectRequiredConstructorParameters;
-            target.TypeInfoResolver = source.TypeInfoResolver;
-            target.UnknownTypeHandling = source.UnknownTypeHandling;
-            target.UnmappedMemberHandling = source.UnmappedMemberHandling;
-            target.WriteIndented = source.WriteIndented;
+
+            CopyPropertiesAction(target, source);
 
             foreach (var resolver in source.TypeInfoResolverChain)
             {
@@ -417,6 +423,20 @@ namespace ActDim.Practix.Json
         private static readonly ConcurrentDictionary<(Type TargetType, JsonNamingPolicy NamingPolicy), FastPropertySetterInfo[]> PropertySetterCache
             = new ConcurrentDictionary<(Type, JsonNamingPolicy), FastPropertySetterInfo[]>();
 
+        private static Action<object, object> CreatePropertySetter(PropertyInfo prop)
+        {
+            var instanceParam = Expression.Parameter(typeof(object), "instance");
+            var valueParam = Expression.Parameter(typeof(object), "value");
+
+            var declaringType = prop.DeclaringType ?? prop.ReflectedType ?? typeof(object);
+            var instanceCast = Expression.Convert(instanceParam, declaringType);
+            var valueCast = Expression.Convert(valueParam, prop.PropertyType);
+            var propertyAccess = Expression.Property(instanceCast, prop);
+            var assign = Expression.Assign(propertyAccess, valueCast);
+
+            return Expression.Lambda<Action<object, object>>(assign, instanceParam, valueParam).Compile();
+        }
+
         private static FastPropertySetterInfo[] GetOrCreatePropertySetters(Type targetType, JsonSerializerOptions options)
         {
             var key = (targetType, options?.PropertyNamingPolicy);
@@ -432,7 +452,7 @@ namespace ActDim.Practix.Json
                         continue;
                     }
 
-                    var compiledSetter = TypeAccess.GetPropertySetter<object, object>(prop);
+                    var compiledSetter = CreatePropertySetter(prop);
                     if (compiledSetter == null)
                     {
                         continue;

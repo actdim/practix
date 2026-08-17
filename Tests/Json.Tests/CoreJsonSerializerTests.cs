@@ -859,6 +859,28 @@ public class CoreJsonSerializerTests
         Assert.Equal(countFirst, target.Converters.Count);
     }
 
+    [Fact]
+    public void CopyOptions_CopiesAllPropertiesFromCustomSource()
+    {
+        var source = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            MaxDepth = 42,
+            PropertyNameCaseInsensitive = true,
+            AllowTrailingCommas = true
+        };
+
+        var target = new JsonSerializerOptions();
+        _ser.CopyOptions(target, source);
+
+        Assert.True(target.WriteIndented);
+        Assert.Equal(JsonIgnoreCondition.WhenWritingNull, target.DefaultIgnoreCondition);
+        Assert.Equal(42, target.MaxDepth);
+        Assert.True(target.PropertyNameCaseInsensitive);
+        Assert.True(target.AllowTrailingCommas);
+    }
+
     // ── Exception serialization ──────────────────────────────────────────────
 
     [Fact]
