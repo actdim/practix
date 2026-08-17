@@ -1,6 +1,5 @@
 using System;
 using Xunit;
-
 using ActDim.Reflectron;
 
 namespace ActDim.Reflectron.Tests
@@ -33,7 +32,7 @@ namespace ActDim.Reflectron.Tests
         }
 
         [Fact]
-        public void CanInvokeMethodWithRefAndOutParameters()
+        public void GetMethodCaller_InstanceMethodWithRefAndOut_ModifiesArgumentsInArray()
         {
             int initVal = 5;
             string initStatus;
@@ -51,7 +50,7 @@ namespace ActDim.Reflectron.Tests
         }
 
         [Fact]
-        public void CanInvokeStaticMethodWithRefAndOutParameters()
+        public void GetMethodCaller_StaticMethodWithRefAndOut_ModifiesArgumentsInArray()
         {
             var methodInfo = typeof(SampleRefOutClass).GetMethod(nameof(SampleRefOutClass.StaticModify));
             var caller = TypeAccess.GetMethodCaller(methodInfo);
@@ -64,7 +63,7 @@ namespace ActDim.Reflectron.Tests
         }
 
         [Fact]
-        public void CanInvokeConstructorWithRefAndOutParameters()
+        public void GetConstructorEx_ConstructorWithRefAndOut_InstantiatesAndModifiesArguments()
         {
             var ctorInfo = typeof(SampleRefOutClass).GetConstructor(new[] { typeof(int).MakeByRefType(), typeof(string).MakeByRefType() });
             Assert.NotNull(ctorInfo);
@@ -77,11 +76,6 @@ namespace ActDim.Reflectron.Tests
             Assert.Equal(25, (int)args[0]);
             Assert.Equal("Initialized", (string)args[1]);
             Assert.Equal(25, instance.Value);
-        }
-
-        private static int UnsafeRef(int v)
-        {
-            return v;
         }
     }
 }

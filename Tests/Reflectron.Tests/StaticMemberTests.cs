@@ -1,6 +1,5 @@
 using System;
 using Xunit;
-
 using ActDim.Reflectron;
 
 namespace ActDim.Reflectron.Tests
@@ -14,7 +13,7 @@ namespace ActDim.Reflectron.Tests
         }
 
         [Fact]
-        public void CanGetAndSetStaticProperty()
+        public void GetPropertyGetterAndSetter_StaticProperty_GetsAndSetsValue()
         {
             SampleStaticHolder.StaticProperty = "TestVal";
             var propInfo = typeof(SampleStaticHolder).GetProperty(nameof(SampleStaticHolder.StaticProperty));
@@ -30,7 +29,7 @@ namespace ActDim.Reflectron.Tests
         }
 
         [Fact]
-        public void CanGetAndSetStaticField()
+        public void GetFieldGetterAndSetter_StaticField_GetsAndSetsValue()
         {
             SampleStaticHolder.StaticField = 42;
             var fieldInfo = typeof(SampleStaticHolder).GetField(nameof(SampleStaticHolder.StaticField));

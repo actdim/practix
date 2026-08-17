@@ -1,6 +1,5 @@
 using System;
 using Xunit;
-
 using ActDim.Reflectron;
 
 namespace ActDim.Reflectron.Tests
@@ -18,7 +17,7 @@ namespace ActDim.Reflectron.Tests
         }
 
         [Fact]
-        public void CanAddAndRemoveEventHandlersDynamically()
+        public void GetEventAdderAndRemover_UntypedDelegates_AddsAndRemovesHandler()
         {
             var publisher = new EventPublisher();
             var eventInfo = typeof(EventPublisher).GetEvent(nameof(EventPublisher.SomethingHappened));
@@ -41,7 +40,7 @@ namespace ActDim.Reflectron.Tests
         }
 
         [Fact]
-        public void CanAddAndRemoveTypedEventHandlers()
+        public void GetEventAdderAndRemover_TypedDelegates_AddsAndRemovesHandler()
         {
             var publisher = new EventPublisher();
             var eventInfo = typeof(EventPublisher).GetEvent(nameof(EventPublisher.SomethingHappened));
@@ -60,6 +59,18 @@ namespace ActDim.Reflectron.Tests
             remover(publisher, handler);
             publisher.Raise("Test");
             Assert.Equal(1, count);
+        }
+
+        [Fact]
+        public void GetEventAdder_NullEventInfo_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => TypeAccess.GetEventAdder(null));
+        }
+
+        [Fact]
+        public void GetEventRemover_NullEventInfo_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => TypeAccess.GetEventRemover(null));
         }
     }
 }
