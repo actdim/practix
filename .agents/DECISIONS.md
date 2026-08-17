@@ -82,5 +82,10 @@
   - Removed obsolete `PushTags(params string[])`, `IncludeCallContext`, and `SuppressAmbientProperties()`.
   - Documentation and XML comments consistently use .NET BCL terminology (`Activity`, `Activity.SetTag`).
 - **Consequences:** Eliminates greedy span pollution and payload bloat. Developers can safely store heavy objects in `IAmbientContext` without trace side effects. Clean separation between ambient application state and telemetry state.
-
-
+## 2026-08-17 — ADR-013: Domain Exception Hierarchy — Introduce `DataFormatException` & Relocate `IncompleteDataException` to `Abstractions`
+- **Context:** `IncompleteDataException` and custom `InvalidDataException` were declared in `ActDim.Practix.Common`. Custom `InvalidDataException` collided directly with .NET BCL's `System.IO.InvalidDataException`, causing namespace shadowing. Furthermore, format validation (such as archive or compression header detection) and data payload parsing needed a dedicated, non-string-bound domain exception.
+- **Decision:**
+  - Introduced `DataFormatException` in `ActDim.Practix.Abstractions/Exceptions/DataFormatException.cs` (namespace `ActDim.Practix.Abstractions.Exceptions`) for data structure, payload, and protocol format errors.
+  - Relocated `IncompleteDataException` to `ActDim.Practix.Abstractions/Exceptions/IncompleteDataException.cs` under `ActDim.Practix.Abstractions.Exceptions` and derived it from `DataFormatException` (`IncompleteDataException : DataFormatException`).
+  - Deleted custom `ActDim.Practix.Common.InvalidDataException` to eliminate shadowing with BCL `System.IO.InvalidDataException`.
+- **Consequences:** Provides a clean, expressively typed domain exception hierarchy in `Abstractions` (`DataFormatException` -> `IncompleteDataException`) with zero BCL naming collisions.

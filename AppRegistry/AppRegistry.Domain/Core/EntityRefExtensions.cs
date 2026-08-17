@@ -1,3 +1,5 @@
+using System;
+
 namespace ActDim.AppRegistry.Domain.Core
 {
     public static class EntityRefExtensions
@@ -12,7 +14,7 @@ namespace ActDim.AppRegistry.Domain.Core
                 return type;
             }
 
-            throw new InvalidDataException();
+            throw new NotSupportedException($"Entity type code '{entityRef?.EntityTypeCode}' is not supported.");
         }
     }
 }

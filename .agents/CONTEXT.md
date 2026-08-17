@@ -12,11 +12,11 @@ Current state snapshot of `actdim/practix` (.NET).
 - **`ActDim.Observability`**: OpenTelemetry-centric telemetry, ambient context management (`IObservabilityContext`, `EventObservabilityBridge`), and `AddEventObservability()` DI helper. [Packable NuGet Package w/ README]
 
 ### Framework & Application Assemblies (`ActDim.Practix.*`)
-- **`ActDim.Practix.Abstractions`**: Framework base interfaces, contracts, and domain abstractions. [Packable NuGet Package w/ README]
+- **`ActDim.Practix.Abstractions`**: Framework base interfaces, contracts, domain abstractions, design patterns (`IProvider`, `IFactory`, `IBuilder`, `ICommand`, `IHandler`, `ISpecification`), and exceptions (`DataFormatException`, `IncompleteDataException` in `ActDim.Practix.Abstractions.Exceptions`). [Packable NuGet Package w/ README]
 - **`ActDim.Practix.Common`**: Shared utilities, concurrent collection factories (`ConcurrentFactoryDictionary`), compression (`CompressionManager`), caching proxies, and granular Microsoft DI extensions (`AddAmbientContext()`, `AddCompressionManager()`, `AddMemoryCachingProxy()`, `AddDistributedCachingProxy()`). [Packable NuGet Package w/ README]
 - **`ActDim.Practix.Json`**: Dedicated JSON serialization assembly (`CoreJsonSerializer`, custom converters, policies, attributes) leveraging `ActDim.Reflectron` for fast property setters and Microsoft DI extensions (`AddPractixJson()`). [Packable NuGet Package w/ README]
 - **`ActDim.Practix.DataAccess`**: Data access layer. [Non-Packable Application Assembly]
-- **`ActDim.Practix.Service`**: Primary backend service host using standard Microsoft DI (`IServiceCollection`). [Non-Packable Application Assembly]
+- **`ActDim.Practix.Service`**: Primary backend service host using standard Microsoft DI (`IServiceCollection`), including API response envelopes (`BaseApiResult`, `ApiResult` in `ActDim.Practix.Service.Api`). [Non-Packable Application Assembly]
 
 ## Packaging & Dependency Injection Standard
 - **NuGet Packaging Standard**: 8 library projects configured for NuGet package creation with centralized `Directory.Build.props` metadata, explicit `<IsPackable>true</IsPackable>`, `<PackageReadmeFile>README.md</PackageReadmeFile>`, and embedded `README.md` files. Internal application/repo projects explicitly set `<IsPackable>false</IsPackable>`.
