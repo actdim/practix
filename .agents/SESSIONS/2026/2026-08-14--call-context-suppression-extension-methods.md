@@ -30,10 +30,10 @@ summary: Implemented dynamic telemetry suppression (IncludeExternalScopes, Inclu
 - `ActDim.Practix.Abstractions/Context/CallContextProperty.cs`
 - `ActDim.Practix.Common/Context/CallContext.cs`
 - `ActDim.Practix.Common/Context/CallContextExtensions.cs` [NEW]
-- `ActDim.Practix.Logging/EventLoggerOptions.cs` [NEW]
-- `ActDim.Practix.Logging/EventLoggerFactory.cs`
-- `ActDim.Practix.Logging/EventLogger.cs`
-- `ActDim.Practix.Logging/EventLoggerExtensions.cs`
-- `ActDim.Practix.Logging/README.md`
+- `ActDim.Observability/EventLoggerOptions.cs` [NEW]
+- `ActDim.Observability/EventLoggerFactory.cs`
+- `ActDim.Observability/EventLogger.cs`
+- `ActDim.Observability/EventLoggerExtensions.cs`
+- `ActDim.Observability/README.md`
 - `Tests/Logging.Tests/LoggingTests.cs`
 - `AGENTS.md`

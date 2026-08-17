@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(dotnet build \"d:\\\\Src\\\\my\\\\actdim\\\\public\\\\dotnet\\\\ActDim.Practix.Observability\\\\ActDim.Practix.Observability.csproj\" -v:m --nologo 2>$null)",
+      "PowerShell(Remove-Item \"d:\\\\Src\\\\my\\\\actdim\\\\public\\\\dotnet\\\\.agents\\\\ISSUES\\\\bug--span-enrichment-gated-by-log-level.md\" -Confirm:$false)",
+      "PowerShell(dotnet run --project \"C:\\\\Users\\\\Admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--Src-my-actdim-public-dotnet\\\\2723c5cc-921e-47c9-8a70-317e72ac5f58\\\\scratchpad\\\\dupprobe\" -v:q --nologo 2>$null)",
+      "PowerShell(dotnet run --project \"C:\\\\Users\\\\Admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--Src-my-actdim-public-dotnet\\\\2723c5cc-921e-47c9-8a70-317e72ac5f58\\\\scratchpad\\\\identityprobe\" -c Release -v:q --nologo 2>$null)",
+      "PowerShell(Remove-Item \"d:\\\\Src\\\\my\\\\actdim\\\\public\\\\dotnet\\\\ActDim.Practix.Common\\\\Context\\\\CallContextExtensions.cs\" -Confirm:$false)",
+      "PowerShell($f = \"d:\\\\Src\\\\my\\\\actdim\\\\public\\\\dotnet\\\\Tests\\\\Observability.Tests\\\\ObservabilityTests.cs\"; $t = Get-Content $f -Raw -Encoding utf8; $t = $t.Replace\\('var callContext = _serviceProvider.GetRequiredService<ICallContextProvider>\\(\\).Get\\(\\);', 'var observability = _serviceProvider.GetRequiredService<IObservabilityContext>\\(\\);'\\); $t = $t.Replace\\('var callContext = serviceProvider.GetRequiredService<ICallContextProvider>\\(\\).Get\\(\\);', 'var observability = serviceProvider.GetRequiredService<IObservabilityContext>\\(\\);'\\); $t = $t.Replace\\('callContext.SuppressCallContext\\(\\)', 'observability.SuppressAmbientProperties\\(\\)'\\); $t = $t.Replace\\('callContext.', 'observability.'\\); [System.IO.File]::WriteAllText\\($f, $t, \\(New-Object System.Text.UTF8Encoding $true\\)\\); Select-String -Path $f -Pattern \"observability\\\\.\" | ForEach-Object { $_.LineNumber.ToString\\(\\) + \": \" + $_.Line.Trim\\(\\) })",
+      "PowerShell(Remove-Item \"d:\\\\Src\\\\my\\\\actdim\\\\public\\\\dotnet\\\\.agents\\\\ISSUES\\\\task--ambient-context-pushed-after-scope.md\" -Confirm:$false)",
+      "PowerShell(Select-String -Path \"d:\\\\Src\\\\my\\\\actdim\\\\public\\\\dotnet\\\\.agents\\\\DECISIONS.md\" -Pattern \"^## \" | ForEach-Object { $_.Line }; \"--- CONTEXT ---\"; Get-Content \"d:\\\\Src\\\\my\\\\actdim\\\\public\\\\dotnet\\\\.agents\\\\CONTEXT.md\" -Encoding utf8)"
+    ]
+  }
+}

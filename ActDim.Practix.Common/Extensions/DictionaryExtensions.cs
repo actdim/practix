@@ -58,15 +58,13 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 		/// <exception cref="System.ArgumentNullException">key</exception>
 		public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
 		{
-			if (key == null)
-			{
-				throw new ArgumentNullException(nameof(key));
-			}
+			Guard.Against.Null(key, nameof(key));
 			if (!dictionary.TryGetValue(key, out TValue local))
 			{
 				local = value;
 				dictionary.Add(key, local);
 			}
+
 			return local;
 		}
 
@@ -87,35 +85,15 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 		/// </exception>
 		public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory) //where TValue : class, new()
 		{
-			if (key == null)
-			{
-				throw new ArgumentNullException(nameof(key));
-			}
+			Guard.Against.Null(key, nameof(key));
+			Guard.Against.Null(valueFactory, nameof(valueFactory));
 
-            Guard.Against.Null(valueFactory, nameof(valueFactory));
-
-            if (!dictionary.TryGetValue(key, out TValue value))
+			if (!dictionary.TryGetValue(key, out TValue value))
 			{
 				value = valueFactory(key);
 				dictionary.Add(key, value);
 			}
 			return value;
 		}
-
-		// SLOW:
-		// https://www.codeproject.com/Articles/724978/GetOrCreateValueDictionary
-		//public static TV GetOrAddSafe<TK, TV>(this ConcurrentDictionary<TK, Lazy<TV>> dictionary, TK key, Func<TK, TV> creator)
-		//{
-		//	Lazy<TV> lazy = dictionary.GetOrAdd(key, new Lazy<TV>(() => creator(key)));
-		//	return lazy.Value;
-		//}
-
-		//public static TV AddOrUpdateSafe<TK, TV>(this ConcurrentDictionary<TK, Lazy<TV>> dictionary, TK key, Func<TK, TV> creator, Func<TK, TV, TV> updater)
-		//{
-		//	Lazy<TV> lazy = dictionary.AddOrUpdate(key,
-		//		new Lazy<TV>(() => creator(key)),
-		//		(k, oldValue) => new Lazy<TV>(() => updater(k, oldValue.Value)));
-		//	return lazy.Value;
-		//}
 	}
 }

@@ -25,7 +25,7 @@ summary: Implemented selective provider suppression (SuppressConsole, SuppressPr
 ## Files Touched
 - `ActDim.Practix.Abstractions/Context/CallContextProperty.cs`
 - `ActDim.Practix.Common/Context/CallContextExtensions.cs`
-- `ActDim.Practix.Observability/EventObservabilityOptions.cs`
-- `ActDim.Practix.Observability/EventObservabilityBridge.cs`
-- `ActDim.Practix.Observability/README.md`
+- `ActDim.Observability/EventObservabilityOptions.cs`
+- `ActDim.Observability/EventObservabilityBridge.cs`
+- `ActDim.Observability/README.md`
 - `Tests/Observability.Tests/ObservabilityTests.cs`

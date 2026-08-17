@@ -20,9 +20,9 @@ summary: Renamed EventObserver to EventObservabilityBridge to precisely represen
    - Confirmed all 7 unit tests pass clean (`Passed: 7, Failed: 0`).
 
 ## Files Touched
-- `ActDim.Practix.Observability/EventObservabilityBridge.cs` [NEW]
-- `ActDim.Practix.Observability/EventObservabilityLoggerFactory.cs`
-- `ActDim.Practix.Observability/EventObservabilityExtensions.cs`
-- `ActDim.Practix.Observability/EventObservabilityOptions.cs`
-- `ActDim.Practix.Observability/README.md`
+- `ActDim.Observability/EventObservabilityBridge.cs` [NEW]
+- `ActDim.Observability/EventObservabilityLoggerFactory.cs`
+- `ActDim.Observability/EventObservabilityExtensions.cs`
+- `ActDim.Observability/EventObservabilityOptions.cs`
+- `ActDim.Observability/README.md`
 - `Tests/Observability.Tests/ObservabilityTests.cs`

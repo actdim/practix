@@ -1,7 +1,7 @@
 #nullable enable
 using ActDim.Practix.Abstractions.Context;
 using ActDim.Practix.Context;
-using ActDim.Practix.Observability;
+using ActDim.Observability;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -11,7 +11,7 @@ using System.Linq;
 using System.Reflection;
 using Xunit;
 
-namespace ActDim.Practix.Observability.Tests
+namespace ActDim.Observability.Tests
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class TestProviderAliasAttribute : Attribute

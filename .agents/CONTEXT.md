@@ -3,7 +3,7 @@
 Current state snapshot of `actdim/practix` (.NET).
 
 ## Current State
-- Telemetry & Observability package: **`ActDim.Practix.Observability`**.
+- Telemetry & Observability package: **`ActDim.Observability`**.
 - Core bridge implementation: **`EventObservabilityBridge`** (`ILogger` & `ISupportExternalScope` decorator).
 - DI Registration: **`services.AddEventObservability()`**.
 - Signal separation (ADR-008) — the rule the whole bridge now follows:

@@ -33,14 +33,14 @@ summary: Renamed InterceptingLogger to EventLogger, refactored into clean indivi
 - `ActDim.Practix.Abstractions/Context/ICallContextProvider.cs`
 - `ActDim.Practix.Common/Context/CallContext.cs`
 - `ActDim.Practix.Common/Context/CallContextProvider.cs`
-- `ActDim.Practix.Logging/LogEvent.cs` [NEW]
-- `ActDim.Practix.Logging/EventLoggerFactory.cs` [NEW]
-- `ActDim.Practix.Logging/EventLogger.cs` [NEW]
-- `ActDim.Practix.Logging/EventLoggerHelper.cs` [NEW]
-- `ActDim.Practix.Logging/EventLoggerExtensions.cs` [NEW]
-- `ActDim.Practix.Logging/Logging.cs` [DELETED]
-- `ActDim.Practix.Logging/README.md`
-- `ActDim.Practix.Logging/AGENTS.md`
-- `ActDim.Practix.Logging/.agents/VISION.md`
+- `ActDim.Observability/LogEvent.cs` [NEW]
+- `ActDim.Observability/EventLoggerFactory.cs` [NEW]
+- `ActDim.Observability/EventLogger.cs` [NEW]
+- `ActDim.Observability/EventLoggerHelper.cs` [NEW]
+- `ActDim.Observability/EventLoggerExtensions.cs` [NEW]
+- `ActDim.Observability/Logging.cs` [DELETED]
+- `ActDim.Observability/README.md`
+- `ActDim.Observability/AGENTS.md`
+- `ActDim.Observability/.agents/VISION.md`
 - `Tests/Logging.Tests/LoggingTests.cs`
 - `AGENTS.md`

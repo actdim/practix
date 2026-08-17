@@ -27,7 +27,7 @@ namespace ActDim.Practix.Common.Introspection
         public bool IsPointer { get; set; }
         public bool IsByRef { get; set; }
         public TypeBaseIntrospectionInfo ElementType { get; set; }
-        public new TypeBaseIntrospectionInfo BaseType { get; set; }
+        public TypeBaseIntrospectionInfo BaseType { get; set; }
         public TypeBaseIntrospectionInfo[] GenericParameters { get; set; }
         public TypeBaseIntrospectionInfo[] GenericArguments { get; set; }
 
@@ -50,6 +50,7 @@ namespace ActDim.Practix.Common.Introspection
             IsGenericDefinition = t.IsGenericTypeDefinition;
             IsNested = t.IsNested;
             IsNotPublic = t.IsNotPublic;
+            IsPublic = t.IsPublic;
             IsArray = t.IsArray;
             IsPointer = t.IsPointer;
             IsByRef = t.IsByRef;

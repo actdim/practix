@@ -24,11 +24,11 @@ Rather than adding a second level threshold, the signals were separated (ADR-008
 **4. The exception carve-out duplicated itself on every layer.** Probe over the ordinary catch / log / rethrow pattern across three layers of one operation produced three identical `exception` events on one span. Added `SpanExceptionRecorder` (ADR-010): a `ConditionalWeakTable` keyed by the exception instance tracks the spans it has already been recorded on. Verified that identity survives `throw;` and `await`, that wrapping yields a separate record, and that the probe now reports a single event.
 
 ## Files touched
-- `ActDim.Practix.Observability/EventObservabilityBridge.cs` — `Log` reduced to log record + exception carve-out; `EnrichSpanFromScope`, `ResolveOperationName` added; `EnrichActivityFromLogCall` removed.
-- `ActDim.Practix.Observability/SpanExceptionRecorder.cs` (new)
-- `ActDim.Practix.Observability/EventObservabilityOptions.cs` — `RecordExceptionsOnSpan`.
-- `ActDim.Practix.Observability/ObservabilityTagNames.cs` — `Message` / `Level` / `EventId` removed; only `Collisions` remains.
-- `ActDim.Practix.Observability/EventObservabilityHelper.cs` — `FlattenPairs`.
+- `ActDim.Observability/EventObservabilityBridge.cs` — `Log` reduced to log record + exception carve-out; `EnrichSpanFromScope`, `ResolveOperationName` added; `EnrichActivityFromLogCall` removed.
+- `ActDim.Observability/SpanExceptionRecorder.cs` (new)
+- `ActDim.Observability/EventObservabilityOptions.cs` — `RecordExceptionsOnSpan`.
+- `ActDim.Observability/ObservabilityTagNames.cs` — `Message` / `Level` / `EventId` removed; only `Collisions` remains.
+- `ActDim.Observability/EventObservabilityHelper.cs` — `FlattenPairs`.
 - `Tests/Observability.Tests/ObservabilityTests.cs`
 - `.agents/DECISIONS.md`, `.agents/ISSUES.md`, `.agents/ISSUES/*`, `.agents/CONTEXT.md`, `.agents/GLOSSARY.md`, `.agents/HISTORY.md`
 

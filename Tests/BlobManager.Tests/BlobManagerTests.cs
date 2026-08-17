@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace ActDim.Practix.BlobManager.Tests
+namespace ActDim.BlobManager.Tests
 {
     public class BlobManagerTests
     {

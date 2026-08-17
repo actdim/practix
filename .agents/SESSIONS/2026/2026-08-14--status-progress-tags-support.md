@@ -24,5 +24,5 @@ summary: Implemented status, progress, icon, and tags support in CallContextExte
 ## Files Touched
 - `ActDim.Practix.Abstractions/Context/CallContextProperty.cs`
 - `ActDim.Practix.Common/Context/CallContextExtensions.cs`
-- `ActDim.Practix.Observability/README.md`
+- `ActDim.Observability/README.md`
 - `Tests/Observability.Tests/ObservabilityTests.cs`

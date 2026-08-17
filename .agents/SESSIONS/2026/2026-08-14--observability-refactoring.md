@@ -4,16 +4,16 @@ slug: observability-refactoring
 agent: antigravity
 branch: main
 commit: pending
-summary: Renamed Logging package and namespaces to ActDim.Practix.Observability, renamed EventLogger to EventObserver, added AddEventObservability extension.
+summary: Renamed Logging package and namespaces to ActDim.Observability, renamed EventLogger to EventObserver, added AddEventObservability extension.
 ---
 
-# Session Log: Refactoring to ActDim.Practix.Observability & EventObserver
+# Session Log: Refactoring to ActDim.Observability & EventObserver
 
 ## Summary of Changes
 1. **Architectural Rename to Observability:**
-   - Renamed package/assembly `ActDim.Practix.Logging` $\rightarrow$ `ActDim.Practix.Observability`.
+   - Renamed package/assembly `ActDim.Observability` $\rightarrow$ `ActDim.Observability`.
    - Renamed test project `Tests/Logging.Tests` $\rightarrow$ `Tests/Observability.Tests`.
-   - Renamed namespaces to `ActDim.Practix.Observability`.
+   - Renamed namespaces to `ActDim.Observability`.
 
 2. **Renamed Types:**
    - `EventLogger` $\rightarrow$ **`EventObserver`** (implements `ILogger`, `ISupportExternalScope`).
@@ -27,14 +27,14 @@ summary: Renamed Logging package and namespaces to ActDim.Practix.Observability,
    - Verified clean compilation and 7/7 passing unit tests (`Passed: 7, Failed: 0`).
 
 ## Files Touched
-- `ActDim.Practix.Observability/ActDim.Practix.Observability.csproj` [NEW]
-- `ActDim.Practix.Observability/LogEvent.cs` [NEW]
-- `ActDim.Practix.Observability/EventObserver.cs` [NEW]
-- `ActDim.Practix.Observability/EventObserverLoggerFactory.cs` [NEW]
-- `ActDim.Practix.Observability/EventObservabilityHelper.cs` [NEW]
-- `ActDim.Practix.Observability/EventObservabilityOptions.cs` [NEW]
-- `ActDim.Practix.Observability/EventObservabilityExtensions.cs` [NEW]
-- `ActDim.Practix.Observability/README.md` [NEW]
-- `Tests/Observability.Tests/ActDim.Practix.Observability.Tests.csproj` [NEW]
+- `ActDim.Observability/ActDim.Observability.csproj` [NEW]
+- `ActDim.Observability/LogEvent.cs` [NEW]
+- `ActDim.Observability/EventObserver.cs` [NEW]
+- `ActDim.Observability/EventObserverLoggerFactory.cs` [NEW]
+- `ActDim.Observability/EventObservabilityHelper.cs` [NEW]
+- `ActDim.Observability/EventObservabilityOptions.cs` [NEW]
+- `ActDim.Observability/EventObservabilityExtensions.cs` [NEW]
+- `ActDim.Observability/README.md` [NEW]
+- `Tests/Observability.Tests/ActDim.Observability.Tests.csproj` [NEW]
 - `Tests/Observability.Tests/ObservabilityTests.cs` [NEW]
 - `ActDim.Practix.sln`
