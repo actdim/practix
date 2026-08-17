@@ -7,8 +7,13 @@
 		<PackageId>ActDim.Emitron</PackageId>
 		<Description>Roslyn-based C# evaluation engine and template interpolation compiler.</Description>
 		<PackageTags>actdim;emitron;roslyn;evaluator;formatting;templates</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<DefineConstants>TRACE;DEBUG</DefineConstants>
 	</PropertyGroup>

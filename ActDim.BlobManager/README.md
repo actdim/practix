@@ -14,10 +14,38 @@ The split exists so either side can be swapped: PostgreSQL or Redis for the regi
 for the content. Every decision in the API below was measured against that, which is the reason for
 several shapes that look unusual at first. Where that is the case, this file says why.
 
-> **Status.** `BlobManager` is currently `internal` and there is no DI registration helper yet, so the
-> library is consumed from inside the assembly. A registration helper is the next item on the roadmap.
+> **Status.** `BlobManager` provides `IBlobManager`, `IBlobDataStore`, and `IBlobRegistry` interfaces with first-class Microsoft Dependency Injection support (`services.AddBlobManager()`).
 
 ---
+
+## Installation
+
+Install via the .NET CLI:
+
+```bash
+dotnet add package ActDim.BlobManager
+```
+
+Or via Package Manager Console:
+
+```powershell
+Install-Package ActDim.BlobManager
+```
+
+## Dependency Injection Setup
+
+Register `BlobManager` with `FileSystemBlobDataStore` and `SQLiteBlobRegistry`:
+
+```csharp
+using ActDim.BlobManager;
+using Microsoft.Extensions.DependencyInjection;
+
+public void ConfigureServices(IServiceCollection services)
+{
+    // Register BlobManager with default file system store & SQLite registry
+    services.AddBlobManager(baseDirectory: "./data/blobs", databaseName: "registry.db");
+}
+```
 
 ## The model
 

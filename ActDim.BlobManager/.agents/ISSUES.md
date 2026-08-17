@@ -6,8 +6,6 @@
 - [~] add-try-create-with-conflict-behavior — `TryCreateAsync` (conflict handling) + `BlobManagerExtensions.CreateAsync` (one-shot creation from byte[]/Stream/producer delegate); see `.agents/ISSUES/add-try-create-with-conflict-behavior.md`
 - [ ] multi-backend — multiple `IBlobManager` instances, each self-describing via `KeyPrefix`;
       client picks the right one by calling `ResolveKey`
-- [ ] di-registration — `BlobManager` is `internal` and `BlobManagerModule.cs` is commented out, so
-      nothing outside the assembly can consume the library
 - [ ] content-hash — `Hash` is an unchecked claim: compute it during the write, verify a declared one,
       and decide on a multi-step write session (hasher state cannot be persisted between calls)
 - [~] range-read — seekable-read promise done; explicit range overload deferred, reasoning recorded
@@ -22,4 +20,5 @@
 
 ## Backlog
 
+- [x] di-registration — Microsoft DI extension methods (AddBlobManager) implemented and documented (2026-08-17)
 - [x] delete-blob-content — all deletion paths now remove the stored bytes too (2026-08-05)

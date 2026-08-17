@@ -6,7 +6,16 @@
     <Nullable>enable</Nullable>
     <RootNamespace>ActDim.Observability</RootNamespace>
     <AssemblyName>ActDim.Observability</AssemblyName>
+    <IsPackable>true</IsPackable>
+    <PackageId>ActDim.Observability</PackageId>
+    <Description>OpenTelemetry-centric observability and ambient telemetry context framework for .NET applications.</Description>
+    <PackageTags>actdim;observability;opentelemetry;logging;tracing;telemetry</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ActDim.Practix.Abstractions\ActDim.Practix.Abstractions.csproj" />

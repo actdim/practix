@@ -7,8 +7,13 @@
 		<PackageId>ActDim.Three</PackageId>
 		<Description>3D graphics math, geometry, and scene graph library for .NET.</Description>
 		<PackageTags>actdim;three;3d;graphics;math;geometry</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<DefineConstants>TRACE;DEBUG</DefineConstants>
 	</PropertyGroup>

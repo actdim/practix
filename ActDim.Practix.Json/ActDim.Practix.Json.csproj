@@ -9,7 +9,12 @@
 		<PackageId>ActDim.Practix.Json</PackageId>
 		<Description>High-performance JSON serialization subsystem for ActDim.Practix backed by System.Text.Json and ActDim.Reflectron.</Description>
 		<PackageTags>actdim;practix;json;serialization;fast-reflection</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Ardalis.GuardClauses" Version="5.0.0" />

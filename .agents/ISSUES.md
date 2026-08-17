@@ -21,6 +21,7 @@ _Solution-level issues board. Project-specific issues live in their respective s
   - `feat--large-payload-compression`
 
 ## Done (recent)
+- `task--nuget-package-readmes`: Create and configure required NuGet README.md files across 8 packable projects
 - `debt--rename-script-evaluator-to-script-engine`: Rename ScriptEvaluator to ScriptEngine in ActDim.Emitron
 - `feat--refactor-script-engine-params`: Standardize ScriptEngine and Interpolator on collision-free @params parameter variable
 - `task--configure-nuget-packaging`: Configure 6 ActDim projects for NuGet package publishing

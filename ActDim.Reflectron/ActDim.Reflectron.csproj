@@ -9,8 +9,13 @@
 		<PackageId>ActDim.Reflectron</PackageId>
 		<Description>High-performance reflection engine providing compiled expression tree property getters, setters, and object accessors.</Description>
 		<PackageTags>actdim;reflectron;reflection;expression-trees;performance</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<AssemblyName>$(MSBuildProjectName)</AssemblyName>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\ActDim.Practix.Common\ActDim.Practix.Common.csproj" />
