@@ -140,7 +140,9 @@ namespace ActDim.Emitron
         /// <summary>
         /// Dynamic parameter bag exposed to the script as <c>@params</c> / <c>params</c>.
         /// </summary>
+#pragma warning disable IDE1006 // Naming Styles
         public dynamic @params { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
     }
 
     /// <summary>
