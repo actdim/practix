@@ -27,12 +27,12 @@ The session started as a design discussion about a Roslyn analyzer for `ILogger`
 - `ToOtelName` strips leading `@` / `$` so `{@user}` no longer becomes an attribute named `@user`.
 
 ## Files touched
-- `ActDim.Practix.Observability/EventObservabilityBridge.cs`
-- `ActDim.Practix.Observability/EventObservabilityOptions.cs`
-- `ActDim.Practix.Observability/EventObservabilityHelper.cs`
-- `ActDim.Practix.Observability/TagCollisionBehavior.cs` (new)
-- `ActDim.Practix.Observability/TelemetryTagCollector.cs` (new)
-- `ActDim.Practix.Observability/ObservabilityTagNames.cs` (new)
+- `ActDim.Observability/EventObservabilityBridge.cs`
+- `ActDim.Observability/EventObservabilityOptions.cs`
+- `ActDim.Observability/EventObservabilityHelper.cs`
+- `ActDim.Observability/TagCollisionBehavior.cs` (new)
+- `ActDim.Observability/TelemetryTagCollector.cs` (new)
+- `ActDim.Observability/ObservabilityTagNames.cs` (new)
 - `Tests/Observability.Tests/ObservabilityTests.cs`
 - `.agents/DECISIONS.md`, `.agents/ISSUES.md`, `.agents/ISSUES/*`, `.agents/CONTEXT.md`, `.agents/GLOSSARY.md`, `.agents/HISTORY.md`
 

@@ -23,8 +23,8 @@ summary: Implemented real ILoggerProvider call verification tests and DI decorat
    - Verified all 8 unit tests pass clean (`Passed: 8, Failed: 0`).
 
 ## Files Touched
-- `ActDim.Practix.Observability/EventObservabilityLoggerFactory.cs`
-- `ActDim.Practix.Observability/EventObservabilityExtensions.cs`
-- `ActDim.Practix.Observability/EventObservabilityBridge.cs`
-- `ActDim.Practix.Observability/ActDim.Practix.Observability.csproj`
+- `ActDim.Observability/EventObservabilityLoggerFactory.cs`
+- `ActDim.Observability/EventObservabilityExtensions.cs`
+- `ActDim.Observability/EventObservabilityBridge.cs`
+- `ActDim.Observability/ActDim.Observability.csproj`
 - `Tests/Observability.Tests/ObservabilityTests.cs`

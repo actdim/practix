@@ -19,7 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.*/
 
-#region Usings
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -32,7 +31,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Ardalis.GuardClauses;
-#endregion
 
 namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 {
@@ -295,9 +293,25 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             return source == null || !source.Any(); // Smart enough (checked source) to discern lazy IEnumerable from ICollection with known Count
         }
 
+        /// <summary>
+        /// Returns true when the sequence is null or contains no elements.
+        /// </summary>
         public static bool IsNullOrEmpty(this IEnumerable source)
         {
-            return source == null || !source.GetEnumerator().MoveNext();
+            if (source == null)
+            {
+                return true;
+            }
+
+            var enumerator = source.GetEnumerator();
+            try
+            {
+                return !enumerator.MoveNext();
+            }
+            finally
+            {
+                (enumerator as IDisposable)?.Dispose();
+            }
         }
         /// <summary>
         /// Invokes a transform function on each element of a sequence and returns the minimum Double value

@@ -4,14 +4,14 @@ slug: stage-observability-wrapup
 agent: antigravity
 branch: main
 commit: pending
-summary: Completed stage wrap-up for ActDim.Practix.Observability, recorded ADRs 001-004, updated AGENTS.md, ISSUES board, CONTEXT, and HISTORY.
+summary: Completed stage wrap-up for ActDim.Observability, recorded ADRs 001-004, updated AGENTS.md, ISSUES board, CONTEXT, and HISTORY.
 ---
 
 # Session Log: Stage Wrap-Up for Observability & Ambient Context
 
 ## Summary of Accomplishments
-1. **Architectural Transition to Observability (`ActDim.Practix.Observability`):**
-   - Renamed `ActDim.Practix.Logging` $\rightarrow$ `ActDim.Practix.Observability`.
+1. **Architectural Transition to Observability (`ActDim.Observability`):**
+   - Renamed `ActDim.Observability` $\rightarrow$ `ActDim.Observability`.
    - Renamed `EventLogger` $\rightarrow$ `EventObservabilityBridge` (implements `ILogger` & `ISupportExternalScope`).
    - Added DI extension `services.AddEventObservability()`.
 
@@ -32,7 +32,7 @@ summary: Completed stage wrap-up for ActDim.Practix.Observability, recorded ADRs
 ## Files Touched
 - `ActDim.Practix.Abstractions/Context/CallContextProperty.cs`
 - `ActDim.Practix.Common/Context/CallContextExtensions.cs`
-- `ActDim.Practix.Observability/*`
+- `ActDim.Observability/*`
 - `Tests/Observability.Tests/*`
 - `AGENTS.md`
 - `.agents/DECISIONS.md`

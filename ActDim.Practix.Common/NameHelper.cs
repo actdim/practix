@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 
 namespace ActDim.Practix.Common
-    {
+{
         /// <summary>
         /// Provides utilities for extracting names or full property paths from Expression trees.
         /// </summary>
@@ -59,6 +59,8 @@ namespace ActDim.Practix.Common
                     }
                     else
                     {
+                        // Anonymous object constructors have no associated ConstructorInfo;
+                        // returning a placeholder is intentional here.
                         return "Unknown";
                     }
 

@@ -16,7 +16,7 @@ Follow-up to `2026-08-15--log-record-span-separation`, which left one sharp edge
 The fix could not just be "write to `Activity.Current` on push": that turns the store into a telemetry concept, and the store was `ICallContext`, a neutral ambient bag in `Abstractions`. The boundary turned out to be broken already — `CallContextPropertyNames` consisted entirely of telemetry keys, so the neutral abstraction knew about console providers and `ActivitySource`.
 
 So the concept was separated (ADR-011):
-- `IObservabilityContext` + `ObservabilityContext` in `ActDim.Practix.Observability`, registered by `AddEventObservability`. `ICallContext` stays the backing store, so ambient values remain readable by non-telemetry consumers (the planned console spinner).
+- `IObservabilityContext` + `ObservabilityContext` in `ActDim.Observability`, registered by `AddEventObservability`. `ICallContext` stays the backing store, so ambient values remain readable by non-telemetry consumers (the planned console spinner).
 - Data properties export to `Activity.Current` at push time; disposing restores the previous attribute value or removes an absent one. The span is captured at push, since `Activity.Current` may differ on dispose.
 - The `BeginScope` snapshot stays — it covers properties set before a span exists. Both orderings now work.
 - Control switches are never exported. A test lock this in: a scope with `SuppressConsole` + `SuppressProviders` + `PushActivitySourceName` leaves the span with zero attributes.
@@ -24,9 +24,9 @@ So the concept was separated (ADR-011):
 A failing test exposed one more semantic question: `SuppressAmbientProperties` (renamed from `SuppressCallContext`) must suppress the immediate export as well, not only the snapshot — but it cannot retract an attribute already sent, so the suppression has to be opened before the pushes it is meant to hide. Both are now stated in the interface documentation.
 
 ## Files touched
-- `ActDim.Practix.Observability/IObservabilityContext.cs` (new), `ObservabilityContext.cs` (new), `ObservabilityContextPropertyNames.cs` (new)
-- `ActDim.Practix.Observability/EventObservabilityExtensions.cs` — DI registration
-- `ActDim.Practix.Observability/EventObservabilityBridge.cs`, `EventObservabilityLoggerFactory.cs` — new property names
+- `ActDim.Observability/IObservabilityContext.cs` (new), `ObservabilityContext.cs` (new), `ObservabilityContextPropertyNames.cs` (new)
+- `ActDim.Observability/EventObservabilityExtensions.cs` — DI registration
+- `ActDim.Observability/EventObservabilityBridge.cs`, `EventObservabilityLoggerFactory.cs` — new property names
 - `ActDim.Practix.Abstractions/Context/CallContextProperty.cs` — telemetry entries removed, `CallContextPropertyNames` gone
 - `ActDim.Practix.Common/Context/CallContextExtensions.cs` — deleted, telemetry methods moved
 - `Tests/Observability.Tests/ObservabilityTests.cs`

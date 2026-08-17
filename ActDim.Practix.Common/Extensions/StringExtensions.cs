@@ -27,8 +27,8 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             return result;
         }
 
-        public static bool Contains(this string source, string value, StringComparison comparisonType) // valueToFind
-{
+        public static bool Contains(this string source, string value, StringComparison comparisonType)
+        {
             return source.IndexOf(value, comparisonType) >= 0;
         }
 

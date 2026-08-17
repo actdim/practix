@@ -27,47 +27,41 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
                 return result;
             }
 
-            #region IDisposable Support
-            private bool isDisposed = false; // To detect redundant calls
+        private bool _isDisposed;
 
-            /// <summary>
-            ///
-            /// </summary>
-            /// <param name="disposing"></param>
-            protected virtual void Dispose(bool disposing)
+        /// <summary>
+        /// Releases managed and unmanaged resources held by this instance.
+        /// </summary>
+        /// <param name="disposing">true if called from <see cref="Dispose()"/>; false from finalizer.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_isDisposed)
             {
-                if (!isDisposed)
+                if (disposing)
                 {
-                    if (disposing)
-                    {
-                        // _lock.Dispose();
-                    }
-                    if (_lock != null)
-                    {
-                        _lock.Dispose();
-                    }
-
-                    isDisposed = true;
+                    _lock.Dispose();
                 }
-            }
 
-            /// <summary>
-            ///
-            /// </summary>
-            ~FactoryDictionary()
-            {
-                Dispose(false);
+                _isDisposed = true;
             }
+        }
 
-            /// <summary>
-            ///
-            /// </summary>
-            public void Dispose()
-            {
-                Dispose(true);
-                GC.SuppressFinalize(this);
-            }
-            #endregion
+        /// <summary>
+        /// Finalizer — calls <see cref="Dispose(bool)"/> with <c>false</c>.
+        /// </summary>
+        ~FactoryDictionary()
+        {
+            Dispose(false);
+        }
+
+        /// <summary>
+        /// Releases all resources used by this instance.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
         }
 
         public static Func<TArg, TRetVal> Memoize<TArg, TRetVal>(this Func<TArg, TRetVal> f, FactoryDictionary<TArg, TRetVal> cache = null)
@@ -94,6 +88,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             {
                 cache = new ConcurrentDictionary<TArg, TRetVal>();
             }
+
             var syncMap = new ConcurrentDictionary<TArg, object>();
             return a =>
             {
@@ -105,8 +100,10 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
                     {
                         r = cache.GetOrAdd(a, f);
                     }
+
                     syncMap.TryRemove(a, out sync);
                 }
+
                 return r;
             };
         }

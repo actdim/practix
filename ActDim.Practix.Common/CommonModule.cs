@@ -9,17 +9,19 @@ using ActDim.Practix.Context;
 using Autofac;
 
 namespace ActDim.Practix.Common
-    {
-        public class CommonModule : Module
 {
+    /// <summary>
+    /// Autofac module that registers core services provided by <c>ActDim.Practix.Common</c>:
+    /// JSON configuration, ambient context, compression, JSON serializer, and caching proxies.
+    /// </summary>
+    public class CommonModule : Module
+    {
+        /// <inheritdoc />
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<JsonConfigurationManager>()
                 .As<IJsonConfigurationManager>()
                 .SingleInstance();
-            // builder.RegisterType<ConcurrencyManager>()
-            //    .As<IConcurrencyManager>()
-            //    .SingleInstance();
             builder.RegisterInstance(AmbientContextProvider.Instance)
                 .As<IAmbientContextProvider>();
             builder.RegisterType<CompressionManager>()

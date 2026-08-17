@@ -1,8 +1,8 @@
 # Architecture Decisions (ADR)
 
-## 2026-08-14 — ADR-001: Unified Observability Framework (`ActDim.Practix.Observability`)
-- **Context:** The package was originally named `ActDim.Practix.Logging`, which reduced its conceptual value down to simple text logging.
-- **Decision:** Renamed the package and namespace to `ActDim.Practix.Observability` and the core `ILogger` implementation to `EventObservabilityBridge`.
+## 2026-08-14 — ADR-001: Unified Observability Framework (`ActDim.Observability`)
+- **Context:** The package was originally named `ActDim.Observability`, which reduced its conceptual value down to simple text logging.
+- **Decision:** Renamed the package and namespace to `ActDim.Observability` and the core `ILogger` implementation to `EventObservabilityBridge`.
 - **Consequences:** Clearly communicates that the package is a unified observability system connecting `Microsoft.Extensions.Logging` (logs) with `System.Diagnostics.Activity` (spans/traces).
 
 ## 2026-08-14 — ADR-002: Dynamic Telemetry & Provider Suppression via `ICallContext`
@@ -66,7 +66,7 @@
 ## 2026-08-15 — ADR-011: `IObservabilityContext` — Telemetry Ambient State Separated from `ICallContext`
 - **Context:** ADR-008 made `BeginScope` snapshot the ambient context into span attributes, which left properties set *after* the scope was opened unexported — and `SetStatus` / `ReportProgress` are meant to be called as an operation progresses, so that is the common ordering. Exporting them at push time makes the store a telemetry concept, and the store was `ICallContext` — a neutral ambient variable bag in `Abstractions`. The boundary was already broken in practice: `CallContextPropertyNames` consisted *entirely* of telemetry keys (`status`, `progress`, `icon`, `tags`, `__Practix_SuppressConsole`, `__Practix_ActivitySourceName`), so the neutral abstraction already knew about console providers and `ActivitySource`.
 - **Decision:**
-  - Introduce `IObservabilityContext` in `ActDim.Practix.Observability`, registered by `AddEventObservability`, as the owner of telemetry ambient state. `ICallContext` returns to being a neutral store and remains its backing storage, so ambient values stay readable by non-telemetry consumers such as the planned console spinner.
+  - Introduce `IObservabilityContext` in `ActDim.Observability`, registered by `AddEventObservability`, as the owner of telemetry ambient state. `ICallContext` returns to being a neutral store and remains its backing storage, so ambient values stay readable by non-telemetry consumers such as the planned console spinner.
   - Data properties (`status`, `progress`, `icon`, `tags`, arbitrary `Push`) are written to `Activity.Current` at push time and restored on dispose — the previous attribute value is captured and put back, and a previously absent one is removed. The span active at push time is captured deliberately, since `Activity.Current` may differ on dispose.
   - The `BeginScope` snapshot stays: it covers properties set *before* a span exists. The two mechanisms are complementary and both are required.
   - Control switches (`__Practix_*`, `ActivitySourceName`) are never exported. `SuppressAmbientProperties` suppresses both the immediate export and the snapshot, but cannot retract an attribute already sent.
