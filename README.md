@@ -7,7 +7,7 @@ Modern, high-performance .NET libraries and application framework by Active Dime
 ### Standalone Engine Libraries (`ActDim.*`)
 - **`ActDim.Emitron`** — Dynamic Roslyn script evaluator (`ScriptEvaluator`) and C# interpolation template formatter (`InterpolationFormatter`).
 - **`ActDim.Reflectron`** — Fast reflection, dynamic delegate compilation, and type/object member accessors (`TypeAccess`, `ObjectAccess`).
-- **`ActDim.BlobManager`** — Concurrency-aware blob storage with metadata registry, TTL expiration, and distributed read/write locks (`IBlobManager`).
+- **`ActDim.BytePath`** — Concurrency-aware blob and binary payload storage engine with SQLite metadata registry, TTL expiration, and distributed read/write locks (`IBlobManager`, `AddBlobManager`).
 - **`ActDim.Observability`** — OpenTelemetry-centric logging, activity tracing, and ambient context enrichment (`IObservabilityContext`, `AddEventObservability`).
 
 ### Framework & Application Modules (`ActDim.Practix.*`)

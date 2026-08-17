@@ -54,3 +54,9 @@ TestResult.xml
 nunit-*.xml
 
 .vs
+
+# Environment and secrets
+.env
+.env.local
+*.secret
+*.key
