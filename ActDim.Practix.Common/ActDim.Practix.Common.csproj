@@ -5,6 +5,10 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>disable</Nullable>
+		<IsPackable>true</IsPackable>
+		<PackageId>ActDim.Practix.Common</PackageId>
+		<Description>Shared utilities, concurrent collection factories, caching proxies, and compression helpers for ActDim.Practix.</Description>
+		<PackageTags>actdim;practix;common;utilities;caching;compression</PackageTags>
 	</PropertyGroup>
 
 	<ItemGroup>

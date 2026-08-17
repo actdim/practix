@@ -5,6 +5,10 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>disable</Nullable>
+		<IsPackable>true</IsPackable>
+		<PackageId>ActDim.Practix.Json</PackageId>
+		<Description>High-performance JSON serialization subsystem for ActDim.Practix backed by System.Text.Json and ActDim.Reflectron.</Description>
+		<PackageTags>actdim;practix;json;serialization;fast-reflection</PackageTags>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -5,6 +5,10 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>disable</Nullable>
+		<IsPackable>true</IsPackable>
+		<PackageId>ActDim.Reflectron</PackageId>
+		<Description>High-performance reflection engine providing compiled expression tree property getters, setters, and object accessors.</Description>
+		<PackageTags>actdim;reflectron;reflection;expression-trees;performance</PackageTags>
 		<AssemblyName>$(MSBuildProjectName)</AssemblyName>
 	</PropertyGroup>
 
