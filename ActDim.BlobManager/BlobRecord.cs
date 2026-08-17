@@ -3,11 +3,24 @@ using System.Threading.Tasks;
 
 namespace ActDim.BlobManager
 {
+    /// <summary>
+    /// Represents an active handle to a blob's metadata and content size under a concurrency lock.
+    /// </summary>
     public class BlobRecord : IDisposable, IAsyncDisposable
     {
+        /// <summary>
+        /// Gets the unique string key identifying this blob.
+        /// </summary>
         public string Key { get; internal set; }
 
+        /// <summary>
+        /// Gets or sets custom text metadata stored alongside the blob.
+        /// </summary>
         public string Metadata { get; set; }
+
+        /// <summary>
+        /// Gets or sets the MIME content type of the blob.
+        /// </summary>
         public string ContentType { get; set; }
 
         /// <summary>
@@ -21,11 +34,29 @@ namespace ActDim.BlobManager
         /// </summary>
         public string Hash { get; internal set; }
 
+        /// <summary>
+        /// Gets the timestamp when the blob record was created.
+        /// </summary>
         public DateTimeOffset CreatedAt { get; internal set; }
+
+        /// <summary>
+        /// Gets the timestamp when the blob record was last updated.
+        /// </summary>
         public DateTimeOffset UpdatedAt { get; internal set; }
+
+        /// <summary>
+        /// Gets the timestamp when the blob record was last accessed.
+        /// </summary>
         public DateTimeOffset AccessedAt { get; internal set; }
 
+        /// <summary>
+        /// Gets or sets the sliding expiration window duration.
+        /// </summary>
         public TimeSpan? SlidingExpiration { get; set; }
+
+        /// <summary>
+        /// Gets or sets the absolute expiration timestamp.
+        /// </summary>
         public DateTimeOffset? ExpiresAt { get; set; }
 
         /// <summary>
@@ -101,12 +132,17 @@ namespace ActDim.BlobManager
             }
         }
 
-        public Action OnDispose { get; internal set; }
-        public Func<Task> OnDisposeAsync { get; internal set; }
+        internal Action OnDispose { get; set; }
+        internal Func<Task> OnDisposeAsync { get; set; }
+
+        /// <summary>
+        /// Gets the current lock type held on this blob record.
+        /// </summary>
         public LockType LockType { get; internal set; }
 
         private bool _isDisposed = false;
 
+        /// <inheritdoc />
         public void Dispose()
         {
             if (_isDisposed)
@@ -130,6 +166,7 @@ namespace ActDim.BlobManager
             GC.SuppressFinalize(this);
         }
 
+        /// <inheritdoc />
         public async ValueTask DisposeAsync()
         {
             if (_isDisposed)

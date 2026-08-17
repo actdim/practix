@@ -7,6 +7,12 @@ namespace ActDim.BlobManager
 {
     public interface IBlobDataStore
     {
+        /// <summary>
+        /// Resolves the physical underlying storage location path or URL for the specified <paramref name="blobRecord"/>.
+        /// </summary>
+        /// <param name="blobRecord">The target blob record.</param>
+        /// <param name="ct">The cancellation token.</param>
+        /// <returns>A string representing the resolved physical location or path.</returns>
         Task<string> ResolveLocationAsync(BlobRecord blobRecord, CancellationToken ct);
 
         /// <summary>

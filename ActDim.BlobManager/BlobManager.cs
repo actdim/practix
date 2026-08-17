@@ -16,17 +16,22 @@ namespace ActDim.BlobManager
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         }
 
+        /// <inheritdoc />
         public IBlobDataStore DataStore => _dataStore;
 
+        /// <inheritdoc />
         public Task DeleteAsync(string key, CancellationToken ct)
             => DeleteCoreAsync(key, null, ct);
 
+        /// <inheritdoc />
         public Task DeleteAsync(string key, TimeSpan timeout, CancellationToken ct)
             => DeleteCoreAsync(key, timeout, ct);
 
+        /// <inheritdoc />
         public async Task<int> DeleteExpiredAsync(CancellationToken ct)
             => await DeleteManyAsync(await _registry.GetExpiredKeysAsync(ct), false, ct);
 
+        /// <inheritdoc />
         public async Task<int> DeleteOlderThanAsync(DateTimeOffset cutoff, CancellationToken ct, bool forceDeleteLocked = false)
             => await DeleteManyAsync(
                 await _registry.GetKeysOlderThanAsync(cutoff, forceDeleteLocked, ct),
@@ -100,21 +105,27 @@ namespace ActDim.BlobManager
             return deleted;
         }
 
+        /// <inheritdoc />
         public async Task<BlobResult> TryGetForReadingAsync(string key, CancellationToken ct)
             => await ReconcileContentAsync(await _registry.TryGetForReadingAsync(key, ct), false, null, ct);
 
+        /// <inheritdoc />
         public async Task<BlobResult> TryGetForReadingAsync(string key, TimeSpan timeout, CancellationToken ct)
             => await ReconcileContentAsync(await _registry.TryGetForReadingAsync(key, timeout, ct), false, timeout, ct);
 
+        /// <inheritdoc />
         public async Task<BlobResult> TryGetForWritingAsync(string key, CancellationToken ct)
             => await ReconcileContentAsync(await _registry.TryGetForWritingAsync(key, ct), false, null, ct);
 
+        /// <inheritdoc />
         public async Task<BlobResult> TryGetForWritingAsync(string key, TimeSpan timeout, CancellationToken ct)
             => await ReconcileContentAsync(await _registry.TryGetForWritingAsync(key, timeout, ct), false, timeout, ct);
 
+        /// <inheritdoc />
         public async Task<BlobResult> TryGetForWritingAsync(string key, BlobStoreOptions options, CancellationToken ct)
             => ApplyOptions(await TryGetForWritingAsync(key, ct), options);
 
+        /// <inheritdoc />
         public async Task<BlobResult> TryGetForWritingAsync(string key, BlobStoreOptions options, TimeSpan timeout, CancellationToken ct)
             => ApplyOptions(await TryGetForWritingAsync(key, timeout, ct), options);
 
@@ -134,15 +145,19 @@ namespace ActDim.BlobManager
             return blobResult;
         }
 
+        /// <inheritdoc />
         public async Task<BlobResult> TryGetOrSetAsync(string key, CancellationToken ct)
             => await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, null, LockType.Write, ct), true, null, ct);
 
+        /// <inheritdoc />
         public async Task<BlobResult> TryGetOrSetAsync(string key, TimeSpan timeout, CancellationToken ct)
             => await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, null, LockType.Write, timeout, ct), true, timeout, ct);
 
+        /// <inheritdoc />
         public async Task<BlobResult> TryGetOrSetAsync(string key, BlobStoreOptions options, LockType lockType, CancellationToken ct)
             => await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, options, lockType, ct), true, null, ct);
 
+        /// <inheritdoc />
         public async Task<BlobResult> TryGetOrSetAsync(string key, BlobStoreOptions options, LockType lockType, TimeSpan timeout, CancellationToken ct)
             => await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, options, lockType, timeout, ct), true, timeout, ct);
 
@@ -239,9 +254,11 @@ namespace ActDim.BlobManager
             return blobResult;
         }
 
+        /// <inheritdoc />
         public Task<IList<string>> QueryAsync(string pattern, CancellationToken ct)
             => _registry.QueryAsync(pattern, ct);
 
+        /// <inheritdoc />
         public async Task CleanupAsync(CancellationToken ct)
         {
             await _registry.CleanupLocksAsync(ct);
