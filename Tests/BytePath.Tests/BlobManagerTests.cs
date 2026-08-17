@@ -1436,5 +1436,219 @@ namespace ActDim.BytePath.Tests
                 }
             }
         }
+
+        [Fact]
+        public async Task MultiDataStore_PrefixRouting_WritesAndReadsFromCorrectStore()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_multi_" + Guid.NewGuid().ToString("N"));
+            var storeADir = Path.Combine(tempBase, "storeA");
+            var storeBDir = Path.Combine(tempBase, "storeB");
+            var dbPath = Path.Combine(tempBase, "registry.db");
+
+            try
+            {
+                var storeA = new FileSystemBlobDataStore(storeADir, "fs:");
+                var storeB = new FileSystemBlobDataStore(storeBDir, "cache:");
+                var registry = new SQLiteBlobRegistry(dbPath);
+                var manager = new BlobManager(new IBlobDataStore[] { storeA, storeB }, registry);
+
+                Assert.Equal(2, manager.DataStores.Count);
+                Assert.Same(storeA, manager.GetDataStore("fs:file1.txt"));
+                Assert.Same(storeB, manager.GetDataStore("cache:item2.bin"));
+
+                // 1. Write to store A
+                var (codeA, recordA) = await manager.TryGetOrSetAsync("fs:file1.txt", ct);
+                Assert.Equal(BlobErrorCode.None, codeA);
+                await using (recordA)
+                {
+                    await storeA.PutAsync(recordA, Content("Data in Store A"), ct);
+                }
+
+                // 2. Write to store B
+                var (codeB, recordB) = await manager.TryGetOrSetAsync("cache:item2.bin", ct);
+                Assert.Equal(BlobErrorCode.None, codeB);
+                await using (recordB)
+                {
+                    await storeB.PutAsync(recordB, Content("Data in Store B"), ct);
+                }
+
+                // 3. Verify physical location segregation
+                var locA = await storeA.ResolveLocationAsync(recordA, ct);
+                var locB = await storeB.ResolveLocationAsync(recordB, ct);
+
+                Assert.StartsWith(storeADir, locA, StringComparison.OrdinalIgnoreCase);
+                Assert.StartsWith(storeBDir, locB, StringComparison.OrdinalIgnoreCase);
+
+                // 4. Read back via manager
+                var (readCodeA, readRecordA) = await manager.TryGetForReadingAsync("fs:file1.txt", ct);
+                Assert.Equal(BlobErrorCode.None, readCodeA);
+                await using (readRecordA)
+                {
+                    await using var stream = await storeA.ReadAsync(readRecordA, ct);
+                    using var reader = new StreamReader(stream, Encoding.UTF8);
+                    var text = await reader.ReadToEndAsync(ct);
+                    Assert.Equal("Data in Store A", text);
+                }
+
+                var (readCodeB, readRecordB) = await manager.TryGetForReadingAsync("cache:item2.bin", ct);
+                Assert.Equal(BlobErrorCode.None, readCodeB);
+                await using (readRecordB)
+                {
+                    await using var stream = await storeB.ReadAsync(readRecordB, ct);
+                    using var reader = new StreamReader(stream, Encoding.UTF8);
+                    var text = await reader.ReadToEndAsync(ct);
+                    Assert.Equal("Data in Store B", text);
+                }
+
+                // 5. Delete from store A
+                await manager.DeleteAsync("fs:file1.txt", ct);
+                var (afterDelCode, _) = await manager.TryGetForReadingAsync("fs:file1.txt", ct);
+                Assert.Equal(BlobErrorCode.KeyNotFound, afterDelCode);
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try { Directory.Delete(tempBase, true); } catch { }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task MultiDataStore_CatchAllStore_HandlesUnprefixedKeys()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_catchall_" + Guid.NewGuid().ToString("N"));
+            var specificDir = Path.Combine(tempBase, "specific");
+            var defaultDir = Path.Combine(tempBase, "default");
+            var dbPath = Path.Combine(tempBase, "registry.db");
+
+            try
+            {
+                var specificStore = new FileSystemBlobDataStore(specificDir, "s3:");
+                var defaultStore = new FileSystemBlobDataStore(defaultDir, string.Empty);
+                var registry = new SQLiteBlobRegistry(dbPath);
+                var manager = new BlobManager(new IBlobDataStore[] { specificStore, defaultStore }, registry);
+
+                Assert.Same(specificStore, manager.GetDataStore("s3:custom.dat"));
+                Assert.Same(defaultStore, manager.GetDataStore("plain-key-without-prefix"));
+
+                var (code, record) = await manager.TryGetOrSetAsync("plain-key-without-prefix", ct);
+                Assert.Equal(BlobErrorCode.None, code);
+                await using (record)
+                {
+                    await defaultStore.PutAsync(record, Content("CatchAll Content"), ct);
+                }
+
+                var loc = await defaultStore.ResolveLocationAsync(record, ct);
+                Assert.StartsWith(defaultDir, loc, StringComparison.OrdinalIgnoreCase);
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try { Directory.Delete(tempBase, true); } catch { }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task MultiDataStore_UnsupportedKeyPrefix_ReturnsUnsupportedKeyPrefixErrorCode()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_unsupported_" + Guid.NewGuid().ToString("N"));
+            var storeDir = Path.Combine(tempBase, "store");
+            var dbPath = Path.Combine(tempBase, "registry.db");
+
+            try
+            {
+                var store = new FileSystemBlobDataStore(storeDir, "fs:");
+                var registry = new SQLiteBlobRegistry(dbPath);
+                var manager = new BlobManager(new IBlobDataStore[] { store }, registry);
+
+                // No catch-all store, prefix "unknown:" is not registered
+                var readResult = await manager.TryGetForReadingAsync("unknown:blob.png", ct);
+                Assert.Equal(BlobErrorCode.UnsupportedKeyPrefix, readResult.ErrorCode);
+                Assert.Null(readResult.Record);
+
+                var writeResult = await manager.TryGetForWritingAsync("unknown:blob.png", ct);
+                Assert.Equal(BlobErrorCode.UnsupportedKeyPrefix, writeResult.ErrorCode);
+                Assert.Null(writeResult.Record);
+
+                var setOrGetResult = await manager.TryGetOrSetAsync("unknown:blob.png", ct);
+                Assert.Equal(BlobErrorCode.UnsupportedKeyPrefix, setOrGetResult.ErrorCode);
+                Assert.Null(setOrGetResult.Record);
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try { Directory.Delete(tempBase, true); } catch { }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task MultiDataStore_DeleteAsync_UnsupportedKeyPrefix_ThrowsNotSupportedException()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_del_unsupported_" + Guid.NewGuid().ToString("N"));
+            var storeDir = Path.Combine(tempBase, "store");
+            var dbPath = Path.Combine(tempBase, "registry.db");
+
+            try
+            {
+                var store = new FileSystemBlobDataStore(storeDir, "fs:");
+                var registry = new SQLiteBlobRegistry(dbPath);
+                var manager = new BlobManager(new IBlobDataStore[] { store }, registry);
+
+                await Assert.ThrowsAsync<NotSupportedException>(() => manager.DeleteAsync("unknown:blob.png", ct));
+                Assert.Throws<NotSupportedException>(() => manager.GetDataStore("unknown:blob.png"));
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try { Directory.Delete(tempBase, true); } catch { }
+                }
+            }
+        }
+
+        [Fact]
+        public void AddBlobManager_MultipleFileSystemStores_RegistersAllInDI()
+        {
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_di_multi_" + Guid.NewGuid().ToString("N"));
+            var dir1 = Path.Combine(tempBase, "dir1");
+            var dir2 = Path.Combine(tempBase, "dir2");
+            var dbPath = Path.Combine(tempBase, "di.db");
+
+            try
+            {
+                var services = new ServiceCollection();
+                services.AddBlobManager()
+                    .WithFileSystemDataStore(dir1, "fs:")
+                    .WithFileSystemDataStore(dir2, "cache:")
+                    .WithRegistry(new SQLiteBlobRegistry(dbPath));
+
+                var provider = services.BuildServiceProvider();
+                var manager = provider.GetRequiredService<IBlobManager>();
+                var stores = provider.GetRequiredService<System.Collections.Generic.IEnumerable<IBlobDataStore>>();
+
+                var storeList = new List<IBlobDataStore>(stores);
+                Assert.Equal(2, storeList.Count);
+                Assert.Equal(2, manager.DataStores.Count);
+
+                Assert.Equal("fs:", manager.GetDataStore("fs:sample.txt").KeyPrefix);
+                Assert.Equal("cache:", manager.GetDataStore("cache:temp.dat").KeyPrefix);
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try { Directory.Delete(tempBase, true); } catch { }
+                }
+            }
+        }
     }
 }

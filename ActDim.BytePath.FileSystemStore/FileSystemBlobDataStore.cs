@@ -17,13 +17,34 @@ namespace ActDim.BytePath
 
         private readonly string _basePath;
 
+        /// <inheritdoc />
+        public string KeyPrefix { get; }
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileSystemBlobDataStore"/> class with the specified base directory path.
+        /// Initializes a new instance of the <see cref="FileSystemBlobDataStore"/> class with the specified base directory path and key prefix.
         /// </summary>
         /// <param name="basePath">The root directory path where blobs are stored.</param>
-        public FileSystemBlobDataStore(string basePath)
+        /// <param name="keyPrefix">The key prefix handled by this store (e.g. <c>"fs:"</c>). Defaults to empty string (catch-all).</param>
+        public FileSystemBlobDataStore(string basePath, string keyPrefix = null)
         {
             _basePath = basePath ?? throw new ArgumentNullException(nameof(basePath));
+            KeyPrefix = keyPrefix ?? string.Empty;
+            Directory.CreateDirectory(_basePath);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileSystemBlobDataStore"/> class using the specified options.
+        /// </summary>
+        /// <param name="options">The storage configuration options.</param>
+        public FileSystemBlobDataStore(FileSystemBlobDataStoreOptions options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            _basePath = options.BaseDirectory ?? throw new ArgumentNullException(nameof(options.BaseDirectory));
+            KeyPrefix = options.KeyPrefix ?? string.Empty;
             Directory.CreateDirectory(_basePath);
         }
 

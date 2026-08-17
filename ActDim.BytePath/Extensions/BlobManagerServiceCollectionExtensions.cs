@@ -21,7 +21,12 @@ namespace ActDim.BytePath
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.TryAddSingleton<IBlobManager, BlobManager>();
+            services.TryAddSingleton<IBlobManager>(sp =>
+            {
+                var dataStores = sp.GetRequiredService<System.Collections.Generic.IEnumerable<IBlobDataStore>>();
+                var registry = sp.GetRequiredService<IBlobRegistry>();
+                return new BlobManager(dataStores, registry);
+            });
             return new BlobManagerBuilder(services);
         }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,17 +7,98 @@ namespace ActDim.BytePath
 {
     internal class BlobManager : IBlobManager
     {
-        private readonly IBlobDataStore _dataStore;
+        private readonly List<IBlobDataStore> _dataStores;
         private readonly IBlobRegistry _registry;
 
         public BlobManager(IBlobDataStore dataStore, IBlobRegistry registry)
+            : this(dataStore != null ? new[] { dataStore } : null, registry)
         {
-            _dataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
+        }
+
+        public BlobManager(IEnumerable<IBlobDataStore> dataStores, IBlobRegistry registry)
+        {
+            if (dataStores == null)
+            {
+                throw new ArgumentNullException(nameof(dataStores));
+            }
+
+            _dataStores = new List<IBlobDataStore>(dataStores);
+            if (_dataStores.Count == 0)
+            {
+                throw new ArgumentException("At least one data store must be registered.", nameof(dataStores));
+            }
+
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         }
 
         /// <inheritdoc />
-        public IBlobDataStore DataStore => _dataStore;
+        public IBlobDataStore DataStore => _dataStores[0];
+
+        /// <inheritdoc />
+        public IReadOnlyList<IBlobDataStore> DataStores => _dataStores;
+
+        /// <inheritdoc />
+        public IBlobDataStore GetDataStore(string key)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (TryGetDataStore(key, out var store))
+            {
+                return store;
+            }
+
+            throw new NotSupportedException($"No data store registered to handle key prefix for '{key}'.");
+        }
+
+        private bool TryGetDataStore(string key, out IBlobDataStore dataStore)
+        {
+            if (key == null)
+            {
+                dataStore = null;
+                return false;
+            }
+
+            // 1. Longest non-empty prefix match first
+            IBlobDataStore bestMatch = null;
+            var bestPrefixLength = -1;
+
+            for (var i = 0; i < _dataStores.Count; i++)
+            {
+                var store = _dataStores[i];
+                var prefix = store.KeyPrefix;
+                if (!string.IsNullOrEmpty(prefix) && key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (prefix.Length > bestPrefixLength)
+                    {
+                        bestPrefixLength = prefix.Length;
+                        bestMatch = store;
+                    }
+                }
+            }
+
+            if (bestMatch != null)
+            {
+                dataStore = bestMatch;
+                return true;
+            }
+
+            // 2. Catch-all (empty or null KeyPrefix) fallback
+            for (var i = 0; i < _dataStores.Count; i++)
+            {
+                var store = _dataStores[i];
+                if (string.IsNullOrEmpty(store.KeyPrefix))
+                {
+                    dataStore = store;
+                    return true;
+                }
+            }
+
+            dataStore = null;
+            return false;
+        }
 
         /// <inheritdoc />
         public Task DeleteAsync(string key, CancellationToken ct)
@@ -39,12 +120,17 @@ namespace ActDim.BytePath
                 ct);
 
         /// <summary>
-        /// Deletes content before metadata. A leftover registry row is recoverable вЂ” it is
-        /// reported as new and pruned on the next access вЂ” whereas a leftover file is invisible
+        /// Deletes content before metadata. A leftover registry row is recoverable — it is
+        /// reported as new and pruned on the next access — whereas a leftover file is invisible
         /// to the library and lost for good.
         /// </summary>
         private async Task DeleteCoreAsync(string key, TimeSpan? timeout, CancellationToken ct)
         {
+            if (!TryGetDataStore(key, out var dataStore))
+            {
+                throw new NotSupportedException($"No data store registered to handle key prefix for '{key}'.");
+            }
+
             // Straight to the registry rather than through TryGetForWritingAsync: reconciliation
             // would prune a record whose content is already gone and report KeyNotFound, while
             // deleting such a record is exactly what is being asked for here.
@@ -64,7 +150,7 @@ namespace ActDim.BytePath
 
             try
             {
-                await _dataStore.DeleteAsync(blobResult.Record, ct);
+                await dataStore.DeleteAsync(blobResult.Record, ct);
                 await _registry.DeleteLockedAsync(blobResult.Record, ct);
             }
             finally
@@ -94,11 +180,15 @@ namespace ActDim.BytePath
                 }
                 catch (TimeoutException)
                 {
-                    // Locked again between selection and deletion вЂ” leave it for the next sweep.
+                    // Locked again between selection and deletion — leave it for the next sweep.
                 }
                 catch (KeyNotFoundException)
                 {
                     // Deleted by someone else in the meantime.
+                }
+                catch (NotSupportedException)
+                {
+                    // Store prefix no longer configured — skip.
                 }
             }
 
@@ -107,19 +197,47 @@ namespace ActDim.BytePath
 
         /// <inheritdoc />
         public async Task<BlobResult> TryGetForReadingAsync(string key, CancellationToken ct)
-            => await ReconcileContentAsync(await _registry.TryGetForReadingAsync(key, ct), false, null, ct);
+        {
+            if (!TryGetDataStore(key, out var dataStore))
+            {
+                return new BlobResult(BlobErrorCode.UnsupportedKeyPrefix);
+            }
+
+            return await ReconcileContentAsync(await _registry.TryGetForReadingAsync(key, ct), dataStore, false, null, ct);
+        }
 
         /// <inheritdoc />
         public async Task<BlobResult> TryGetForReadingAsync(string key, TimeSpan timeout, CancellationToken ct)
-            => await ReconcileContentAsync(await _registry.TryGetForReadingAsync(key, timeout, ct), false, timeout, ct);
+        {
+            if (!TryGetDataStore(key, out var dataStore))
+            {
+                return new BlobResult(BlobErrorCode.UnsupportedKeyPrefix);
+            }
+
+            return await ReconcileContentAsync(await _registry.TryGetForReadingAsync(key, timeout, ct), dataStore, false, timeout, ct);
+        }
 
         /// <inheritdoc />
         public async Task<BlobResult> TryGetForWritingAsync(string key, CancellationToken ct)
-            => await ReconcileContentAsync(await _registry.TryGetForWritingAsync(key, ct), false, null, ct);
+        {
+            if (!TryGetDataStore(key, out var dataStore))
+            {
+                return new BlobResult(BlobErrorCode.UnsupportedKeyPrefix);
+            }
+
+            return await ReconcileContentAsync(await _registry.TryGetForWritingAsync(key, ct), dataStore, false, null, ct);
+        }
 
         /// <inheritdoc />
         public async Task<BlobResult> TryGetForWritingAsync(string key, TimeSpan timeout, CancellationToken ct)
-            => await ReconcileContentAsync(await _registry.TryGetForWritingAsync(key, timeout, ct), false, timeout, ct);
+        {
+            if (!TryGetDataStore(key, out var dataStore))
+            {
+                return new BlobResult(BlobErrorCode.UnsupportedKeyPrefix);
+            }
+
+            return await ReconcileContentAsync(await _registry.TryGetForWritingAsync(key, timeout, ct), dataStore, false, timeout, ct);
+        }
 
         /// <inheritdoc />
         public async Task<BlobResult> TryGetForWritingAsync(string key, BlobStoreOptions options, CancellationToken ct)
@@ -147,21 +265,49 @@ namespace ActDim.BytePath
 
         /// <inheritdoc />
         public async Task<BlobResult> TryGetOrSetAsync(string key, CancellationToken ct)
-            => await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, null, LockType.Write, ct), true, null, ct);
+        {
+            if (!TryGetDataStore(key, out var dataStore))
+            {
+                return new BlobResult(BlobErrorCode.UnsupportedKeyPrefix);
+            }
+
+            return await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, null, LockType.Write, ct), dataStore, true, null, ct);
+        }
 
         /// <inheritdoc />
         public async Task<BlobResult> TryGetOrSetAsync(string key, TimeSpan timeout, CancellationToken ct)
-            => await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, null, LockType.Write, timeout, ct), true, timeout, ct);
+        {
+            if (!TryGetDataStore(key, out var dataStore))
+            {
+                return new BlobResult(BlobErrorCode.UnsupportedKeyPrefix);
+            }
+
+            return await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, null, LockType.Write, timeout, ct), dataStore, true, timeout, ct);
+        }
 
         /// <inheritdoc />
         public async Task<BlobResult> TryGetOrSetAsync(string key, BlobStoreOptions options, LockType lockType, CancellationToken ct)
-            => await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, options, lockType, ct), true, null, ct);
+        {
+            if (!TryGetDataStore(key, out var dataStore))
+            {
+                return new BlobResult(BlobErrorCode.UnsupportedKeyPrefix);
+            }
+
+            return await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, options, lockType, ct), dataStore, true, null, ct);
+        }
 
         /// <inheritdoc />
         public async Task<BlobResult> TryGetOrSetAsync(string key, BlobStoreOptions options, LockType lockType, TimeSpan timeout, CancellationToken ct)
-            => await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, options, lockType, timeout, ct), true, timeout, ct);
+        {
+            if (!TryGetDataStore(key, out var dataStore))
+            {
+                return new BlobResult(BlobErrorCode.UnsupportedKeyPrefix);
+            }
 
-        private async Task<BlobResult> ReconcileContentAsync(BlobResult blobResult, bool allowNew, TimeSpan? timeout, CancellationToken ct)
+            return await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, options, lockType, timeout, ct), dataStore, true, timeout, ct);
+        }
+
+        private async Task<BlobResult> ReconcileContentAsync(BlobResult blobResult, IBlobDataStore dataStore, bool allowNew, TimeSpan? timeout, CancellationToken ct)
         {
             if (!blobResult.IsSuccess)
             {
@@ -176,7 +322,7 @@ namespace ActDim.BytePath
             long? size;
             try
             {
-                size = await _dataStore.GetSizeAsync(blobResult.Record, ct);
+                size = await dataStore.GetSizeAsync(blobResult.Record, ct);
             }
             catch
             {
@@ -187,12 +333,12 @@ namespace ActDim.BytePath
             // The size comes from the data store rather than from the registry, because the
             // registry only ever stores what a previous handle happened to persist. The record
             // is handed out under a lock, so this value stays valid for the lifetime of the
-            // handle unless the caller writes through it вЂ” see TrackSizeOnDispose.
+            // handle unless the caller writes through it — see TrackSizeOnDispose.
             blobResult.Record.Size = size;
 
             if (size.HasValue)
             {
-                return TrackSizeOnDispose(blobResult);
+                return TrackSizeOnDispose(blobResult, dataStore);
             }
 
             if (allowNew)
@@ -201,7 +347,7 @@ namespace ActDim.BytePath
                 // content. Either way the caller has to produce the content, so report it as
                 // new; the lock we already hold stays untouched.
                 blobResult.IsNew = true;
-                return TrackSizeOnDispose(blobResult);
+                return TrackSizeOnDispose(blobResult, dataStore);
             }
 
             // The caller asked for existing content, so drop the orphaned record.
@@ -215,7 +361,7 @@ namespace ActDim.BytePath
             catch (TimeoutException)
             {
                 // Another participant holds the lock, so whether the record is really orphaned
-                // could not be established вЂ” reporting KeyNotFound here would be a guess.
+                // could not be established — reporting KeyNotFound here would be a guess.
                 // The record stays behind for CleanupAsync or a later retry.
                 return new BlobResult(BlobErrorCode.Timeout);
             }
@@ -232,7 +378,7 @@ namespace ActDim.BytePath
         /// registry persists matches the data store. Requires the caller to dispose the write
         /// stream before the record, which is the documented usage pattern.
         /// </summary>
-        private BlobResult TrackSizeOnDispose(BlobResult blobResult)
+        private static BlobResult TrackSizeOnDispose(BlobResult blobResult, IBlobDataStore dataStore)
         {
             var record = blobResult.Record;
             if (record.LockType != LockType.Write)
@@ -244,7 +390,7 @@ namespace ActDim.BytePath
             var releaseAsync = record.OnDisposeAsync;
             record.OnDisposeAsync = async () =>
             {
-                record.Size = await _dataStore.GetSizeAsync(record, CancellationToken.None);
+                record.Size = await dataStore.GetSizeAsync(record, CancellationToken.None);
                 if (releaseAsync != null)
                 {
                     await releaseAsync();
