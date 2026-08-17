@@ -4,7 +4,7 @@ using Xunit;
 
 namespace ActDim.Emitron.Tests
 {
-	public class InterpolationFormatterTests
+	public class InterpolatorTests
 	{
 		// ------------------------------------------------------------------
 		// Compile → returns a reusable Func<object,string>
@@ -13,7 +13,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Compile_ReturnsNonNullDelegate()
 		{
-			var formatter = InterpolationFormatter.Compile("$\"{Name}\"");
+			var formatter = Interpolator.Compile("$\"{Name}\"");
 			Assert.NotNull(formatter);
 		}
 
@@ -21,8 +21,8 @@ namespace ActDim.Emitron.Tests
 		public void Compile_SameTemplate_ReturnsCachedDelegate()
 		{
 			const string template = "$\"{Value}\"";
-			var first = InterpolationFormatter.Compile(template);
-			var second = InterpolationFormatter.Compile(template);
+			var first = Interpolator.Compile(template);
+			var second = Interpolator.Compile(template);
 			Assert.Same(first, second);
 		}
 
@@ -33,21 +33,37 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Format_SimpleStringProperty()
 		{
-			var result = InterpolationFormatter.Format("$\"Hello, {Name}!\"", new { Name = "World" });
+			var result = Interpolator.Format("$\"Hello, {Name}!\"", new { Name = "World" });
 			Assert.Equal("Hello, World!", result);
+		}
+
+		[Fact]
+		public void Interpolate_ExtensionMethod_FormatsCorrectly()
+		{
+			const string template = "$\"Hello, {Name}! You have {Count} messages.\"";
+			var result = template.Interpolate(new { Name = "Alice", Count = 5 });
+			Assert.Equal("Hello, Alice! You have 5 messages.", result);
+		}
+
+		[Fact]
+		public void Interpolate_CustomInputParameterName_FormatsCorrectly()
+		{
+			const string template = "$\"Hello, {Name}!\"";
+			var result = template.Interpolate(new { Name = "Bob" }, inputParameterName: "@ctx");
+			Assert.Equal("Hello, Bob!", result);
 		}
 
 		[Fact]
 		public void Format_IntegerProperty()
 		{
-			var result = InterpolationFormatter.Format("$\"Count: {Count}\"", new { Count = 42 });
+			var result = Interpolator.Format("$\"Count: {Count}\"", new { Count = 42 });
 			Assert.Equal("Count: 42", result);
 		}
 
 		[Fact]
 		public void Format_MultipleProperties()
 		{
-			var result = InterpolationFormatter.Format(
+			var result = Interpolator.Format(
 				"$\"{FirstName} {LastName} is {Age} years old.\"",
 				new { FirstName = "Jane", LastName = "Doe", Age = 30 });
 
@@ -62,14 +78,14 @@ namespace ActDim.Emitron.Tests
 		public void Format_WithFormatSpecifier_DateTime()
 		{
 			var date = new DateTime(2024, 3, 15);
-			var result = InterpolationFormatter.Format("$\"{Date:dd.MM.yy}\"", new { Date = date });
+			var result = Interpolator.Format("$\"{Date:dd.MM.yy}\"", new { Date = date });
 			Assert.Equal(date.ToString("dd.MM.yy"), result);
 		}
 
 		[Fact]
 		public void Format_WithFormatSpecifier_Numeric()
 		{
-			var result = InterpolationFormatter.Format("$\"{Value:D6}\"", new { Value = 42 });
+			var result = Interpolator.Format("$\"{Value:D6}\"", new { Value = 42 });
 			Assert.Equal("000042", result);
 		}
 
@@ -80,7 +96,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Format_PropertyChainExpression()
 		{
-			var result = InterpolationFormatter.Format(
+			var result = Interpolator.Format(
 				"$\"Length: {Text.Length}\"",
 				new { Text = "hello" });
 			Assert.Equal("Length: 5", result);
@@ -89,7 +105,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Format_MethodCallExpression()
 		{
-			var result = InterpolationFormatter.Format(
+			var result = Interpolator.Format(
 				"$\"{Name.ToUpperInvariant()}\"",
 				new { Name = "world" });
 			Assert.Equal("WORLD", result);
@@ -102,7 +118,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Format_WithDictionaryParameters()
 		{
-			var formatter = InterpolationFormatter.Compile("$\"{Product} costs {Price:C}\"");
+			var formatter = Interpolator.Compile("$\"{Product} costs {Price:C}\"");
 			var parameters = new Dictionary<string, object>
 			{
 				{ "Product", "Widget" },
@@ -120,7 +136,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void CompiledFormatter_IsReusableWithDifferentInputs()
 		{
-			var formatter = InterpolationFormatter.Compile("$\"Hi, {Name}!\"");
+			var formatter = Interpolator.Compile("$\"Hi, {Name}!\"");
 
 			Assert.Equal("Hi, Alice!", formatter(new { Name = "Alice" }));
 			Assert.Equal("Hi, Bob!", formatter(new { Name = "Bob" }));
@@ -133,20 +149,20 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Compile_NullTemplate_Throws()
 		{
-			Assert.Throws<ArgumentNullException>(() => InterpolationFormatter.Compile(null));
+			Assert.Throws<ArgumentNullException>(() => Interpolator.Compile(null));
 		}
 
 		[Fact]
 		public void Compile_EmptyTemplate_Throws()
 		{
-			Assert.Throws<ArgumentException>(() => InterpolationFormatter.Compile(string.Empty));
+			Assert.Throws<ArgumentException>(() => Interpolator.Compile(string.Empty));
 		}
 
 		[Fact]
-		public void Format_NullParameters_Throws()
+		public void Format_NullInput_Throws()
 		{
 			Assert.Throws<ArgumentNullException>(() =>
-				InterpolationFormatter.Format("$\"{Name}\"", (object)null));
+				Interpolator.Format("$\"{Name}\"", (object)null));
 		}
 
 		// ------------------------------------------------------------------
@@ -156,7 +172,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Compile_NonInterpolatedTemplate_ThrowsArgumentException()
 		{
-			Assert.Throws<ArgumentException>(() => InterpolationFormatter.Compile("\"just a plain string\""));
+			Assert.Throws<ArgumentException>(() => Interpolator.Compile("\"just a plain string\""));
 		}
 
 		// ------------------------------------------------------------------
@@ -166,7 +182,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Format_VerbatimInterpolatedString_NewLine()
 		{
-			var result = InterpolationFormatter.Format(
+			var result = Interpolator.Format(
 				"$@\"Line1\nLine2: {Value}\"",
 				new { Value = "X" });
 			Assert.Contains("Line2: X", result);

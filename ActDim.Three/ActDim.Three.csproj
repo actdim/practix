@@ -3,9 +3,11 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<OutputType>Library</OutputType>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-		<SignAssembly>True</SignAssembly>
-		<Platforms>x64</Platforms>
-		<PlatformTarget>x64</PlatformTarget>
+		<IsPackable>true</IsPackable>
+		<PackageId>ActDim.Three</PackageId>
+		<Description>3D graphics math, geometry, and scene graph library for .NET.</Description>
+		<PackageTags>actdim;three;3d;graphics;math;geometry</PackageTags>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<DefineConstants>TRACE;DEBUG</DefineConstants>

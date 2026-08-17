@@ -37,82 +37,70 @@ namespace ActDim.Emitron
 
         /// <summary>
         /// Converts <paramref name="parametersObj"/> into a <see cref="ScriptGlobals"/> whose
-        /// <c>__emitron_vars</c> is an <see cref="ExpandoObject"/> populated from the object's properties.
-        /// Supports three source kinds tried in order:
-        /// <list type="number">
-        ///   <item><description>
-        ///     <see cref="IDictionary{String,Object}"/> (including <see cref="ExpandoObject"/>):
-        ///     entries are copied directly.
-        ///   </description></item>
-        ///   <item><description>
-        ///     <see cref="DynamicObject"/>: member names obtained via
-        ///     <see cref="DynamicObject.GetDynamicMemberNames"/> and values via a call-site.
-        ///   </description></item>
-        ///   <item><description>
-        ///     Any other CLR object (anonymous type, POCO, record, …): public readable properties
-        ///     are reflected; <see cref="PropertyInfo"/> arrays are cached per <see cref="Type"/>.
-        ///   </description></item>
-        /// </list>
+        /// <see cref="ScriptGlobals.@params"/> property holds the parameter bag.
         /// </summary>
         internal static ScriptGlobals BuildGlobals(object parametersObj)
         {
             var expando = new ExpandoObject();
             var bag = (IDictionary<string, object>)expando;
 
-            switch (parametersObj)
+            if (parametersObj != null)
             {
-                // ── 1. Dictionary / ExpandoObject ─────────────────────────────────────
-                case IDictionary<string, object> dict:
+                switch (parametersObj)
                 {
-                    foreach (var pair in dict)
+                    // ── 1. Dictionary / ExpandoObject ─────────────────────────────────────
+                    case IDictionary<string, object> dict:
                     {
-                        bag[pair.Key] = pair.Value;
+                        foreach (var pair in dict)
+                        {
+                            bag[pair.Key] = pair.Value;
+                        }
+
+                        break;
                     }
 
-                    break;
-                }
-
-                // ── 2. DynamicObject subclass ──────────────────────────────────────────
-                case DynamicObject dynObj:
-                {
-                    foreach (var name in dynObj.GetDynamicMemberNames())
+                    // ── 2. DynamicObject subclass ──────────────────────────────────────────
+                    case DynamicObject dynObj:
                     {
-                        var binder = Microsoft.CSharp.RuntimeBinder.Binder.GetMember(
-                            Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags.None,
-                            name,
-                            dynObj.GetType(),
-                            [Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(
-                                Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.None, null)]);
+                        foreach (var name in dynObj.GetDynamicMemberNames())
+                        {
+                            var binder = Microsoft.CSharp.RuntimeBinder.Binder.GetMember(
+                                Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags.None,
+                                name,
+                                dynObj.GetType(),
+                                [Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(
+                                    Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.None, null)]);
 
-                        var site = System.Runtime.CompilerServices
-                            .CallSite<Func<System.Runtime.CompilerServices.CallSite, object, object>>
-                            .Create(binder);
+                            var site = System.Runtime.CompilerServices
+                                .CallSite<Func<System.Runtime.CompilerServices.CallSite, object, object>>
+                                .Create(binder);
 
-                        bag[name] = site.Target(site, dynObj);
+                            bag[name] = site.Target(site, dynObj);
+                        }
+
+                        break;
                     }
 
-                    break;
-                }
-
-                // ── 3. Anonymous type / POCO / record — reflected, cached per Type ────
-                default:
-                {
-                    var props = _propertyCache.GetOrAdd(
-                        parametersObj.GetType(),
-                        t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                               .Where(p => p.CanRead)
-                               .ToArray());
-
-                    foreach (var prop in props)
+                    // ── 3. Anonymous type / POCO / record — reflected, cached per Type ────
+                    default:
                     {
-                        bag[prop.Name] = prop.GetValue(parametersObj);
-                    }
+                        var props = _propertyCache.GetOrAdd(
+                            parametersObj.GetType(),
+                            t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                   .Where(p => p.CanRead)
+                                   .ToArray());
 
-                    break;
+                        foreach (var prop in props)
+                        {
+                            bag[prop.Name] = prop.GetValue(parametersObj);
+                        }
+
+                        break;
+                    }
                 }
             }
 
-            return new ScriptGlobals { __emitron_vars = expando };
+            return new ScriptGlobals { @params = expando };
         }
 
         /// <summary>
@@ -145,17 +133,14 @@ namespace ActDim.Emitron
 
     /// <summary>
     /// Globals type injected into every compiled Roslyn script.
-    /// The script body accesses caller properties via <see cref="__emitron_vars"/> which is exposed as
-    /// <c>dynamic __emitron_p</c> inside the script.
+    /// Exposes caller properties via the dynamic <see cref="@params"/> property (accessible as <c>@params</c>).
     /// </summary>
-    public sealed class ScriptGlobals
+    public class ScriptGlobals
     {
         /// <summary>
-        /// Parameter bag populated from the caller-supplied object.
-        /// An <see cref="ExpandoObject"/> is used so that <c>dynamic __emitron_p = __emitron_vars</c>
-        /// inside the script resolves property access to the bag entries.
+        /// Dynamic parameter bag exposed to the script as <c>@params</c> / <c>params</c>.
         /// </summary>
-        public ExpandoObject __emitron_vars { get; set; }
+        public dynamic @params { get; set; }
     }
 
     /// <summary>

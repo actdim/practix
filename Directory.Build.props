@@ -1,0 +1,26 @@
+<Project>
+
+	<PropertyGroup>
+		<!-- Common Package Metadata -->
+		<Authors>ActDim</Authors>
+		<Company>ActDim</Company>
+		<Product>ActDim Framework</Product>
+		<Version>1.0.0</Version>
+
+		<!-- Licensing & Repository -->
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/actdim/practix</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+		<!-- Debug & Symbol Packaging -->
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+		<!-- Documentation File Generation -->
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+	</PropertyGroup>
+
+</Project>

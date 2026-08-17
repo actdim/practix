@@ -1,10 +1,14 @@
 # Active Issues
 
-_Solution-level issues board. Project-specific issues live in their respective subproject folders (e.g. `ActDim.Practix.Common/.agents/ISSUES/`, `ActDim.Observability/.agents/ISSUES/`, `ActDim.BlobManager/.agents/ISSUES/`, etc.)._
+_Solution-level issues board. Project-specific issues live in their respective subproject folders (e.g. `ActDim.Emitron/.agents/ISSUES/`, `ActDim.Practix.Common/.agents/ISSUES/`, `ActDim.Observability/.agents/ISSUES/`, `ActDim.BlobManager/.agents/ISSUES/`, etc.)._
 
 ## Active
 
 ## Subproject Issue Boards
+- `ActDim.Emitron`: [`.agents/ISSUES.md`](file:///d:/Src/my/actdim/public/dotnet/ActDim.Emitron/.agents/ISSUES.md)
+  - `debt--rename-script-evaluator-to-script-engine`
+  - `feat--refactor-script-engine-params`
+  - `feat--emitron-tests`
 - `ActDim.Practix.Common`: [`.agents/ISSUES.md`](file:///d:/Src/my/actdim/public/dotnet/ActDim.Practix.Common/.agents/ISSUES.md)
   - `feat--dynamic-array-json-converter`
   - `debt--arraysegment-blockcopy-optimization`
@@ -13,10 +17,13 @@ _Solution-level issues board. Project-specific issues live in their respective s
   - `debt--stringsplit-regex-cache`
   - `feat--encoding-async-extensions`
   - `feat--enumerable-estimation-extensions`
-  - `feat--iconfiguration-application-config-manager`
+  - `task--configure-nuget-packaging`
   - `feat--large-payload-compression`
 
 ## Done (recent)
+- `debt--rename-script-evaluator-to-script-engine`: Rename ScriptEvaluator to ScriptEngine in ActDim.Emitron
+- `feat--refactor-script-engine-params`: Standardize ScriptEngine and Interpolator on collision-free @params parameter variable
+- `task--configure-nuget-packaging`: Configure 6 ActDim projects for NuGet package publishing
 - `debt--remove-autofac-dependency`: Remove Autofac dependency and migrate to standard Microsoft Dependency Injection
 - `feat--extract-practix-json-assembly`: Extract JSON serialization subsystem into dedicated ActDim.Practix.Json assembly
 - `debt--json-serializer-reflectron-optimization`: Replace un-cached reflection in StandardJsonSerializer with fast compiled expression tree setters and property metadata cache

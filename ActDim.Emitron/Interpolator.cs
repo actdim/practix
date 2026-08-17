@@ -9,31 +9,27 @@ namespace ActDim.Emitron
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The <paramref name="template"/> passed to <see cref="Compile"/> must be a valid C# interpolated-string
+    /// The <c>template</c> passed to <see cref="Compile"/> must be a valid C# interpolated-string
     /// expression, for example: <code>$"Hello, {Name}! You have {Count} messages."</code>
     /// </para>
     /// <para>
     /// Internally the template is rewritten so that every interpolation slot is prefixed with
-    /// <c>__emitron_p.</c> and then compiled via <see cref="ScriptEvaluator.Compile{T}"/>.
-    /// Compilation is performed <b>once per unique template</b>; the resulting
-    /// <c>Func&lt;object, string&gt;</c> is cached for the lifetime of the process.
-    /// </para>
-    /// <para>
-    /// Parameters are supplied through any object whose public properties (or dictionary keys)
-    /// match the interpolation slots.  See <see cref="ScriptInternals.BuildGlobals"/> for the
-    /// full list of supported parameter source types.
+    /// inputParameterName (default <c>@params.</c>) and compiled via <see cref="ScriptEngine.Compile{T}"/>.
     /// </para>
     /// </remarks>
-    public static class InterpolationFormatter
+    public static class Interpolator
     {
         /// <summary>
         /// Compiles <paramref name="template"/> and returns a cached <c>Func&lt;object, string&gt;</c>
-        /// that accepts a parameter object and produces the formatted string.
+        /// that accepts an input object and produces the formatted string.
         /// </summary>
         /// <param name="template">
         /// A C# interpolated-string expression, e.g. <c>$"Hello, {Name}!"</c>.
         /// Interpolation slots may contain full C# expressions: <c>{Date:dd.MM.yy}</c>,
         /// <c>{Items.Count}</c>, <c>{Name.ToUpper()}</c>.
+        /// </param>
+        /// <param name="inputParameterName">
+        /// The variable name bound to caller inputs inside the template (defaults to <c>@params</c>).
         /// </param>
         /// <returns>
         /// A compiled, cached <c>Func&lt;object, string&gt;</c>.
@@ -44,57 +40,43 @@ namespace ActDim.Emitron
         /// <exception cref="CompilationException">
         /// Thrown when the template contains C# syntax or semantic errors.
         /// </exception>
-        public static Func<object, string> Compile(string template)
+        public static Func<object, string> Compile(string template, string inputParameterName = ScriptEngine.DefaultInputParameterName)
         {
             Guard.Against.NullOrWhiteSpace(template, nameof(template));
-            // Rewrite the interpolation slots and delegate compilation + caching to ScriptEvaluator.
-            var code = BuildCode(template);
-            return ScriptEvaluator.Compile<string>(code);
+            var normParam = ScriptEngine.NormalizeInputParameterName(inputParameterName);
+            var code = BuildCode(template, normParam);
+            return ScriptEngine.Compile<string>(code, normParam);
         }
 
         /// <summary>
         /// Convenience overload: compiles <paramref name="template"/> and immediately formats it
-        /// with <paramref name="parameters"/>.
+        /// with <paramref name="input"/>.
         /// </summary>
         /// <param name="template">A C# interpolated-string expression.</param>
-        /// <param name="parameters">
+        /// <param name="input">
         /// An object (anonymous type, POCO, <see cref="System.Dynamic.ExpandoObject"/>,
         /// <see cref="System.Collections.Generic.IDictionary{String,Object}"/>, etc.)
-        /// whose public properties are exposed as globals inside the interpolated string.
+        /// whose public properties are exposed inside the interpolated string.
         /// </param>
+        /// <param name="inputParameterName">The variable name bound to caller inputs (defaults to <c>@params</c>).</param>
         /// <returns>The formatted result string.</returns>
-        public static string Format(string template, object parameters)
+        public static string Format(string template, object input, string inputParameterName = ScriptEngine.DefaultInputParameterName)
         {
-            Guard.Against.Null(parameters, nameof(parameters));
-            return Compile(template)(parameters);
+            Guard.Against.Null(input, nameof(input));
+            return Compile(template, inputParameterName)(input);
         }
 
         // -----------------------------------------------------------------------------------------
         // Private helpers
         // -----------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Rewrites the template's interpolation slots with an <c>__emitron_p.</c> prefix and wraps
-        /// the result in a <c>return …;</c> statement suitable for <see cref="ScriptEvaluator"/>.
-        /// </summary>
-        private static string BuildCode(string template)
+        private static string BuildCode(string template, string inputParameterName)
         {
-            var rewritten = RewriteInterpolationSlots(template);
+            var rewritten = RewriteInterpolationSlots(template, inputParameterName);
             return $"return {rewritten};";
         }
 
-        /// <summary>
-        /// Rewrites a C# interpolated-string literal so that every interpolation slot's leading
-        /// identifier is prefixed with <c>__emitron_p.</c>, giving the script access to the caller's
-        /// parameter bag.
-        /// </summary>
-        /// <remarks>
-        /// For example <c>$"Hello, {Name}! Items: {Items.Count}"</c> becomes
-        /// <c>$"Hello, {__emitron_p.Name}! Items: {__emitron_p.Items.Count}"</c>.
-        /// Only the leading simple identifier is prefixed; nested expressions, method calls,
-        /// operators, and format specifiers are left intact.
-        /// </remarks>
-        private static string RewriteInterpolationSlots(string template)
+        private static string RewriteInterpolationSlots(string template, string inputParameterName)
         {
             var trimmed = template.TrimStart();
             if (!trimmed.StartsWith("$", StringComparison.Ordinal))
@@ -136,22 +118,14 @@ namespace ActDim.Emitron
                         sb.Append(template[i]);
                         i++;
                     }
-
                     continue;
                 }
 
-                if (c == '"')
+                if (isVerbatim && c == '"' && i + 1 < template.Length && template[i + 1] == '"')
                 {
-                    if (isVerbatim && i + 1 < template.Length && template[i + 1] == '"')
-                    {
-                        sb.Append("\"\"");
-                        i += 2;
-                        continue;
-                    }
-
-                    sb.Append(c);
-                    i++;
-                    break;
+                    sb.Append("\"\"");
+                    i += 2;
+                    continue;
                 }
 
                 if (c == '{')
@@ -166,30 +140,36 @@ namespace ActDim.Emitron
                     sb.Append('{');
                     i++;
 
-                    var holeStart = i;
+                    var slotSb = new StringBuilder();
                     var depth = 1;
                     while (i < template.Length && depth > 0)
                     {
-                        if (template[i] == '{') { depth++; }
-                        else if (template[i] == '}') { depth--; }
-
-                        if (depth > 0)
+                        var sc = template[i];
+                        if (sc == '{')
                         {
-                            i++;
+                            depth++;
                         }
+                        else if (sc == '}')
+                        {
+                            depth--;
+                            if (depth == 0)
+                            {
+                                break;
+                            }
+                        }
+
+                        slotSb.Append(sc);
+                        i++;
                     }
 
-                    var slot = template.Substring(holeStart, i - holeStart);
-                    sb.Append(PrefixLeadingIdentifier(slot));
-                    sb.Append('}');
-                    i++; // skip '}'
-                    continue;
-                }
+                    sb.Append(PrefixLeadingIdentifier(slotSb.ToString(), inputParameterName));
 
-                if (c == '}' && i + 1 < template.Length && template[i + 1] == '}')
-                {
-                    sb.Append("}}");
-                    i += 2;
+                    if (i < template.Length && template[i] == '}')
+                    {
+                        sb.Append('}');
+                        i++;
+                    }
+
                     continue;
                 }
 
@@ -200,7 +180,7 @@ namespace ActDim.Emitron
             return sb.ToString();
         }
 
-        private static string PrefixLeadingIdentifier(string slot)
+        private static string PrefixLeadingIdentifier(string slot, string inputParameterName)
         {
             var j = 0;
             while (j < slot.Length && (char.IsLetterOrDigit(slot[j]) || slot[j] == '_'))
@@ -213,7 +193,7 @@ namespace ActDim.Emitron
                 return slot;
             }
 
-            return "__emitron_p." + slot;
+            return inputParameterName + "." + slot;
         }
     }
 }
