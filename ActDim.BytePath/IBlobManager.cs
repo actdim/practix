@@ -11,9 +11,22 @@ namespace ActDim.BytePath
     public interface IBlobManager
     {
         /// <summary>
-        /// Gets the underlying physical data store instance.
+        /// Gets the primary or default underlying physical data store instance.
         /// </summary>
         IBlobDataStore DataStore { get; }
+
+        /// <summary>
+        /// Gets all registered underlying physical data stores.
+        /// </summary>
+        IReadOnlyList<IBlobDataStore> DataStores { get; }
+
+        /// <summary>
+        /// Resolves the matching <see cref="IBlobDataStore"/> for the specified <paramref name="key"/> based on prefix matching.
+        /// </summary>
+        /// <param name="key">The blob key.</param>
+        /// <returns>The matching data store instance.</returns>
+        /// <exception cref="NotSupportedException">Thrown when no data store is configured for the key's prefix.</exception>
+        IBlobDataStore GetDataStore(string key);
 
         /// <summary>
         /// Tries to get an existing blob or create a new record if absent.

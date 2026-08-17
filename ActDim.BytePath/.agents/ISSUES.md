@@ -4,21 +4,8 @@
 
 - [ ] multipart-upload-session — persistent staged upload sessions: `BeginUploadAsync`, out-of-order `UploadPartAsync`, `CompleteUploadAsync`, and `AbortUploadAsync`; publish only complete content
 - [~] add-try-create-with-conflict-behavior — `TryCreateAsync` (conflict handling) + `BlobManagerExtensions.CreateAsync` (one-shot creation from byte[]/Stream/producer delegate); see `.agents/ISSUES/add-try-create-with-conflict-behavior.md`
-- [ ] multi-backend — multiple `IBlobManager` instances, each self-describing via `KeyPrefix`;
-      client picks the right one by calling `ResolveKey`
-- [ ] content-hash — `Hash` is an unchecked claim: compute it during the write, verify a declared one,
-      and decide on a multi-step write session (hasher state cannot be persisted between calls)
-- [~] range-read — seekable-read promise done; explicit range overload deferred, reasoning recorded
-- [ ] integrity-audit — nothing checks that stored bytes still match the recorded `Size`/`Hash` after an
-      out-of-band edit, and orphaned content is undetectable because the store cannot be enumerated
-- [ ] url-safe-key-separator — `/` in a key means directories, but the key is the public ID and a slash
-      breaks URL routes; distinct keys can also collide after filename sanitisation
-- [ ] read-lock-persists-mutations — the read path persists the whole record, so a mutation made under
-      a read lock reaches storage and concurrent readers can race
-- [ ] [feat--async-enumerable-blob-find](ISSUES/feat--async-enumerable-blob-find.md) — Support IAsyncEnumerable streaming in IBlobStorage.FindAsync with EnumeratorCancellation.
-- [ ] batch-content-delete — bulk deletion deletes content one key at a time
-
 ## Backlog
 
+- [x] multi-backend — multiple IBlobDataStore instances with KeyPrefix routing and DI support (2026-08-17)
 - [x] di-registration — Microsoft DI extension methods (AddBlobManager) implemented and documented (2026-08-17)
 - [x] delete-blob-content — all deletion paths now remove the stored bytes too (2026-08-05)

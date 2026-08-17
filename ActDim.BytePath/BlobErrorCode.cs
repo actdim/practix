@@ -1,4 +1,4 @@
-﻿namespace ActDim.BytePath
+namespace ActDim.BytePath
 {
     /// <summary>
     /// Represents the status error codes for blob retrieval or operation results.
@@ -19,5 +19,10 @@
         /// Lock acquisition for the requested blob timed out.
         /// </summary>
         Timeout,
+
+        /// <summary>
+        /// No data store is registered that supports the key's prefix.
+        /// </summary>
+        UnsupportedKeyPrefix,
     }
 }

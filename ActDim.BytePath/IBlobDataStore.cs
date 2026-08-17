@@ -8,6 +8,12 @@ namespace ActDim.BytePath
     public interface IBlobDataStore
     {
         /// <summary>
+        /// Gets the key prefix supported by this data store (e.g. <c>"fs:"</c> or <c>"s3:"</c>).
+        /// An empty string indicates a catch-all / default store for keys without specific prefix.
+        /// </summary>
+        string KeyPrefix => string.Empty;
+
+        /// <summary>
         /// Resolves the physical underlying storage location path or URL for the specified <paramref name="blobRecord"/>.
         /// </summary>
         /// <param name="blobRecord">The target blob record.</param>
