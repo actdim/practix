@@ -5,11 +5,10 @@
 ## Features
 
 - **Ambient Context Abstractions:** Defines `IAmbientContext` and `IAmbientContextProvider` for managing ambient request/operation state safely across asynchronous call flows (`AsyncLocal<T>`).
-- **Compression & Archival Contracts:** Standardized interfaces for stream and buffer compression (`ICompressionManager`) supporting `GZip`, `BZip2`, `ZLib`, and archive inspection (`IArchiveInfo`, `IArchiveEntry`).
-- **Data Access Interfaces:** Provider-agnostic interfaces for database operations (`IDbService`, `IDbConnectionProvider`, `ISqlDialect`, `ISequenceIdGenerator`, `IDbFetcher<T>`).
-- **Blob Storage Contracts:** Extensible abstractions for blob storage providers (`IBlobStorage`, `IBlobStorageProvider`, `IBlob`).
+- **Compression & Archival Contracts:** Standardized interfaces for stream and buffer compression (`ICompressionManager`) supporting `GZip`, `Brotli`, `Deflate`, `Tar`, `Zip`, and archive inspection (`IArchiveInfo`, `IArchiveEntry`).
+- **Domain Exception Contracts:** Framework exception contracts (`DataFormatException`, `IncompleteDataException`).
 - **Serialization & JSON Abstractions:** Core serialization contracts (`IJsonSerializer`, `IBinarySerializer`, `IStreamSerializer`, `IStringSerializer`).
-- **Mapping & Messaging:** Generic mapper interfaces (`IMapper<TSource, TDestination>`) and messaging primitives.
+- **Pattern Abstractions:** Reusable design pattern contracts (`IProvider<T>`, `IAsyncProvider<T>`, `IFactory<T>`, `IAsyncFactory<T>`, `IBuilder<T>`, `IAsyncBuilder<T>`, `ICommand<T>`, `IAsyncCommand<T>`, `IHandler<T>`, `IAsyncHandler<T>`, `ISpecification<T>`, `IAsyncSpecification<T>`).
 
 ## Installation
 
