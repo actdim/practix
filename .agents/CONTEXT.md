@@ -12,15 +12,15 @@ Current state snapshot of `actdim/practix` (.NET).
 
 ### Framework & Application Assemblies (`ActDim.Practix.*`)
 - **`ActDim.Practix.Abstractions`**: Framework base interfaces and domain abstractions.
-- **`ActDim.Practix.Common`**: Shared utilities, concurrent collection factories, and extensions.
+- **`ActDim.Practix.Common`**: Shared utilities, concurrent collection factories, JSON serializer with compiled expression-tree property setters (`StandardJsonSerializer`), and extensions.
 - **`ActDim.Practix.DataAccess`**: Data access layer and ORM integration.
 - **`ActDim.Practix.Service`**: Primary backend service host.
 
 ## Solution Health & Verification
-- **Total Test Suite**: 464 tests passing across 5 test assemblies:
+- **Total Test Suite**: 467 tests passing across 5 test assemblies:
   - `ActDim.Emitron.Tests` (32 tests)
-  - `ActDim.Reflectron.Tests` (29 tests)
+  - `ActDim.Reflectron.Tests` (42 tests)
   - `ActDim.BlobManager.Tests` (64 tests)
   - `ActDim.Observability.Tests` (28 tests)
-  - `ActDim.Practix.Common.Tests` (311 tests)
+  - `ActDim.Practix.Common.Tests` (314 tests)
 - Zero warnings, zero failures.

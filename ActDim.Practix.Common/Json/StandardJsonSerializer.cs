@@ -1,8 +1,11 @@
 using ActDim.Practix.Abstractions.Json;
 using ActDim.Practix.Abstractions.Serialization;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -396,35 +399,112 @@ namespace ActDim.Practix.Common.Json
             }
         }
 
+        private readonly struct FastPropertySetterInfo
+        {
+            public string JsonPropertyName { get; }
+            public Type PropertyType { get; }
+            public Action<object, object> Setter { get; }
+
+            public FastPropertySetterInfo(string jsonPropertyName, Type propertyType, Action<object, object> setter)
+            {
+                JsonPropertyName = jsonPropertyName;
+                PropertyType = propertyType;
+                Setter = setter;
+            }
+        }
+
+        private static readonly ConcurrentDictionary<(Type TargetType, JsonNamingPolicy NamingPolicy), FastPropertySetterInfo[]> PropertySetterCache
+            = new ConcurrentDictionary<(Type, JsonNamingPolicy), FastPropertySetterInfo[]>();
+
+        private static Action<object, object> CreatePropertySetterDelegate(PropertyInfo propInfo)
+        {
+            var setMethod = propInfo.GetSetMethod(true);
+            if (setMethod == null)
+            {
+                return null;
+            }
+
+            var instanceParam = Expression.Parameter(typeof(object), "instance");
+            var valueParam = Expression.Parameter(typeof(object), "value");
+
+            var declaringType = propInfo.DeclaringType ?? propInfo.ReflectedType;
+            Expression instanceExpr = instanceParam;
+            if (declaringType != typeof(object))
+            {
+                instanceExpr = Expression.Convert(instanceParam, declaringType);
+            }
+
+            Expression valueExpr = valueParam;
+            if (propInfo.PropertyType != typeof(object))
+            {
+                valueExpr = Expression.Convert(valueParam, propInfo.PropertyType);
+            }
+
+            Expression callExpr = setMethod.IsStatic
+                ? Expression.Call(setMethod, valueExpr)
+                : Expression.Call(instanceExpr, setMethod, valueExpr);
+
+            var lambda = Expression.Lambda<Action<object, object>>(callExpr, instanceParam, valueParam);
+            return lambda.Compile();
+        }
+
+        private static FastPropertySetterInfo[] GetOrCreatePropertySetters(Type targetType, JsonSerializerOptions options)
+        {
+            var key = (targetType, options?.PropertyNamingPolicy);
+            return PropertySetterCache.GetOrAdd(key, k =>
+            {
+                var properties = k.TargetType.GetProperties();
+                var setters = new List<FastPropertySetterInfo>();
+
+                foreach (var prop in properties)
+                {
+                    if (!prop.CanWrite)
+                    {
+                        continue;
+                    }
+
+                    var compiledSetter = CreatePropertySetterDelegate(prop);
+                    if (compiledSetter == null)
+                    {
+                        continue;
+                    }
+
+                    var jsonPropertyName = k.NamingPolicy?.ConvertName(prop.Name) ?? prop.Name;
+                    setters.Add(new FastPropertySetterInfo(jsonPropertyName, prop.PropertyType, compiledSetter));
+                }
+
+                return setters.ToArray();
+            });
+        }
+
         private void MergeJsonObjectIntoObject<T>(
             JsonObject sourceJson,
             T targetObj,
             JsonSerializerOptions options)
         {
             options ??= _options;
-            var targetType = typeof(T);
-            var properties = targetType.GetProperties();
+            var targetType = targetObj.GetType();
+            var propertySetters = GetOrCreatePropertySetters(targetType, options);
 
-            foreach (var prop in properties)
+            foreach (var propInfo in propertySetters)
             {
-                if (!prop.CanWrite) continue;
-
-                var jsonPropertyName = options.PropertyNamingPolicy?.ConvertName(prop.Name) ?? prop.Name;
-
-                if (sourceJson.ContainsKey(jsonPropertyName))
+                if (sourceJson.ContainsKey(propInfo.JsonPropertyName))
                 {
-                    var jsonValue = sourceJson[jsonPropertyName];
+                    var jsonValue = sourceJson[propInfo.JsonPropertyName];
                     if (jsonValue is null)
                     {
-                        prop.SetValue(targetObj, null);
+                        if (!propInfo.PropertyType.IsValueType || Nullable.GetUnderlyingType(propInfo.PropertyType) != null)
+                        {
+                            propInfo.Setter(targetObj, null);
+                        }
                     }
                     else
                     {
                         var value = JsonSerializer.Deserialize(
                             jsonValue.ToJsonString(),
-                            prop.PropertyType,
+                            propInfo.PropertyType,
                             options);
-                        prop.SetValue(targetObj, value);
+                        propInfo.Setter(targetObj, value);
                     }
                 }
             }
