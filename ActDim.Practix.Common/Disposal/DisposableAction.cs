@@ -19,6 +19,7 @@ namespace ActDim.Practix.Disposal
             _disposeAction = disposeAction;
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             var action = Interlocked.Exchange(ref _disposeAction, null);
@@ -43,6 +44,7 @@ namespace ActDim.Practix.Disposal
             _data = data;
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             var action = Interlocked.Exchange(ref _disposeAction, null);
@@ -67,6 +69,7 @@ namespace ActDim.Practix.Disposal
             _disposeAction = disposeAction;
         }
 
+        /// <inheritdoc />
         public ValueTask DisposeAsync()
         {
             var action = Interlocked.Exchange(ref _disposeAction, null);
@@ -90,6 +93,7 @@ namespace ActDim.Practix.Disposal
             _data = data;
         }
 
+        /// <inheritdoc />
         public ValueTask DisposeAsync()
         {
             var action = Interlocked.Exchange(ref _disposeAction, null);

@@ -108,7 +108,7 @@ namespace ActDim.Reflectron.Tests
             var obj1 = new TestClass1(new TestClass2(), "test");
             var getter = TypeAccess<TestClass1>.GetPropertyGetter<TestClass2>(TestClass1.NameOf_TestRefProp1_1);
             var accessor = FastMember.TypeAccessor.Create(typeof(TestClass1));
-            
+
             var sw1 = Stopwatch.StartNew();
             for (var i = 0; i < 100_000; i++)
             {
@@ -122,9 +122,8 @@ namespace ActDim.Reflectron.Tests
                 var p = accessor[obj1, TestClass1.NameOf_TestRefProp1_1];
             }
             sw2.Stop();
-
-            Assert.NotNull(sw1);
-            Assert.NotNull(sw2);
+            
+            Assert.True(sw2.Elapsed > sw1.Elapsed);
         }
 
         [Fact]

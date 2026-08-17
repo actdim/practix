@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
+namespace ActDim.Practix.Extensions
 {
+    /// <summary>
+    /// Extension methods for <see cref="Task"/> and <see cref="Task{TResult}"/> operations, continuations, and timeouts.
+    /// </summary>
     public static class TaskExtensions
     {
         /// <summary>
-        /// Will only execute the given continuationAction, if the given predecessor task completes successfully.
-        /// The states Faulted and Canceled are propagated to the returned task.
+        /// Executes a continuation action only if the predecessor task completes successfully, propagating Faulted or Canceled states.
         /// </summary>
-        /// <param name="predecessor">Predecessor task.</param>
-        /// <param name="continuationAction">Action to Execute, if predecessor completes successfully</param>
-        /// <returns></returns>
+        /// <param name="predecessor">The predecessor task.</param>
+        /// <param name="continuationAction">The action to execute on successful completion.</param>
+        /// <returns>A task representing the state-propagated operation.</returns>
         public static Task StatePropagatingContinueWith(this Task predecessor, Action<Task> continuationAction)
         {
             var taskSource = new TaskCompletionSource<object>();
@@ -25,6 +27,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
                     taskSource.SetCanceled();
                     return;
                 }
+
                 if (t.IsFaulted)
                 {
                     taskSource.SetException(t.Exception.InnerExceptions);
@@ -45,6 +48,13 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             return taskSource.Task;
         }
 
+        /// <summary>
+        /// Executes a typed continuation action only if the predecessor task completes successfully, propagating Faulted or Canceled states.
+        /// </summary>
+        /// <typeparam name="T">The result type of the predecessor task.</typeparam>
+        /// <param name="predecessor">The predecessor task.</param>
+        /// <param name="continuationAction">The action to execute on successful completion.</param>
+        /// <returns>A task representing the state-propagated operation.</returns>
         public static Task StatePropagatingContinueWith<T>(this Task<T> predecessor, Action<Task<T>> continuationAction)
         {
             var taskSource = new TaskCompletionSource<T>();
@@ -56,6 +66,7 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
                     taskSource.SetCanceled();
                     return;
                 }
+
                 if (t.IsFaulted)
                 {
                     taskSource.SetException(t.Exception.InnerExceptions);
@@ -76,13 +87,17 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             return taskSource.Task;
         }
 
-        // http://www.codeproject.com/Articles/504197/Await-Tasks-in-Csharp-using-Iterators
-
+        /// <summary>
+        /// Converts an iterator sequence of tasks into a single task that evaluates the sequence asynchronously step-by-step.
+        /// </summary>
+        /// <typeparam name="TResult">The expected final result type.</typeparam>
+        /// <param name="tasks">The sequence of tasks.</param>
+        /// <returns>A task representing the completed iterator sequence.</returns>
         public static Task<TResult> ToTask<TResult>(this IEnumerable<Task> tasks)
         {
-            var taskScheduler =
-                SynchronizationContext.Current == null
-                    ? TaskScheduler.Default : TaskScheduler.FromCurrentSynchronizationContext();
+            var taskScheduler = SynchronizationContext.Current == null
+                ? TaskScheduler.Default
+                : TaskScheduler.FromCurrentSynchronizationContext();
             var taskEnumerator = tasks.GetEnumerator();
             var completionSource = new TaskCompletionSource<TResult>();
 
@@ -91,13 +106,13 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         }
 
         private static void ToTaskDoOneStep<TResult>(
-            IEnumerator<Task> taskEnumerator, TaskScheduler taskScheduler,
-            TaskCompletionSource<TResult> completionSource, Task completedTask)
+            IEnumerator<Task> taskEnumerator,
+            TaskScheduler taskScheduler,
+            TaskCompletionSource<TResult> completionSource,
+            Task completedTask)
         {
             try
             {
-                // Check status of previous nested task (if any), and stop if Canceled or Faulted.
-                // In these cases, we are abandoning the enumerator, so we must dispose it.
                 TaskStatus status;
                 if (completedTask == null)
                 {
@@ -118,18 +133,14 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
             }
             catch (Exception ex)
             {
-                // Return exception from disposing the enumerator.
                 completionSource.SetException(ex);
                 return;
             }
 
-            // Find the next Task in the iterator; handle cancellation and other exceptions.
-            Boolean haveMore;
+            bool haveMore;
             try
             {
-                // Enumerator disposes itself if it throws an exception or completes (returns false).
                 haveMore = taskEnumerator.MoveNext();
-
             }
             catch (OperationCanceledException)
             {
@@ -144,32 +155,25 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
             if (!haveMore)
             {
-                // No more tasks; set the result (if any) from the last completed task (if any).
-                // We know it's not Canceled or Faulted because we checked at the start of this method.
                 if (typeof(TResult) == typeof(VoidResult))
                 {
-                    // No result
                     completionSource.SetResult(default(TResult));
-
                 }
                 else if (!(completedTask is Task<TResult>))
-                {     // Wrong result
+                {
                     completionSource.SetException(new InvalidOperationException(
                         "Asynchronous iterator " + taskEnumerator +
-                            " requires a final result task of type " + typeof(Task<TResult>).FullName +
-                            (completedTask == null ? ", but none was provided." :
-                                "; the actual task type was " + completedTask.GetType().FullName)));
-
+                        " requires a final result task of type " + typeof(Task<TResult>).FullName +
+                        (completedTask == null ? ", but none was provided." :
+                            "; the actual task type was " + completedTask.GetType().FullName)));
                 }
                 else
                 {
                     completionSource.SetResult(((Task<TResult>)completedTask).Result);
                 }
-
             }
             else
             {
-                // When the nested task completes, continue by performing this function again.
                 taskEnumerator.Current.ContinueWith(
                     nextTask => ToTaskDoOneStep(taskEnumerator, taskScheduler, completionSource, nextTask),
                     taskScheduler);
@@ -178,58 +182,36 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
         private abstract class VoidResult { }
 
+        internal struct VoidTypeStruct { }
+
+        /// <summary>
+        /// Converts a sequence of untyped tasks into a single completion task.
+        /// </summary>
+        /// <param name="tasks">The task sequence.</param>
+        /// <returns>A task representing the iterator sequence completion.</returns>
         public static Task ToTask(this IEnumerable<Task> tasks)
         {
             return ToTask<VoidResult>(tasks);
         }
 
-        // public static async Task<T> WithCancellation<T>(this Task<T> task, CancellationToken cancellationToken)
-        // {
-        //     var tcs = new TaskCompletionSource<bool>();
-        //     using (cancellationToken.Register(
-        //                 s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
-        //         if (task != await Task.WhenAny(task, tcs.Task))
-        //         {
-        //             throw new OperationCanceledException(cancellationToken);
-        //         }
-        //     return await task;
-        // }
-
-        // public static Task<TResult> TimeoutAfter<TResult>(this Task<TResult> task, TimeSpan timeout)
-        // {
-        //     // var completedTask = Task.Factory.WhenAny(task, Delay(timeout));
-        //     var completedTask = Task.Factory.ContinueWhenAny(new [] { task, Delay(timeout) },  _ => _);
-        //     return completedTask.ContinueWith(_ =>
-        //     {
-        //         if (_ != task)
-        //         {
-        //             throw new TimeoutException("The operation has timed out.");
-        //         }
-        //         return ((Task<TResult>)_).Result;
-        //     });
-        // }
-
-        // public static async Task TimeoutAfter(this Task task, int millisecondsTimeout)
-        // {
-        //     if (task == await Task.WhenAny(task, Task.Delay(millisecondsTimeout)))
-        //     {
-        //         await task;
-        //     }
-        //     else
-        //     {
-        //         throw new TimeoutException();
-        //     }
-        // }
-
-        // The following based on http://blogs.msdn.com/b/pfxteam/archive/2011/11/10/10235834.aspx
-
-        internal struct VoidTypeStruct { }  // See Footnote #1
-
+        /// <summary>
+        /// Returns a task that fails with a <see cref="TimeoutException"/> if the target task does not complete within the specified timeout.
+        /// </summary>
+        /// <typeparam name="TResult">The result type of the task.</typeparam>
+        /// <param name="task">The target task.</param>
+        /// <param name="millisecondsTimeout">The timeout duration in milliseconds.</param>
+        /// <returns>A task that completes with the target result or throws <see cref="TimeoutException"/>.</returns>
         public static Task<TResult> TimeoutAfter<TResult>(this Task<TResult> task, int millisecondsTimeout)
         {
             return TimeoutAfter<TResult>((Task)task, millisecondsTimeout);
         }
 
+        /// <summary>
+        /// Returns a task that fails with a <see cref="TimeoutException"/> if the target task does not complete within the specified timeout.
+        /// </summary>
+        /// <param name="task">The target task.</param>
+        /// <param name="millisecondsTimeout">The timeout duration in milliseconds.</param>
+        /// <returns>A task that completes or throws <see cref="TimeoutException"/>.</returns>
         public static Task TimeoutAfter(this Task task, int millisecondsTimeout)
         {
             return TimeoutAfter<VoidTypeStruct>(task, millisecondsTimeout);
@@ -237,54 +219,34 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
         private static Task<TResult> TimeoutAfter<TResult>(Task task, int millisecondsTimeout)
         {
-            // tcs.Task will be returned as a proxy to the caller
             var tcs = new TaskCompletionSource<TResult>();
 
-            // Short-circuit #1: infinite timeout or task already completed
             if (task.IsCompleted || (millisecondsTimeout == Timeout.Infinite))
             {
-                // Either the task has already completed or timeout will never occur.
-                // No proxy necessary.
                 MarshalTaskResults(task, tcs);
                 return tcs.Task;
             }
 
-            // Short-circuit #2: zero timeout
             if (millisecondsTimeout == 0)
             {
-                // We've already timed out.
                 tcs.SetException(new TimeoutException());
                 return tcs.Task;
             }
 
-            // Set up a timer to complete after the specified timeout period
             var timer = new Timer(state =>
             {
-                // Recover your state information
                 var taskCompletionSource = (TaskCompletionSource<TResult>)state;
-
-                // Fault our proxy with a TimeoutException
                 taskCompletionSource.TrySetException(new TimeoutException());
-
             }, tcs, millisecondsTimeout, Timeout.Infinite);
 
-            // var ctx = Tuple.Create(timer, tcs); //Tuple<Timer, TaskCompletionSource<TResult>>
-
-            // Wire up the logic for what happens when source task completes
             task.ContinueWith(antecedent =>
             {
-                // Recover our state data
-
-                // Cancel the Timer
-                // ctx.Item1.Dispose();
                 timer.Dispose();
-
-                // Marshal results to proxy
                 MarshalTaskResults(antecedent, tcs);
             },
             CancellationToken.None,
             TaskContinuationOptions.ExecuteSynchronously,
-            TaskScheduler.Default); // TaskScheduler.Current
+            TaskScheduler.Default);
 
             return tcs.Task;
         }
@@ -302,30 +264,9 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
                 case TaskStatus.RanToCompletion:
                     var castedSource = source as Task<TResult>;
                     proxy.TrySetResult(
-                        castedSource == null ? default(TResult) : // source is a Task
-                            castedSource.Result); // source is a Task<TResult>
+                        castedSource == null ? default(TResult) : castedSource.Result);
                     break;
             }
         }
-
-        // public static Task Delay(int milliseconds)
-        // {
-        // 	return Delay((long)milliseconds);
-        // }
-
-        // // Asynchronous NON-BLOCKING method
-        // public static Task Delay(long milliseconds)
-        // {
-        // 	//var tcs = new TaskCompletionSource<object>();
-        // 	var tcs = new TaskCompletionSource<VoidTypeStruct>();
-        // 	//new Timer(_ => tcs.SetResult(null)).Change(milliseconds, -1); //TrySetResult
-        // 	new Timer(_ => tcs.SetResult(default(VoidTypeStruct))).Change(milliseconds, -1); //TrySetResult
-        // 	return tcs.Task;
-        // }
-
-        // public static Task Delay(TimeSpan timeSpan)
-        // {
-        // 	return Delay((long)timeSpan.TotalMilliseconds);
-        // }
     }
 }
