@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ActDim.Practix.Abstractions.Compression;
 using ActDim.Practix.Common.Memory;
 using ActDim.Practix.Compression;
+using ActDim.Practix.Abstractions.Exceptions;
 using Xunit;
 
 // Every operation under test is in-memory and finishes in milliseconds, so threading
@@ -18,9 +19,6 @@ namespace ActDim.Practix.Common.Tests.Compression
 {
     public class CompressionManagerTests
     {
-        // NOTE: ActDim.Practix.Common declares its own InvalidDataException, which is what the short name
-        // resolves to inside this namespace - hence System.IO.InvalidDataException spelled out below.
-
         private static readonly CompressionManager Manager = new CompressionManager();
 
         // Formats the BCL actually ships a codec for.
@@ -315,7 +313,7 @@ namespace ActDim.Practix.Common.Tests.Compression
             var compressedBytes = await ReadAllAsync(await Manager.CompressAsync(MakeCompressible(5_000), compressionFormat));
 
             // Brotli / raw Deflate carry no signature: detection cannot work, and that must be explicit.
-            await Assert.ThrowsAsync<System.IO.InvalidDataException>(() => Manager.DecompressAsync(compressedBytes));
+            await Assert.ThrowsAsync<DataFormatException>(() => Manager.DecompressAsync(compressedBytes));
         }
 
         [Fact]
@@ -518,13 +516,13 @@ namespace ActDim.Practix.Common.Tests.Compression
         [Fact]
         public void GetCompressionFormat_Unknown_Throws()
         {
-            Assert.Throws<System.IO.InvalidDataException>(() => Manager.GetCompressionFormat(Encoding.UTF8.GetBytes("plain text, no header")));
+            Assert.Throws<DataFormatException>(() => Manager.GetCompressionFormat(Encoding.UTF8.GetBytes("plain text, no header")));
         }
 
         [Fact]
         public void GetCompressionFormat_EmptyData_Throws()
         {
-            Assert.Throws<System.IO.InvalidDataException>(() => Manager.GetCompressionFormat(ReadOnlyMemory<byte>.Empty));
+            Assert.Throws<DataFormatException>(() => Manager.GetCompressionFormat(ReadOnlyMemory<byte>.Empty));
         }
 
         [Fact]
@@ -582,7 +580,7 @@ namespace ActDim.Practix.Common.Tests.Compression
         [Fact]
         public void GetArchiveFormat_Unknown_Throws()
         {
-            Assert.Throws<System.IO.InvalidDataException>(() => Manager.GetArchiveFormat(MakeBytes(1_000)));
+            Assert.Throws<DataFormatException>(() => Manager.GetArchiveFormat(MakeBytes(1_000)));
         }
 
         // Archive writing / reading -------------------------------------------------------------------------

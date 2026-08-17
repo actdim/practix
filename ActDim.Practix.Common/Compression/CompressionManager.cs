@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ActDim.Practix.Abstractions.Compression;
+using ActDim.Practix.Abstractions.Exceptions;
 using ActDim.Practix.Extensions;
 using ActDim.Practix.Memory;
 using Ardalis.GuardClauses;
@@ -257,16 +258,14 @@ namespace ActDim.Practix.Compression
             return false;
         }
 
-        // Fully qualified on purpose: ActDim.Practix.Common declares its own InvalidDataException, so the
-        // short name resolves differently depending on the namespace it is written in.
         private static Exception UnknownCompressionFormat()
         {
-            return new System.IO.InvalidDataException("Unrecognized compression format. Note that Brotli and raw Deflate carry no header and can never be detected - pass the format explicitly for those.");
+            return new DataFormatException("Unrecognized compression format. Note that Brotli and raw Deflate carry no header and can never be detected - pass the format explicitly for those.");
         }
 
         private static Exception UnknownArchiveFormat()
         {
-            return new System.IO.InvalidDataException("Unrecognized archive format.");
+            return new DataFormatException("Unrecognized archive format.");
         }
 
         private static Exception UnsupportedCompressionFormat(CompressionFormat compressionFormat)
