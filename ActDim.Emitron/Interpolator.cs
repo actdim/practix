@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Text;
 using Ardalis.GuardClauses;
@@ -9,12 +10,16 @@ namespace ActDim.Emitron
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The <c>template</c> passed to <see cref="Compile"/> must be a valid C# interpolated-string
-    /// expression, for example: <code>$"Hello, {Name}! You have {Count} messages."</code>
+    /// The <c>template</c> passed to <see cref="Compile(string, string, EmitronOptions?)"/> must be a valid C# interpolated-string
+    /// expression, for example: <code>$"Hello, {Name}! Today is {Date:yyyy-MM-dd}."</code>
     /// </para>
     /// <para>
-    /// Internally the template is rewritten so that every interpolation slot is prefixed with
-    /// inputParameterName (default <c>@params.</c>) and compiled via <see cref="Emitron.Compile{T}"/>.
+    /// Caller properties may be referenced <b>directly by name</b> (e.g. <c>{Name}</c>, <c>{Count}</c>, <c>{Price:C2}</c>)
+    /// or explicitly via the input parameter variable (e.g. <c>{@params.Name}</c>).
+    /// </para>
+    /// <para>
+    /// Internally the template is rewritten so that leading identifiers in interpolation slots are bound
+    /// to <c>inputParameterName</c> (default <c>@params</c>) and compiled via <see cref="Emitron.Compile{T}(string, string, EmitronOptions?)"/>.
     /// </para>
     /// </remarks>
     public static class Interpolator
@@ -25,11 +30,15 @@ namespace ActDim.Emitron
         /// </summary>
         /// <param name="template">
         /// A C# interpolated-string expression, e.g. <c>$"Hello, {Name}!"</c>.
-        /// Interpolation slots may contain full C# expressions: <c>{Date:dd.MM.yy}</c>,
-        /// <c>{Items.Count}</c>, <c>{Name.ToUpper()}</c>.
+        /// Properties can be referenced directly (e.g. <c>{Name}</c>) or via full C# expressions:
+        /// <c>{Date:dd.MM.yy}</c>, <c>{Items.Count}</c>, <c>{Name.ToUpper()}</c>, <c>{(IsActive ? "ON" : "OFF")}</c>,
+        /// or explicitly as <c>{@params.Name}</c>.
         /// </param>
         /// <param name="inputParameterName">
         /// The variable name bound to caller inputs inside the template (defaults to <c>@params</c>).
+        /// </param>
+        /// <param name="options">
+        /// Optional compilation options (references, imports, search paths). If <see langword="null"/>, <see cref="Emitron.DefaultOptions"/> is used.
         /// </param>
         /// <returns>
         /// A compiled, cached <c>Func&lt;object, string&gt;</c>.
@@ -40,12 +49,27 @@ namespace ActDim.Emitron
         /// <exception cref="CompilationException">
         /// Thrown when the template contains C# syntax or semantic errors.
         /// </exception>
-        public static Func<object, string> Compile(string template, string inputParameterName = Emitron.DefaultInputParameterName)
+        public static Func<object, string> Compile(
+            string template,
+            string inputParameterName = Emitron.DefaultInputParameterName,
+            EmitronOptions? options = null)
         {
             Guard.Against.NullOrWhiteSpace(template, nameof(template));
             var normParam = Emitron.NormalizeInputParameterName(inputParameterName);
             var code = BuildCode(template, normParam);
-            return Emitron.Compile<string>(code, normParam);
+            return Emitron.Compile<string>(code, normParam, options);
+        }
+
+        /// <summary>
+        /// Compiles <paramref name="template"/> with the specified <paramref name="options"/>
+        /// and returns a cached <c>Func&lt;object, string&gt;</c>.
+        /// </summary>
+        /// <param name="template">A C# interpolated-string expression.</param>
+        /// <param name="options">Compilation options (references, imports, search paths).</param>
+        /// <returns>A compiled, cached <c>Func&lt;object, string&gt;</c>.</returns>
+        public static Func<object, string> Compile(string template, EmitronOptions options)
+        {
+            return Compile(template, Emitron.DefaultInputParameterName, options);
         }
 
         /// <summary>
@@ -59,11 +83,31 @@ namespace ActDim.Emitron
         /// whose public properties are exposed inside the interpolated string.
         /// </param>
         /// <param name="inputParameterName">The variable name bound to caller inputs (defaults to <c>@params</c>).</param>
+        /// <param name="options">
+        /// Optional compilation options (references, imports, search paths). If <see langword="null"/>, <see cref="Emitron.DefaultOptions"/> is used.
+        /// </param>
         /// <returns>The formatted result string.</returns>
-        public static string Format(string template, object input, string inputParameterName = Emitron.DefaultInputParameterName)
+        public static string Format(
+            string template,
+            object input,
+            string inputParameterName = Emitron.DefaultInputParameterName,
+            EmitronOptions? options = null)
         {
             Guard.Against.Null(input, nameof(input));
-            return Compile(template, inputParameterName)(input);
+            return Compile(template, inputParameterName, options)(input);
+        }
+
+        /// <summary>
+        /// Convenience overload: compiles <paramref name="template"/> with <paramref name="options"/>
+        /// and immediately formats it with <paramref name="input"/>.
+        /// </summary>
+        /// <param name="template">A C# interpolated-string expression.</param>
+        /// <param name="input">The input parameter bag.</param>
+        /// <param name="options">Compilation options (references, imports, search paths).</param>
+        /// <returns>The formatted result string.</returns>
+        public static string Format(string template, object input, EmitronOptions options)
+        {
+            return Format(template, input, Emitron.DefaultInputParameterName, options);
         }
 
         // -----------------------------------------------------------------------------------------
