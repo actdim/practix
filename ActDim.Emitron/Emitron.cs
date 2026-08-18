@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 namespace ActDim.Emitron
 {
     /// <summary>
-    /// Compiles arbitrary C# code into a reusable, cached evaluator delegate.
+    /// Compiles arbitrary C# code and templates into reusable, high-performance cached evaluator delegates.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -16,11 +16,11 @@ namespace ActDim.Emitron
     /// (default <c>@params</c>, customizable via <c>inputParameterName</c>), e.g.:
     /// <code>
     /// // Single expression
-    /// var greet = ScriptEngine.Compile&lt;string&gt;("@params.Name.ToUpper() + \"!\"");
+    /// var greet = Emitron.Compile&lt;string&gt;("@params.Name.ToUpper() + \"!\"");
     /// string result = greet(new { Name = "world" }); // → "WORLD!"
     ///
     /// // Multi-statement block with explicit return
-    /// var calc = ScriptEngine.Compile&lt;int&gt;("""
+    /// var calc = Emitron.Compile&lt;int&gt;("""
     ///     var x = (int)@params.A;
     ///     var y = (int)@params.B;
     ///     return x * x + y * y;
@@ -33,7 +33,7 @@ namespace ActDim.Emitron
     /// is cached for the lifetime of the process.
     /// </para>
     /// </remarks>
-    public static class ScriptEngine
+    public static class Emitron
     {
         /// <summary>
         /// Default input parameter variable name bound inside the compiled script.
@@ -85,6 +85,29 @@ namespace ActDim.Emitron
         {
             Guard.Against.Null(input, nameof(input));
             return Compile<T>(code, inputParameterName)(input);
+        }
+
+        /// <summary>
+        /// Compiles a C# string interpolation template into a reusable formatter delegate.
+        /// </summary>
+        /// <param name="template">A C# interpolated-string expression, e.g. <c>$"Hello, {Name}!"</c>.</param>
+        /// <param name="inputParameterName">The variable name bound to caller inputs (defaults to <c>@params</c>).</param>
+        /// <returns>A compiled, cached formatting delegate.</returns>
+        public static Func<object, string> CompileTemplate(string template, string inputParameterName = DefaultInputParameterName)
+        {
+            return Interpolator.Compile(template, inputParameterName);
+        }
+
+        /// <summary>
+        /// Compiles and immediately evaluates a C# string interpolation template with the given <paramref name="input"/>.
+        /// </summary>
+        /// <param name="template">A C# interpolated-string expression, e.g. <c>$"Hello, {Name}!"</c>.</param>
+        /// <param name="input">The input parameter bag containing properties matching the interpolation slots.</param>
+        /// <param name="inputParameterName">The variable name bound to caller inputs (defaults to <c>@params</c>).</param>
+        /// <returns>The formatted result string.</returns>
+        public static string Interpolate(string template, object input, string inputParameterName = DefaultInputParameterName)
+        {
+            return Interpolator.Format(template, input, inputParameterName);
         }
 
         // ─────────────────────────────────────────────────────────────────────

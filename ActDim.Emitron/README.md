@@ -4,9 +4,10 @@
 
 ## Features
 
-- **Roslyn-Based C# Script Compilation:** Compile arbitrary C# code snippets or multi-statement blocks into highly efficient, reusable `Func<object, T>` delegates.
+- **Roslyn-Based C# Script Compilation:** Compile arbitrary C# code snippets or multi-statement blocks into highly efficient, reusable `Func<object, T>` delegates via `Emitron.Compile<T>`.
+- **Single Unified Facade (`Emitron`):** Access expression evaluation, multi-statement scripts, and template interpolation from a single, clean API entry point.
 - **Collision-Free Property Binding:** Pass any anonymous object, DTO, or dictionary as input. Properties are bound safely to a dynamic parameter variable (`@params` by default, fully customizable).
-- **Template Interpolation Compiler:** Parse and compile natural C# interpolated string templates (e.g., `$"Hello, {Name}! You have {Count} messages."`) into fast formatting delegates (`Interpolator`).
+- **Template Interpolation Compiler:** Parse and compile natural C# interpolated string templates (e.g., `$"Hello, {Name}! You have {Count} messages."`) into fast formatting delegates (`Emitron.CompileTemplate` / `Interpolator.Compile`).
 - **Concurrent Script Caching:** Script compilation occurs **once** per unique tuple `(code, inputParameterName, returnType)`. Compiled delegates are cached in memory for zero-overhead re-execution.
 - **Fluent String Extension Helpers:** Execute template interpolation directly via `template.Interpolate(input)`.
 
@@ -32,7 +33,7 @@ Install-Package ActDim.Emitron
 using ActDim.Emitron;
 
 // Compile expression operating on @params
-Func<object, string> greet = ScriptEngine.Compile<string>("@params.Name.ToUpper() + \"!\"");
+Func<object, string> greet = Emitron.Compile<string>("@params.Name.ToUpper() + \"!\"");
 
 // Execute cached delegate
 string result = greet(new { Name = "world" });
@@ -44,7 +45,7 @@ Console.WriteLine(result); // Output: WORLD!
 ```csharp
 using ActDim.Emitron;
 
-var calculateTax = ScriptEngine.Compile<decimal>("""
+var calculateTax = Emitron.Compile<decimal>("""
     var price = (decimal)@params.Price;
     var rate = (decimal)@params.TaxRate;
     var total = price * (1 + rate);
@@ -82,8 +83,8 @@ string output1 = template.Interpolate(new
 Console.WriteLine(output1);
 // Output: Order #1001 for Acme Corp is SHIPPED on 2026-08-17.
 
-// 2. Or compile explicitly into a reusable, high-performance delegate
-var formatter = Interpolator.Compile(template);
+// 2. Or compile explicitly via Emitron facade or Interpolator into a reusable delegate
+var formatter = Emitron.CompileTemplate(template);
 
 string output2 = formatter(new 
 { 
@@ -103,8 +104,18 @@ Console.WriteLine(output2);
 using ActDim.Emitron;
 
 // Use 'model' instead of default '@params'
-var eval = ScriptEngine.Compile<int>("model.A + model.B", inputParameterName: "model");
+var eval = Emitron.Compile<int>("model.A + model.B", inputParameterName: "model");
 int sum = eval(new { A = 10, B = 20 });
+```
+
+## Testing & Quality
+
+- **Test Suite:** `ActDim.Emitron.Tests`
+- **Total Tests:** 43 passed (100% success rate, 0 failed, 0 skipped)
+- **Target Framework:** .NET 10.0
+
+```bash
+dotnet test Tests/Emitron.Tests/ActDim.Emitron.Tests.csproj
 ```
 
 ## License

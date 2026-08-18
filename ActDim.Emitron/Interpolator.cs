@@ -14,7 +14,7 @@ namespace ActDim.Emitron
     /// </para>
     /// <para>
     /// Internally the template is rewritten so that every interpolation slot is prefixed with
-    /// inputParameterName (default <c>@params.</c>) and compiled via <see cref="ScriptEngine.Compile{T}"/>.
+    /// inputParameterName (default <c>@params.</c>) and compiled via <see cref="Emitron.Compile{T}"/>.
     /// </para>
     /// </remarks>
     public static class Interpolator
@@ -40,12 +40,12 @@ namespace ActDim.Emitron
         /// <exception cref="CompilationException">
         /// Thrown when the template contains C# syntax or semantic errors.
         /// </exception>
-        public static Func<object, string> Compile(string template, string inputParameterName = ScriptEngine.DefaultInputParameterName)
+        public static Func<object, string> Compile(string template, string inputParameterName = Emitron.DefaultInputParameterName)
         {
             Guard.Against.NullOrWhiteSpace(template, nameof(template));
-            var normParam = ScriptEngine.NormalizeInputParameterName(inputParameterName);
+            var normParam = Emitron.NormalizeInputParameterName(inputParameterName);
             var code = BuildCode(template, normParam);
-            return ScriptEngine.Compile<string>(code, normParam);
+            return Emitron.Compile<string>(code, normParam);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace ActDim.Emitron
         /// </param>
         /// <param name="inputParameterName">The variable name bound to caller inputs (defaults to <c>@params</c>).</param>
         /// <returns>The formatted result string.</returns>
-        public static string Format(string template, object input, string inputParameterName = ScriptEngine.DefaultInputParameterName)
+        public static string Format(string template, object input, string inputParameterName = Emitron.DefaultInputParameterName)
         {
             Guard.Against.Null(input, nameof(input));
             return Compile(template, inputParameterName)(input);

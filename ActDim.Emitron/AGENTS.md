@@ -7,4 +7,4 @@ Only this folder's specifics follow.
 
 ## Project specifics
 
-Roslyn C# script engine (`ScriptEngine`), template string compiler (`Interpolator`), and string interpolation extensions for `ActDim`.
+Roslyn C# script engine (`Emitron`), template string compiler (`Interpolator`), and string interpolation extensions for `ActDim`.
