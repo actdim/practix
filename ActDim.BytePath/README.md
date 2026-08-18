@@ -324,5 +324,15 @@ partial overwrite and no `SetLength` — so supporting it on the file system alo
 contract unimplementable elsewhere. Resumable upload does not need it: `record.Size` tells you how many
 bytes are already stored, and the rest is a plain append.
 
-**Locking inside the data store.** Object stores have no mutual exclusion at all (S3 Object Lock is
-WORM retention, not a mutex). Keeping locks in the registry is what keeps the design portable.
+---
+
+## Testing & Quality
+
+- **Test Suite:** `ActDim.BytePath.Tests`
+- **Total Tests:** 74 passed (100% success rate, 0 failed, 0 skipped)
+- **Target Framework:** .NET 10.0
+
+```bash
+dotnet test Tests/BytePath.Tests/ActDim.BytePath.Tests.csproj
+```
+

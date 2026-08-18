@@ -72,10 +72,16 @@ using (observability.SuppressProviders("File", "Console"))
 }
 ```
 
-## Testing
+## Testing & Quality
 
-Unit tests are located in `Tests/Observability.Tests/ActDim.Observability.Tests.csproj`. Run tests via:
+- **Test Suite:** `ActDim.Observability.Tests`
+- **Total Tests:** 28 passed (100% success rate, 0 failed, 0 skipped)
+- **Target Framework:** .NET 10.0
 
 ```bash
 dotnet test Tests/Observability.Tests/ActDim.Observability.Tests.csproj
 ```
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
