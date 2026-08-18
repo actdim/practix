@@ -218,5 +218,186 @@ namespace ActDim.Emitron.Tests
 			Assert.Throws<CompilationException>(() =>
 				Emitron.Compile<int>("this is not valid C#!!!"));
 		}
+
+		// ------------------------------------------------------------------
+		// #r "Assembly" and using Namespace; directives
+		// ------------------------------------------------------------------
+
+		[Fact]
+		public void Evaluate_WithUsingDirective_ImportsNamespaceSuccessfully()
+		{
+			const string code = """
+				using System.Text;
+
+				var sb = new StringBuilder();
+				sb.Append((string)@params.First);
+				sb.Append(" ");
+				sb.Append((string)@params.Last);
+				return sb.ToString();
+				""";
+
+			var result = Emitron.Evaluate<string>(code, new { First = "Hello", Last = "World" });
+			Assert.Equal("Hello World", result);
+		}
+
+		[Fact]
+		public void Evaluate_WithAssemblyDirectiveAndUsing_LoadsAssemblyAndEvaluates()
+		{
+			const string code = """
+				#r "System.Text.Json"
+				using System.Text.Json;
+
+				var doc = JsonDocument.Parse((string)@params.Json);
+				return doc.RootElement.GetProperty("name").GetString();
+				""";
+
+			var result = Emitron.Evaluate<string>(code, new { Json = """{"name":"Emitron"}""" });
+			Assert.Equal("Emitron", result);
+		}
+
+		[Fact]
+		public void Evaluate_WithAssemblyDirectiveWithoutUsing_EvaluatesWithFullName()
+		{
+			const string code = """
+				#r "System.Text.Json"
+
+				var doc = System.Text.Json.JsonDocument.Parse((string)@params.Json);
+				return doc.RootElement.GetProperty("count").GetInt32();
+				""";
+
+			var result = Emitron.Evaluate<int>(code, new { Json = """{"count":42}""" });
+			Assert.Equal(42, result);
+		}
+
+		[Fact]
+		public void Evaluate_WithAssemblyAndUsingAndCustomInputParameterName()
+		{
+			const string code = """
+				#r "System.Text.Json"
+				using System.Text.Json;
+
+				var doc = JsonDocument.Parse((string)ctx.Json);
+				return doc.RootElement.GetProperty("id").GetInt32();
+				""";
+
+			var result = Emitron.Evaluate<int>(
+				code,
+				new { Json = """{"id":101}""" },
+				inputParameterName: "ctx");
+
+			Assert.Equal(101, result);
+		}
+
+		[Fact]
+		public void Evaluate_WithCustomSearchPathsInOptions_ResolvesAssembly()
+		{
+			var options = new EmitronOptions()
+				.AddSearchPaths(AppContext.BaseDirectory);
+
+			const string code = """
+				#r "System.Text.Json"
+				using System.Text.Json;
+
+				var doc = JsonDocument.Parse((string)@params.Json);
+				return doc.RootElement.GetProperty("status").GetString();
+				""";
+
+			var result = Emitron.Evaluate<string>(code, new { Json = """{"status":"active"}""" }, options: options);
+			Assert.Equal("active", result);
+		}
+
+		[Fact]
+		public void Evaluate_WithOptionsAssembliesAndUsings_WorksWithoutInlineDirectives()
+		{
+			var options = new EmitronOptions()
+				.AddAssemblies(typeof(System.Text.Json.JsonDocument).Assembly)
+				.AddUsings("System.Text.Json");
+
+			const string code = """
+				var doc = JsonDocument.Parse((string)@params.Json);
+				return doc.RootElement.GetProperty("valid").GetBoolean();
+				""";
+
+			var result = Emitron.Evaluate<bool>(code, new { Json = """{"valid":true}""" }, options: options);
+			Assert.True(result);
+		}
+
+		[Fact]
+		public void Compile_WithInvalidAssemblyDirective_ThrowsCompilationException()
+		{
+			const string code = """
+				#r "NonExistentAssemblyThatDoesNotExistAtAll_12345"
+
+				return 1;
+				""";
+
+			Assert.Throws<CompilationException>(() => Emitron.Compile<int>(code));
+		}
+
+		[Fact]
+		public void Evaluate_WithAssembliesAndUsingsOverload_EvaluatesSuccessfully()
+		{
+			const string code = """
+				var doc = JsonDocument.Parse((string)@params.Json);
+				return doc.RootElement.GetProperty("count").GetInt32();
+				""";
+
+			var result = Emitron.Evaluate<int>(
+				code,
+				new { Json = """{"count":99}""" },
+				assemblies: [typeof(System.Text.Json.JsonDocument).Assembly],
+				usings: ["System.Text.Json"]);
+
+			Assert.Equal(99, result);
+		}
+
+		[Fact]
+		public void Evaluate_WithTypesAndUsingsOverload_EvaluatesSuccessfully()
+		{
+			const string code = """
+				var doc = JsonDocument.Parse((string)@params.Json);
+				return doc.RootElement.GetProperty("name").GetString();
+				""";
+
+			var result = Emitron.Evaluate<string>(
+				code,
+				new { Json = """{"name":"Practix"}""" },
+				types: [typeof(System.Text.Json.JsonDocument)],
+				usings: ["System.Text.Json"]);
+
+			Assert.Equal("Practix", result);
+		}
+
+		[Fact]
+		public void Compile_WithTypesAndUsingsOverload_ReturnsWorkingDelegate()
+		{
+			const string code = """
+				var doc = JsonDocument.Parse((string)@params.Json);
+				return doc.RootElement.GetProperty("id").GetInt64();
+				""";
+
+			var func = Emitron.Compile<long>(
+				code,
+				types: [typeof(System.Text.Json.JsonDocument)],
+				usings: ["System.Text.Json"]);
+
+			Assert.Equal(123456789L, func(new { Json = """{"id":123456789}""" }));
+		}
+
+		[Fact]
+		public void Evaluate_WithStringAssemblyAndUsingsInOptions_EvaluatesSuccessfully()
+		{
+			var options = new EmitronOptions()
+				.AddAssemblies("System.Text.Json")
+				.AddUsings("System.Text.Json");
+
+			const string code = """
+				var doc = JsonDocument.Parse((string)@params.Json);
+				return doc.RootElement.GetProperty("active").GetBoolean();
+				""";
+
+			var result = Emitron.Evaluate<bool>(code, new { Json = """{"active":true}""" }, options);
+			Assert.True(result);
+		}
 	}
 }

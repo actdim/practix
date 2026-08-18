@@ -4,6 +4,7 @@
 
 - [ ] multipart-upload-session — persistent staged upload sessions: `BeginUploadAsync`, out-of-order `UploadPartAsync`, `CompleteUploadAsync`, and `AbortUploadAsync`; publish only complete content
 - [~] add-try-create-with-conflict-behavior — `TryCreateAsync` (conflict handling) + `BlobManagerExtensions.CreateAsync` (one-shot creation from byte[]/Stream/producer delegate); see `.agents/ISSUES/add-try-create-with-conflict-behavior.md`
+- [ ] repodb-sqlite-registry — refactor `SQLiteBlobRegistry` to use RepoDb (Microsoft.Data.Sqlite) instead of `sqlite-net-pcl`
 ## Backlog
 
 - [x] multi-backend — multiple IBlobDataStore instances with KeyPrefix routing and DI support (2026-08-17)

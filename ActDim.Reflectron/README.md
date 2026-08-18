@@ -31,42 +31,46 @@ Install-Package ActDim.Reflectron
 
 ### 1. Fluent Object Reflector (`obj.Reflect()`)
 
-Use `.Reflect()` on any object instance to create an `IReflectron<T>`:
+Call `.Reflect()` on an object instance **once** to obtain a reusable, memory-safe `IReflectron<T>` wrapper:
 
 ```csharp
 using ActDim.Reflectron;
 
 var user = new User { Name = "Initial", Age = 25 };
 
+// Obtain the reflector once for the target instance:
+var reflector = user.Reflect();
+
 // Read and write via indexer (supports properties and fields):
-user.Reflect()["Name"] = "Alice";
-user.Reflect()["Age"] = 30;
-Console.WriteLine(user.Reflect()["Name"]); // Output: Alice
+reflector["Name"] = "Alice";
+reflector["Age"] = 30;
+Console.WriteLine(reflector["Name"]); // Output: Alice
 
 // Strongly-typed reading and writing by lambda expression:
-string updatedName = user.Reflect().Set(u => u.Name, "Bob");
-int age = user.Reflect().Get(u => u.Age);
+string updatedName = reflector.Set(u => u.Name, "Bob");
+int age = reflector.Get(u => u.Age);
 
 // Reading and writing by member name:
-user.Reflect().Set("Name", "Charlie");
-string name = user.Reflect().Get<string>("Name");
+reflector.Set("Name", "Charlie");
+string name = reflector.Get<string>("Name");
 ```
 
 ### 2. Calling Methods via Reflector
 
-Extract cached method delegates by name or expression:
+Extract cached method delegates by name or expression from the instance reflector:
 
 ```csharp
 using ActDim.Reflectron;
 
 var user = new User { Name = "Alice" };
+var reflector = user.Reflect();
 
 // By method name:
-var greetByName = user.Reflect().GetMethod<Func<User, string, string>>("FormatGreeting");
+var greetByName = reflector.GetMethod<Func<User, string, string>>("FormatGreeting");
 string result1 = greetByName(user, "Hello"); // Output: Hello, Alice!
 
 // By lambda expression:
-var greetByExpr = user.Reflect().GetMethod<Func<User, string, string>, string>(u => u.FormatGreeting(default));
+var greetByExpr = reflector.GetMethod<Func<User, string, string>, string>(u => u.FormatGreeting(default));
 string result2 = greetByExpr(user, "Welcome");
 ```
 
