@@ -19,11 +19,11 @@ namespace ActDim.Reflectron.Tests
             var propInfo = typeof(SampleStaticHolder).GetProperty(nameof(SampleStaticHolder.StaticProperty));
             Assert.NotNull(propInfo);
 
-            var getter = TypeAccess.GetPropertyGetter(propInfo);
+            var getter = Reflectron.GetPropertyGetter(propInfo);
             var valueBefore = (string)getter.DynamicInvoke((object)null);
             Assert.Equal("TestVal", valueBefore);
 
-            var setter = TypeAccess.GetPropertySetter(propInfo);
+            var setter = Reflectron.GetPropertySetter(propInfo);
             setter.DynamicInvoke(null, "NewVal");
             Assert.Equal("NewVal", SampleStaticHolder.StaticProperty);
         }
@@ -35,11 +35,11 @@ namespace ActDim.Reflectron.Tests
             var fieldInfo = typeof(SampleStaticHolder).GetField(nameof(SampleStaticHolder.StaticField));
             Assert.NotNull(fieldInfo);
 
-            var getter = TypeAccess.GetFieldGetter(fieldInfo);
+            var getter = Reflectron.GetFieldGetter(fieldInfo);
             var valBefore = (int)getter.DynamicInvoke((object)null);
             Assert.Equal(42, valBefore);
 
-            var setter = TypeAccess.GetFieldSetter(fieldInfo);
+            var setter = Reflectron.GetFieldSetter(fieldInfo);
             setter.DynamicInvoke(null, 99);
             Assert.Equal(99, SampleStaticHolder.StaticField);
         }

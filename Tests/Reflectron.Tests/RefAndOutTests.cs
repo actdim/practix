@@ -38,7 +38,7 @@ namespace ActDim.Reflectron.Tests
             string initStatus;
             var target = new SampleRefOutClass(ref initVal, out initStatus);
             var methodInfo = typeof(SampleRefOutClass).GetMethod(nameof(SampleRefOutClass.ModifyValue));
-            var caller = TypeAccess.GetMethodCaller(methodInfo);
+            var caller = Reflectron.GetMethodCaller(methodInfo);
 
             object[] args = new object[] { 7, null };
             var result = caller(target, args);
@@ -53,7 +53,7 @@ namespace ActDim.Reflectron.Tests
         public void GetMethodCaller_StaticMethodWithRefAndOut_ModifiesArgumentsInArray()
         {
             var methodInfo = typeof(SampleRefOutClass).GetMethod(nameof(SampleRefOutClass.StaticModify));
-            var caller = TypeAccess.GetMethodCaller(methodInfo);
+            var caller = Reflectron.GetMethodCaller(methodInfo);
 
             object[] args = new object[] { 4, null };
             caller(null, args);
@@ -68,7 +68,7 @@ namespace ActDim.Reflectron.Tests
             var ctorInfo = typeof(SampleRefOutClass).GetConstructor(new[] { typeof(int).MakeByRefType(), typeof(string).MakeByRefType() });
             Assert.NotNull(ctorInfo);
 
-            var ctorInvoker = TypeAccess.GetConstructorEx(ctorInfo);
+            var ctorInvoker = Reflectron.GetConstructorEx(ctorInfo);
             object[] args = new object[] { 15, null };
             var instance = (SampleRefOutClass)ctorInvoker(args);
 

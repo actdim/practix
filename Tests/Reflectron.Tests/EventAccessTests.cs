@@ -23,8 +23,8 @@ namespace ActDim.Reflectron.Tests
             var eventInfo = typeof(EventPublisher).GetEvent(nameof(EventPublisher.SomethingHappened));
             Assert.NotNull(eventInfo);
 
-            var adder = TypeAccess.GetEventAdder(eventInfo);
-            var remover = TypeAccess.GetEventRemover(eventInfo);
+            var adder = Reflectron.GetEventAdder(eventInfo);
+            var remover = Reflectron.GetEventRemover(eventInfo);
 
             string receivedMessage = null;
             EventHandler<string> handler = (sender, msg) => receivedMessage = msg;
@@ -46,8 +46,8 @@ namespace ActDim.Reflectron.Tests
             var eventInfo = typeof(EventPublisher).GetEvent(nameof(EventPublisher.SomethingHappened));
             Assert.NotNull(eventInfo);
 
-            var adder = TypeAccess.GetEventAdder<EventPublisher, EventHandler<string>>(eventInfo);
-            var remover = TypeAccess.GetEventRemover<EventPublisher, EventHandler<string>>(eventInfo);
+            var adder = Reflectron.GetEventAdder<EventPublisher, EventHandler<string>>(eventInfo);
+            var remover = Reflectron.GetEventRemover<EventPublisher, EventHandler<string>>(eventInfo);
 
             int count = 0;
             EventHandler<string> handler = (sender, msg) => count++;
@@ -64,13 +64,13 @@ namespace ActDim.Reflectron.Tests
         [Fact]
         public void GetEventAdder_NullEventInfo_ThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => TypeAccess.GetEventAdder(null));
+            Assert.Throws<ArgumentNullException>(() => Reflectron.GetEventAdder(null));
         }
 
         [Fact]
         public void GetEventRemover_NullEventInfo_ThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => TypeAccess.GetEventRemover(null));
+            Assert.Throws<ArgumentNullException>(() => Reflectron.GetEventRemover(null));
         }
     }
 }

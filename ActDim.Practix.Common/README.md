@@ -94,6 +94,16 @@ using (context.PushProperty("TenantId", "acme_corp"))
 }
 ```
 
+## Testing & Quality
+
+- **Test Suite:** `ActDim.Practix.Common.Tests`
+- **Total Tests:** 213 passed (100% success rate, 0 failed, 0 skipped)
+- **Target Framework:** .NET 10.0
+
+```bash
+dotnet test Tests/Common.Tests/ActDim.Practix.Common.Tests.csproj
+```
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).

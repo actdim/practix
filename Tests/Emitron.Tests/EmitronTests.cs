@@ -4,7 +4,7 @@ using Xunit;
 
 namespace ActDim.Emitron.Tests
 {
-	public class ScriptEngineTests
+	public class EmitronTests
 	{
 		// ------------------------------------------------------------------
 		// Compile → returns a reusable Func<object, T>
@@ -13,7 +13,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Compile_ReturnsNonNullDelegate()
 		{
-			var eval = ScriptEngine.Compile<int>("@params.Value");
+			var eval = Emitron.Compile<int>("@params.Value");
 			Assert.NotNull(eval);
 		}
 
@@ -21,8 +21,8 @@ namespace ActDim.Emitron.Tests
 		public void Compile_SameCodeAndType_ReturnsCachedDelegate()
 		{
 			const string code = "@params.X + @params.Y";
-			var first = ScriptEngine.Compile<int>(code);
-			var second = ScriptEngine.Compile<int>(code);
+			var first = Emitron.Compile<int>(code);
+			var second = Emitron.Compile<int>(code);
 			Assert.Same(first, second);
 		}
 
@@ -30,8 +30,8 @@ namespace ActDim.Emitron.Tests
 		public void Compile_SameCodeDifferentType_ReturnsDifferentDelegate()
 		{
 			const string code = "@params.Value";
-			var intEval = ScriptEngine.Compile<int>(code);
-			var objEval = ScriptEngine.Compile<object>(code);
+			var intEval = Emitron.Compile<int>(code);
+			var objEval = Emitron.Compile<object>(code);
 			Assert.NotSame(intEval, objEval);
 		}
 
@@ -42,21 +42,21 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Evaluate_SingleExpression_ReturnsInt()
 		{
-			var result = ScriptEngine.Evaluate<int>("(int)@params.A + (int)@params.B", new { A = 3, B = 4 });
+			var result = Emitron.Evaluate<int>("(int)@params.A + (int)@params.B", new { A = 3, B = 4 });
 			Assert.Equal(7, result);
 		}
 
 		[Fact]
 		public void Evaluate_UsingEscapedParamsPropertyAccess()
 		{
-			var result = ScriptEngine.Evaluate<int>("(int)@params.A + (int)@params.B", new { A = 10, B = 40 });
+			var result = Emitron.Evaluate<int>("(int)@params.A + (int)@params.B", new { A = 10, B = 40 });
 			Assert.Equal(50, result);
 		}
 
 		[Fact]
 		public void Evaluate_UsingCustomInputParameterName()
 		{
-			var result = ScriptEngine.Evaluate<int>(
+			var result = Emitron.Evaluate<int>(
 				"(int)@ctx.A + (int)@ctx.B",
 				new { A = 15, B = 25 },
 				inputParameterName: "@ctx");
@@ -66,7 +66,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Evaluate_UsingCustomInputParameterNameWithoutPrefix()
 		{
-			var result = ScriptEngine.Evaluate<int>(
+			var result = Emitron.Evaluate<int>(
 				"(int)p.A + (int)p.B",
 				new { A = 100, B = 200 },
 				inputParameterName: "p");
@@ -76,7 +76,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Evaluate_SingleExpression_ReturnsString()
 		{
-			var result = ScriptEngine.Evaluate<string>(
+			var result = Emitron.Evaluate<string>(
 				"((string)@params.FirstName) + \" \" + ((string)@params.LastName)",
 				new { FirstName = "Jane", LastName = "Doe" });
 			Assert.Equal("Jane Doe", result);
@@ -85,14 +85,14 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Evaluate_SingleExpression_ReturnsBool()
 		{
-			var result = ScriptEngine.Evaluate<bool>("(int)@params.Score >= 60", new { Score = 75 });
+			var result = Emitron.Evaluate<bool>("(int)@params.Score >= 60", new { Score = 75 });
 			Assert.True(result);
 		}
 
 		[Fact]
 		public void Evaluate_SingleExpression_ReturnsDouble()
 		{
-			var result = ScriptEngine.Evaluate<double>(
+			var result = Emitron.Evaluate<double>(
 				"(double)@params.Price * (1.0 - (double)@params.Discount)",
 				new { Price = 100.0, Discount = 0.15 });
 			Assert.Equal(85.0, result, precision: 10);
@@ -111,7 +111,7 @@ namespace ActDim.Emitron.Tests
 				return a * a + b * b;
 				""";
 
-			var result = ScriptEngine.Evaluate<int>(code, new { A = 3, B = 4 });
+			var result = Emitron.Evaluate<int>(code, new { A = 3, B = 4 });
 			Assert.Equal(25, result);
 		}
 
@@ -123,8 +123,8 @@ namespace ActDim.Emitron.Tests
 				return name.Length > 5 ? name.Substring(0, 5) + "…" : name;
 				""";
 
-			Assert.Equal("Hello…", ScriptEngine.Evaluate<string>(code, new { Name = "Hello World" }));
-			Assert.Equal("Hi", ScriptEngine.Evaluate<string>(code, new { Name = "Hi" }));
+			Assert.Equal("Hello…", Emitron.Evaluate<string>(code, new { Name = "Hello World" }));
+			Assert.Equal("Hi", Emitron.Evaluate<string>(code, new { Name = "Hi" }));
 		}
 
 		// ------------------------------------------------------------------
@@ -134,7 +134,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Evaluate_WithDictionaryInputs()
 		{
-			var result = ScriptEngine.Evaluate<int>(
+			var result = Emitron.Evaluate<int>(
 				"(int)@params.X * (int)@params.Y",
 				new Dictionary<string, object> { { "X", 6 }, { "Y", 7 } });
 
@@ -148,7 +148,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void CompiledEvaluator_IsReusableWithDifferentInputs()
 		{
-			var square = ScriptEngine.Compile<int>("(int)@params.N * (int)@params.N");
+			var square = Emitron.Compile<int>("(int)@params.N * (int)@params.N");
 
 			Assert.Equal(4, square(new { N = 2 }));
 			Assert.Equal(9, square(new { N = 3 }));
@@ -162,8 +162,27 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Evaluate_ObjectReturnType_ReturnsBoxedValue()
 		{
-			var result = ScriptEngine.Evaluate<object>("@params.Value", new { Value = 42 });
+			var result = Emitron.Evaluate<object>("@params.Value", new { Value = 42 });
 			Assert.Equal(42, result);
+		}
+
+		// ------------------------------------------------------------------
+		// Template interpolation facade tests
+		// ------------------------------------------------------------------
+
+		[Fact]
+		public void Emitron_Interpolate_FormatsTemplateCorrectly()
+		{
+			var result = Emitron.Interpolate("$\"Hello, {Name}!\"", new { Name = "Emitron" });
+			Assert.Equal("Hello, Emitron!", result);
+		}
+
+		[Fact]
+		public void Emitron_CompileTemplate_ProducesWorkingFormatter()
+		{
+			var formatter = Emitron.CompileTemplate("$\"Count = {Count}\"");
+			var result = formatter(new { Count = 42 });
+			Assert.Equal("Count = 42", result);
 		}
 
 		// ------------------------------------------------------------------
@@ -173,20 +192,20 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Compile_NullCode_Throws()
 		{
-			Assert.Throws<ArgumentNullException>(() => ScriptEngine.Compile<string>(null));
+			Assert.Throws<ArgumentNullException>(() => Emitron.Compile<string>(null));
 		}
 
 		[Fact]
 		public void Compile_EmptyCode_Throws()
 		{
-			Assert.Throws<ArgumentException>(() => ScriptEngine.Compile<string>(string.Empty));
+			Assert.Throws<ArgumentException>(() => Emitron.Compile<string>(string.Empty));
 		}
 
 		[Fact]
 		public void Evaluate_NullInput_Throws()
 		{
 			Assert.Throws<ArgumentNullException>(() =>
-				ScriptEngine.Evaluate<string>("@params.Name", null));
+				Emitron.Evaluate<string>("@params.Name", null));
 		}
 
 		// ------------------------------------------------------------------
@@ -197,7 +216,7 @@ namespace ActDim.Emitron.Tests
 		public void Compile_InvalidCode_ThrowsCompilationException()
 		{
 			Assert.Throws<CompilationException>(() =>
-				ScriptEngine.Compile<int>("this is not valid C#!!!"));
+				Emitron.Compile<int>("this is not valid C#!!!"));
 		}
 	}
 }

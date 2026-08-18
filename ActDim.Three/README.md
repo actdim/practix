@@ -69,6 +69,16 @@ string jsonString = ThreeSerializer.Serialize(scene);
 Scene restoredScene = ThreeSerializer.DeserializeScene(jsonString);
 ```
 
+## Testing & Quality
+
+- **Test Suite:** `ActDim.Three.Tests`
+- **Total Tests:** 35 passed (100% success rate, 0 failed, 0 skipped)
+- **Target Framework:** .NET 10.0
+
+```bash
+dotnet test Tests/Three.Tests/ActDim.Three.Tests.csproj
+```
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).

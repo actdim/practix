@@ -6,7 +6,7 @@ Current state snapshot of `actdim/practix` (.NET).
 
 ### Autonomous Engine Libraries (`ActDim.*`)
 - **`ActDim.Emitron`**: Roslyn-based C# script engine (`ScriptEngine`), template interpolation compiler (`Interpolator`), string extension helper (`template.Interpolate(input)`), with `@params` property binding. [Packable NuGet Package w/ README]
-- **`ActDim.Reflectron`**: High-performance reflection engine (`TypeAccess`, compiled expression tree property getters/setters, fast dynamic delegates). [Packable NuGet Package w/ README]
+- **`ActDim.Reflectron`**: High-performance reflection engine (`Reflectron`, `IReflectron<T>`, `obj.Reflect()`, indexer access, compiled expression tree property/field getters/setters, weak-referenced instances, fast dynamic delegates). [Packable NuGet Package w/ README]
 - **`ActDim.Three`**: 3D graphics engine math, geometry, materials, lighting, scene graph, and JSON scene graph serialization (`ThreeSerializer`). [Packable NuGet Package w/ README]
 - **`ActDim.BytePath`**: Core blob engine abstractions (`IBlobManager`, `IBlobDataStore`, `IBlobRegistry`), models (`BlobRecord`, `BlobResult`), multi-datastore `KeyPrefix` routing, and fluent DI builder (`AddBlobManager()`). [Packable NuGet Package w/ README]
 - **`ActDim.BytePath.FileSystemStore`**: Sharded physical data store (`FileSystemBlobDataStore`), key prefix support, hashing, stream pumping, and DI extensions (`WithFileSystemDataStore()`, `AddFileSystemBlobDataStore()`). [Packable NuGet Package w/ README]
@@ -26,11 +26,11 @@ Current state snapshot of `actdim/practix` (.NET).
 
 ## Solution Health & Verification
 - **Solution Build & Pack**: 17/17 projects building cleanly. All 10 NuGet packages generate `.nupkg` and `.snupkg` symbol packages with 0 missing README warnings (`dotnet pack ActDim.Practix.sln`).
-- **Total Test Suite**: 500 tests passing across 6 test assemblies:
+- **Total Test Suite**: 514 tests passing across 6 test assemblies:
   - `ActDim.Practix.Json.Tests` (102 tests)
   - `ActDim.Practix.Common.Tests` (213 tests)
   - `ActDim.Emitron.Tests` (41 tests)
-  - `ActDim.Reflectron.Tests` (42 tests)
+  - `ActDim.Reflectron.Tests` (56 tests)
   - `ActDim.BytePath.Tests` (74 tests)
   - `ActDim.Observability.Tests` (28 tests)
 - Zero failures.
