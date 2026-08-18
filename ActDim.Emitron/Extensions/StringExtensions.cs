@@ -18,7 +18,7 @@ namespace ActDim.Emitron
         public static string Interpolate(
             this string template,
             object input,
-            string inputParameterName = ScriptEngine.DefaultInputParameterName)
+            string inputParameterName = Emitron.DefaultInputParameterName)
         {
             Guard.Against.Null(template, nameof(template));
             Guard.Against.Null(input, nameof(input));
