@@ -1,9 +1,8 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using Ardalis.GuardClauses;
 
-namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
+namespace Ardalis.GuardClauses
 {
     /// <summary>
     /// Custom guard clauses.

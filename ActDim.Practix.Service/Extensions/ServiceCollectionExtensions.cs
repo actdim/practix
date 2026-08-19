@@ -1,9 +1,6 @@
-using ActDim.Practix.Common.Extensions;
-using ActDim.Practix.Json.Extensions;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace ActDim.Practix.Service.Extensions
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for setting up core Practix application service dependencies in an <see cref="IServiceCollection"/>.

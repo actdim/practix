@@ -1,8 +1,7 @@
 using ActDim.AppRegistry.Repo;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace ActDim.AppRegistry.Repo.Extensions
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for setting up AppRegistry repository services in an <see cref="IServiceCollection"/>.

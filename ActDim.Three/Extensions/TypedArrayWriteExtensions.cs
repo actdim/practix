@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using STJ = System.Text.Json;
 using ActDim.Three.Core.Buffers;
 
-namespace ActDim.Three.Serialization
+namespace ActDim.Three.Core.Buffers
 {
     /// <summary>
     /// Writes a typed buffer as a flat JSON number array using typed overloads (no per-element boxing).

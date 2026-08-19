@@ -1,7 +1,6 @@
-using Microsoft.Extensions.Caching.Memory;
 using System;
 
-namespace ActDim.Practix.Extensions
+namespace Microsoft.Extensions.Caching.Memory
 {
     /// <summary>
     /// Extension methods for <see cref="IMemoryCache"/> providing atomic add-or-get-existing operations.

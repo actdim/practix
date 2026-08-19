@@ -1,13 +1,15 @@
-using ActDim.Practix.Abstractions.Json;
 using ActDim.Practix.Service.Settings;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json.Nodes;
 
@@ -57,7 +59,6 @@ namespace ActDim.Practix.Service.OpenApi
             {
                 docInfo.Extensions = new Dictionary<string, IOpenApiExtension>();
             }
-            // new OpenApiString(value)
             docInfo.Extensions[OpenApiInfoExtensions.Name] = new JsonNodeExtension(JsonValue.Create(value));
             return docInfo;
         }
@@ -68,7 +69,6 @@ namespace ActDim.Practix.Service.OpenApi
             {
                 docInfo.Extensions = new Dictionary<string, IOpenApiExtension>();
             }
-            // new OpenApiString(value)
             docInfo.Extensions[OpenApiInfoExtensions.SchemaPrefix] = new JsonNodeExtension(JsonValue.Create(value));
             return docInfo;
         }
@@ -76,18 +76,13 @@ namespace ActDim.Practix.Service.OpenApi
         public static string GetDocName(this ApiVersionDescription apiVersionDescription)
         {
             var version = apiVersionDescription.ApiVersion.GetName();
-            // var version = apiVersionDescription.ApiVersion.ToString();
             return $"{apiVersionDescription.GroupName}_v{version}";
         }
 
         public static string GetOperationId(this ApiDescription apiDescription)
         {
-            // apiDescription.HttpMethod
             if (apiDescription.ActionDescriptor is ControllerActionDescriptor actionDescriptor)
             {
-                // apiDescription.ActionDescriptor.RouteValues["controller"]
-                // apiDescription.ActionDescriptor.RouteValues["action"]
-
                 return $"{actionDescriptor.ControllerName}_{actionDescriptor.ActionName}";
             }
             else
@@ -170,8 +165,6 @@ namespace ActDim.Practix.Service.OpenApi
                 return apiConfig;
             }
 
-            // TODO: use apiConfig.Overrides
-
             if (apiConfig.Info == default)
             {
                 apiConfig.Info = apiVersionDescription.GetOpenApiInfo();
@@ -182,138 +175,6 @@ namespace ActDim.Practix.Service.OpenApi
                 apiConfig.Info.SetDocName(apiVersionDescription.GetDocName());
             }
             return apiConfig;
-        }
-
-        public static IServiceCollection AddApiGen(this IServiceCollection services,
-            Func<IServiceProvider> serviceProviderFactory,
-            Action<SwaggerGenOptions> setupAction = default
-            )
-        {
-            services.AddSwaggerGen(options =>
-            {
-                var appOptions = serviceProviderFactory().GetRequiredService<IOptions<AppSettings>>();
-                var appSettings = appOptions.Value;
-
-                // TODO: check
-                // options.NonNullableReferenceTypesAsRequired();
-                // options.SupportNonNullableReferenceTypes();
-
-                options.UseAllOfToExtendReferenceSchemas();
-                options.UseAllOfForInheritance();
-                options.UseOneOfForPolymorphism();
-
-                options.SelectSubTypesUsing(TypeExtensions.GetOpenApiSubTypes);
-
-                options.CustomOperationIds(GetOperationId);
-
-                // options.SchemaGeneratorOptions.SchemaIdSelector
-                options.CustomSchemaIds(type =>
-                {
-                    return type.GetOpenApiSchemaId(appSettings?.SchemaPrefix, appSettings?.ClassPrefix);
-                });
-
-                var apiVersionDescriptionProvider = serviceProviderFactory().GetRequiredService<IApiVersionDescriptionProvider>();
-
-                var docNameMap = new Dictionary<string, string>();
-                foreach (var apiDescription in apiVersionDescriptionProvider.ApiVersionDescriptions)
-                {
-                    var apiConfig = apiDescription.GetApiConfig(appSettings)
-                    ;
-                    var docInfo = apiConfig.Info;
-
-                    var docName = GetDocName(docInfo);
-
-                    if (apiDescription.GroupName != null)
-                    {
-                        docNameMap[apiDescription.GroupName] = docName;
-                        options.SwaggerDoc(docName, docInfo);
-                    }
-                }
-
-                options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-                options.IgnoreObsoleteActions();
-                options.IgnoreObsoleteProperties();
-
-                // options.OperationFilter<OperationFilter>();
-                options.OperationFilter<ActionResultOperationFilter>();
-                options.OperationFilter<ParameterOperationFilter>();
-
-                options.SchemaFilter<ApiEnumSchemaFilter>();
-
-                // var namingPolicy = serviceProviderFactory()
-                //     .GetRequiredService<IOptions<JsonOptions>>().Value
-                //     .JsonSerializerOptions.PropertyNamingPolicy;
-                var namingPolicy = serviceProviderFactory().GetRequiredService<IJsonSerializer>().Options.PropertyNamingPolicy;
-
-                options.AddSchemaFilterInstance(new JsonNamingSchemaFilter(namingPolicy));
-
-                options.SchemaFilter<MakeWritableSchemaFilter>();
-
-                options.SchemaFilter<MakeNullableSchemaFilter>();
-
-                options.SchemaFilter<DictionarySubclassSchemaFilter>();
-
-                options.DocumentFilter<ApiDocumentFilter>();
-
-                // options.MapType<Guid>(() => new OpenApiSchema
-                // {
-                //     Type = "string",
-                //     Format = "uuid",
-                //     // Format = null,
-                //     // Example = new OpenApiString(Guid.NewGuid().ToString())
-                // });
-
-                // extras:
-                // options.MapType<Date>(() => new OpenApiSchema
-                // {
-                //     Type = "string",
-                //     Format = "date",
-                //     Example = new OpenApiDate(new DateTime(2020, 1, 1))
-                // });
-
-                options.DocInclusionPredicate((docName, apiDescription) =>
-                {
-                    if (!apiDescription.TryGetMethodInfo(out MethodInfo methodInfo)) return false;
-
-                    var versions = methodInfo.DeclaringType?
-                        .GetCustomAttributes(true)
-                        .OfType<ApiVersionAttribute>()
-                        .SelectMany(attr => attr.Versions);
-
-                    // return versions?.Any(v => $"v{v}" == version) ?? false;
-
-                    var actionDescriptor = (ControllerActionDescriptor)apiDescription.ActionDescriptor;
-                    var cAttrs = actionDescriptor.ControllerTypeInfo.GetCustomAttributes().ToArray();
-                    var mAttrs = actionDescriptor.MethodInfo.GetCustomAttributes().ToArray();
-                    return docNameMap[apiDescription.GroupName] == docName && !(
-                        cAttrs.OfType<ExcludeFromOpenApiAttribute>().Any() ||
-                        (cAttrs.Any(a => a is OpenApiAttribute openApiAttr && openApiAttr.Exclude)) ||
-                        mAttrs.OfType<ExcludeFromOpenApiAttribute>().Any() ||
-                        (mAttrs.Any(a => a is OpenApiAttribute openApiAttr && openApiAttr.Exclude)) ||
-                        mAttrs.OfType<NonActionAttribute>().Any()
-                    );
-                });
-
-                var controllerAssemblies = GetControllerTypes().Select(t => t.Assembly).Distinct();
-                foreach (var assembly in controllerAssemblies)
-                {
-                    var fileName = $"{assembly.GetName().Name}.xml";
-                    fileName = Path.Combine(AppContext.BaseDirectory, fileName);
-                    if (File.Exists(fileName))
-                    {
-                        options.IncludeXmlComments(fileName, true);
-                    }
-                }
-
-                if (setupAction != null)
-                {
-                    setupAction(options);
-                }
-            });
-
-            services.AddEndpointsApiExplorer();
-
-            return services;
         }
     }
 }

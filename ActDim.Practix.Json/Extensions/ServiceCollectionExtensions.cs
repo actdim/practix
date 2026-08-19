@@ -1,9 +1,9 @@
 using ActDim.Practix.Abstractions.Json;
-using Microsoft.Extensions.DependencyInjection;
+using ActDim.Practix.Json;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 
-namespace ActDim.Practix.Json.Extensions
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for setting up JSON serialization services in an <see cref="IServiceCollection"/>.

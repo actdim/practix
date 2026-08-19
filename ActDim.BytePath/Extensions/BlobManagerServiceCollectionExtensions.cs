@@ -1,8 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
+using ActDim.BytePath;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 
-namespace ActDim.BytePath
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for registering <see cref="IBlobManager"/> and configuring storage backends in an <see cref="IServiceCollection"/>.
