@@ -18,6 +18,9 @@ namespace ActDim.Observability.Tests
         [Fact]
         public async Task VictoriaLogs_WriteAndQueryLogs_ExecutesLogsQLSuccessfully()
         {
+            // =========================================================================
+            // 1. ARRANGE: Подготовка сервера VictoriaLogs, DI контейнера и контекста
+            // =========================================================================
             var options = new VictoriaLogsOptions
             {
                 BaseUrl = "http://localhost:9428",
@@ -35,7 +38,7 @@ namespace ActDim.Observability.Tests
 
             if (!isServerRunning)
             {
-                // Try finding standalone VictoriaLogs binary in output/project/tools directories
+                // Запуск локального процесса VictoriaLogs при необходимости
                 var binaryPath = FindVictoriaLogsBinary();
                 if (binaryPath != null)
                 {
@@ -52,7 +55,6 @@ namespace ActDim.Observability.Tests
 
                     startedProcess = Process.Start(startInfo);
 
-                    // Wait up to 3 seconds for server readiness
                     for (int i = 0; i < 30; i++)
                     {
                         await Task.Delay(100, cts.Token);
@@ -67,12 +69,13 @@ namespace ActDim.Observability.Tests
 
             if (!isServerRunning)
             {
-                // VictoriaLogs instance is not running. Place victoria-logs-windows-amd64.exe into Tools folder or run Docker.
+                // Если сервер не доступен и бинарник не найден — аккуратно завершаем тест
                 return;
             }
 
             try
             {
+                // Настройка DI контейнера приложения с AmbientContext и провайдером VictoriaLogs
                 var services = new ServiceCollection();
                 services.AddAmbientContext();
                 services.AddLogging(builder =>
@@ -94,16 +97,22 @@ namespace ActDim.Observability.Tests
 
                 var uniqueId = Guid.NewGuid().ToString("N");
                 var testMessage = $"VictoriaLogs integration log test message - {uniqueId}";
+                var orderId = "ord-999";
 
-                // 1. Write structured log enriched with AmbientContext + BeginMethodScope tags
-                using (var _methodScope = logger.BeginMethodScope(new[] { KeyValuePair.Create("order.id", (object?)"ord-999") }))
+                // =========================================================================
+                // 2. ACT: Выполнение бизнес-логики с логированием и скоупом метода
+                // =========================================================================
+                using (var _methodScope = logger.BeginMethodScope(new[] { KeyValuePair.Create("order.id", (object?)orderId) }))
                 {
                     logger.LogInformation("{TestMessage}", testMessage);
                 }
 
-                // Flush queue and wait for VictoriaLogs to index log records
+                // Сброс очереди логгера для моментальной отправки пакета в VictoriaLogs
                 provider.Flush();
 
+                // =========================================================================
+                // 3. ASSERT: Выполнение запросов LogsQL и проверка сохраненных данных
+                // =========================================================================
                 var query1 = $"""msg:"{uniqueId}" """;
                 IReadOnlyList<Dictionary<string, object?>> results1 = Array.Empty<Dictionary<string, object?>>();
 
@@ -133,12 +142,12 @@ namespace ActDim.Observability.Tests
                 Assert.Equal(nameof(VictoriaLogs_WriteAndQueryLogs_ExecutesLogsQLSuccessfully), logRecord["code.function"]?.ToString());
                 Assert.Equal("VictoriaLogsIntegrationTests.cs", logRecord["code.filename"]?.ToString());
 
-                // Query 2: Filter by OpenTelemetry function attribute in LogsQL
+                // Запрос 2: Поиск по атрибуту вызова метода OpenTelemetry (code.function)
                 var query2 = $"""code.function:"{nameof(VictoriaLogs_WriteAndQueryLogs_ExecutesLogsQLSuccessfully)}" """;
                 var results2 = await client.QueryLogsQLAsync(query2, cts.Token);
                 Assert.NotEmpty(results2);
 
-                // Query 3: Filter by tenant.id in LogsQL
+                // Запрос 3: Поиск по контекстному атрибуту тенанта (tenant.id)
                 var query3 = $"""tenant.id:"tenant-test-777" """;
                 var results3 = await client.QueryLogsQLAsync(query3, cts.Token);
                 Assert.NotEmpty(results3);
