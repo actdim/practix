@@ -1,4 +1,3 @@
-#nullable enable
 using ActDim.Practix.Abstractions.Context;
 using ActDim.Practix.Disposal;
 using System;
@@ -14,14 +13,14 @@ namespace ActDim.Observability
     /// </summary>
     public sealed class ObservabilityContext : IObservabilityContext
     {
-        private readonly IAmbientContextProvider _ambientContextProvider;
+        private readonly IAmbientContext _ambientContext;
 
-        public ObservabilityContext(IAmbientContextProvider ambientContextProvider)
+        public ObservabilityContext(IAmbientContext ambientContext)
         {
-            _ambientContextProvider = ambientContextProvider ?? throw new ArgumentNullException(nameof(ambientContextProvider));
+            _ambientContext = ambientContext ?? throw new ArgumentNullException(nameof(ambientContext));
         }
 
-        private IAmbientContext AmbientContext => _ambientContextProvider.Get();
+        private IAmbientContext AmbientContext => _ambientContext;
 
         /// <inheritdoc />
         public IReadOnlyDictionary<string, object> Properties => AmbientContext.Properties;

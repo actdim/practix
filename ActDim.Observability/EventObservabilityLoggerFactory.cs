@@ -1,4 +1,3 @@
-#nullable enable
 using ActDim.Practix.Abstractions.Context;
 using Microsoft.Extensions.Logging;
 using System;
@@ -16,18 +15,18 @@ namespace ActDim.Observability
     public sealed class EventObservabilityLoggerFactory : ILoggerFactory, ISupportExternalScope
     {
         private readonly ILoggerFactory _inner;
-        private readonly IAmbientContextProvider? _ambientContextProvider;
+        private readonly IAmbientContext? _ambientContext;
         private readonly EventObservabilityOptions _options;
         private IExternalScopeProvider? _scopeProvider;
 
         public EventObservabilityLoggerFactory(
             ILoggerFactory inner,
-            IAmbientContextProvider? ambientContextProvider = null,
+            IAmbientContext? ambientContext = null,
             IExternalScopeProvider? scopeProvider = null,
             EventObservabilityOptions? options = null)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
-            _ambientContextProvider = ambientContextProvider;
+            _ambientContext = ambientContext;
             _scopeProvider = scopeProvider;
             _options = options ?? new EventObservabilityOptions();
 
@@ -49,7 +48,7 @@ namespace ActDim.Observability
         public ILogger CreateLogger(string categoryName)
         {
             var innerLogger = _inner.CreateLogger(categoryName);
-            var logger = new EventObservabilityBridge(innerLogger, _ambientContextProvider, _options);
+            var logger = new EventObservabilityBridge(innerLogger, _ambientContext, _options);
             if (_scopeProvider != null)
             {
                 logger.SetScopeProvider(_scopeProvider);
@@ -66,7 +65,7 @@ namespace ActDim.Observability
             }
 
             var alias = ResolveProviderAlias(provider, _options);
-            var decoratedProvider = new EventObservabilityProviderDecorator(provider, alias, _ambientContextProvider, _scopeProvider);
+            var decoratedProvider = new EventObservabilityProviderDecorator(provider, alias, _ambientContext, _scopeProvider);
 
             if (_scopeProvider != null && decoratedProvider is ISupportExternalScope support)
             {
@@ -76,20 +75,15 @@ namespace ActDim.Observability
             _inner.AddProvider(decoratedProvider);
         }
 
-        public void Dispose()
-        {
-            _inner.Dispose();
-        }
-
         internal static string ResolveProviderAlias(ILoggerProvider provider, EventObservabilityOptions options)
         {
-            var type = provider.GetType();
-            if (options.CustomProviderAliases.TryGetValue(type, out var customAlias))
+            var providerType = provider.GetType();
+            if (options.CustomProviderAliases.TryGetValue(providerType, out var alias))
             {
-                return customAlias;
+                return alias;
             }
 
-            var aliasAttr = type.GetCustomAttributes(inherit: true)
+            var aliasAttr = providerType.GetCustomAttributes(inherit: true)
                 .FirstOrDefault(a => a.GetType().Name == "ProviderAliasAttribute" || a.GetType().Name == "TestProviderAliasAttribute");
 
             if (aliasAttr != null)
@@ -101,17 +95,22 @@ namespace ActDim.Observability
                 }
             }
 
-            var name = type.Name;
+            var name = providerType.Name;
             if (name.EndsWith("LoggerProvider", StringComparison.Ordinal))
             {
-                name = name[..^"LoggerProvider".Length];
+                return name.Substring(0, name.Length - "LoggerProvider".Length);
             }
-            else if (name.EndsWith("Provider", StringComparison.Ordinal))
+            if (name.EndsWith("Provider", StringComparison.Ordinal))
             {
-                name = name[..^"Provider".Length];
+                return name.Substring(0, name.Length - "Provider".Length);
             }
 
             return name;
+        }
+
+        public void Dispose()
+        {
+            _inner.Dispose();
         }
     }
 
@@ -119,25 +118,25 @@ namespace ActDim.Observability
     {
         private readonly ILoggerProvider _inner;
         private readonly string _alias;
-        private readonly IAmbientContextProvider? _ambientContextProvider;
+        private readonly IAmbientContext? _ambientContext;
         private IExternalScopeProvider? _scopeProvider;
 
         public EventObservabilityProviderDecorator(
             ILoggerProvider inner,
             string alias,
-            IAmbientContextProvider? ambientContextProvider,
+            IAmbientContext? ambientContext,
             IExternalScopeProvider? scopeProvider)
         {
             _inner = inner;
             _alias = alias;
-            _ambientContextProvider = ambientContextProvider;
+            _ambientContext = ambientContext;
             _scopeProvider = scopeProvider;
         }
 
         public ILogger CreateLogger(string categoryName)
         {
             var innerLogger = _inner.CreateLogger(categoryName);
-            return new EventObservabilityProviderLogger(innerLogger, _alias, _ambientContextProvider);
+            return new EventObservabilityProviderLogger(innerLogger, _alias, _ambientContext);
         }
 
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)
@@ -159,13 +158,13 @@ namespace ActDim.Observability
     {
         private readonly ILogger _inner;
         private readonly string _alias;
-        private readonly IAmbientContextProvider? _ambientContextProvider;
+        private readonly IAmbientContext? _ambientContext;
 
-        public EventObservabilityProviderLogger(ILogger inner, string alias, IAmbientContextProvider? ambientContextProvider)
+        public EventObservabilityProviderLogger(ILogger inner, string alias, IAmbientContext? ambientContext)
         {
             _inner = inner;
             _alias = alias;
-            _ambientContextProvider = ambientContextProvider;
+            _ambientContext = ambientContext;
         }
 
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull
@@ -180,7 +179,7 @@ namespace ActDim.Observability
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            var ambientProperties = _ambientContextProvider?.Get()?.Properties;
+            var ambientProperties = _ambientContext?.Properties;
             if (ambientProperties != null)
             {
                 // Check SuppressConsole flag

@@ -24,25 +24,25 @@ Modern, high-performance .NET libraries and application framework by Active Dime
 
 ## Test Verification & Quality Status
 
-All test suites are passing with a **100% success rate (562 / 562 tests passing, 0 failed, 0 skipped)**:
+All test suites are passing with a **100% success rate (586 / 586 tests passing, 0 failed, 0 skipped)**:
 
 | Test Project | Target Library / Module | Tests Passed | Failed | Skipped | Status |
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | **`ActDim.Emitron.Tests`** | `ActDim.Emitron` | **54** | 0 | 0 | ✅ Passed |
 | **`ActDim.Reflectron.Tests`** | `ActDim.Reflectron` | **56** | 0 | 0 | ✅ Passed |
-| **`ActDim.Practix.Common.Tests`** | `ActDim.Practix.Common` | **213** | 0 | 0 | ✅ Passed |
+| **`ActDim.Practix.Common.Tests`** | `ActDim.Practix.Common` | **235** | 0 | 0 | ✅ Passed |
 | **`ActDim.Practix.Json.Tests`** | `ActDim.Practix.Json` | **102** | 0 | 0 | ✅ Passed |
 | **`ActDim.BytePath.Tests`** | `ActDim.BytePath` | **74** | 0 | 0 | ✅ Passed |
 | **`ActDim.Three.Tests`** | `ActDim.Three` | **35** | 0 | 0 | ✅ Passed |
-| **`ActDim.Observability.Tests`** | `ActDim.Observability` | **28** | 0 | 0 | ✅ Passed |
-| **TOTAL** | **Entire Solution** | **562** | **0** | **0** | **100% Passing** |
+| **`ActDim.Observability.Tests`** | `ActDim.Observability` | **30** | 0 | 0 | ✅ Passed |
+| **TOTAL** | **Entire Solution** | **586** | **0** | **0** | **100% Passing** |
 
 ### Run Tests
 
 Run all tests across solutions:
 
 ```bash
-# Core framework & engines (527 tests)
+# Core framework & engines (551 tests)
 dotnet test ActDim.Practix.sln
 
 # 3D Math & Scene Graph (35 tests)

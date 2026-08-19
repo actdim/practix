@@ -1,4 +1,3 @@
-#nullable enable
 using ActDim.Observability;
 using ActDim.Practix.Abstractions.Context;
 using ActDim.Practix.Context;
@@ -33,8 +32,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.Configure(configureOptions);
             }
 
-            services.TryAddSingleton<IAmbientContextProvider>(sp => AmbientContextProvider.Instance);
-            services.TryAddSingleton<IObservabilityContext>(sp => new ObservabilityContext(sp.GetRequiredService<IAmbientContextProvider>()));
+            services.TryAddSingleton<IAmbientContext>(sp => AmbientContext.Current);
+            services.TryAddSingleton<IObservabilityContext>(sp => new ObservabilityContext(sp.GetRequiredService<IAmbientContext>()));
 
             services.AddLogging(builder =>
             {
@@ -76,11 +75,11 @@ namespace Microsoft.Extensions.DependencyInjection
                         }
 
                         var options = sp.GetRequiredService<IOptions<EventObservabilityOptions>>().Value;
-                        var ambientContextProvider = sp.GetService<IAmbientContextProvider>();
+                        var ambientContext = sp.GetService<IAmbientContext>();
                         var scopeProvider = sp.GetService<IExternalScopeProvider>();
                         var alias = EventObservabilityLoggerFactory.ResolveProviderAlias(innerProvider, options);
 
-                        return new EventObservabilityProviderDecorator(innerProvider, alias, ambientContextProvider, scopeProvider);
+                        return new EventObservabilityProviderDecorator(innerProvider, alias, ambientContext, scopeProvider);
                     },
                     descriptor.Lifetime));
             }
@@ -113,10 +112,10 @@ namespace Microsoft.Extensions.DependencyInjection
                         }
 
                         var options = sp.GetRequiredService<IOptions<EventObservabilityOptions>>().Value;
-                        var ambientContextProvider = sp.GetService<IAmbientContextProvider>();
+                        var ambientContext = sp.GetService<IAmbientContext>();
                         var scopeProvider = sp.GetService<IExternalScopeProvider>();
 
-                        return new EventObservabilityLoggerFactory(innerFactory, ambientContextProvider, scopeProvider, options);
+                        return new EventObservabilityLoggerFactory(innerFactory, ambientContext, scopeProvider, options);
                     },
                     factoryDescriptor.Lifetime));
             }
@@ -125,11 +124,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.AddSingleton<ILoggerFactory>(sp =>
                 {
                     var options = sp.GetRequiredService<IOptions<EventObservabilityOptions>>().Value;
-                    var ambientContextProvider = sp.GetService<IAmbientContextProvider>();
+                    var ambientContext = sp.GetService<IAmbientContext>();
                     var scopeProvider = sp.GetService<IExternalScopeProvider>();
 
                     var innerLoggerFactory = LoggerFactory.Create(_ => { });
-                    return new EventObservabilityLoggerFactory(innerLoggerFactory, ambientContextProvider, scopeProvider, options);
+                    return new EventObservabilityLoggerFactory(innerLoggerFactory, ambientContext, scopeProvider, options);
                 });
             }
         }

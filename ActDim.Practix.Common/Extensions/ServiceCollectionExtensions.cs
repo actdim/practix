@@ -13,7 +13,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// Registers <see cref="IAmbientContextProvider"/> in the specified <see cref="IServiceCollection"/>.
+        /// Registers <see cref="IAmbientContext"/> in the specified <see cref="IServiceCollection"/>.
         /// </summary>
         public static IServiceCollection AddAmbientContext(this IServiceCollection services)
         {
@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddSingleton<IAmbientContextProvider>(AmbientContextProvider.Instance);
+            services.AddSingleton<IAmbientContext>(AmbientContext.Current);
             return services;
         }
 

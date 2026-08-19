@@ -45,13 +45,21 @@ namespace ActDim.BytePath
         /// Deconstructs the result into error code and record.
         /// </summary>
         public void Deconstruct(out BlobErrorCode errorCode, out BlobRecord record)
-            => (errorCode, record) = (ErrorCode, Record);
+        {
+            errorCode = ErrorCode;
+            record = Record;
+        }
 
         /// <inheritdoc />
-        public void Dispose() => Record?.Dispose();
+        public void Dispose()
+        {
+            Record?.Dispose();
+        }
 
         /// <inheritdoc />
-        public ValueTask DisposeAsync() =>
-            Record?.DisposeAsync() ?? ValueTask.CompletedTask;
+        public ValueTask DisposeAsync()
+        {
+            return Record?.DisposeAsync() ?? ValueTask.CompletedTask;
+        }
     }
 }

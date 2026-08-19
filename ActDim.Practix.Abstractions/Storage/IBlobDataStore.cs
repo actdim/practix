@@ -34,7 +34,9 @@ namespace ActDim.BytePath
         /// for a backend that has a genuinely cheaper existence probe.
         /// </summary>
         async Task<bool> ExistsAsync(BlobRecord blobRecord, CancellationToken ct)
-            => (await GetSizeAsync(blobRecord, ct)).HasValue;
+        {
+            return (await GetSizeAsync(blobRecord, ct)).HasValue;
+        }
 
         /// <summary>
         /// Stores the content as a whole, creating it when absent and discarding whatever was
@@ -56,7 +58,7 @@ namespace ActDim.BytePath
 
         /// <summary>
         /// Stores the content as a whole, letting <paramref name="produce"/> write it into a stream
-        /// supplied to it вЂ” for producers that can only write and have no readable form to hand over.
+        /// supplied to it — for producers that can only write and have no readable form to hand over.
         /// Returns the resulting size.
         /// </summary>
         /// <remarks>
@@ -65,14 +67,18 @@ namespace ActDim.BytePath
         /// Flush any writer wrapped around it before returning, or its buffer is lost.
         /// </remarks>
         Task<long> PutAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> produce, CancellationToken ct)
-            => ProducerStreamBridge.PutAsync(this, blobRecord, produce, ct);
+        {
+            return ProducerStreamBridge.PutAsync(this, blobRecord, produce, ct);
+        }
 
         /// <summary>
         /// Writes content past the current end, letting <paramref name="produce"/> write it into a
         /// stream supplied to it. Returns the resulting total size.
         /// </summary>
         Task<long> AppendAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> produce, CancellationToken ct)
-            => ProducerStreamBridge.AppendAsync(this, blobRecord, produce, ct);
+        {
+            return ProducerStreamBridge.AppendAsync(this, blobRecord, produce, ct);
+        }
 
         /// <summary>
         /// Opens the content for reading. The returned stream is seekable, so a range can be read by

@@ -99,3 +99,21 @@
   - Keep general BCL utility extensions in modular namespaces (`ActDim.Practix.Extensions`, `ActDim.Reflectron`, `ActDim.Emitron`) to avoid global `System.*` IntelliSense clutter.
   - Refactor `EnumerableExtensions.Partition` to use runtime-optimized `source.Chunk(size)`, optimize `MinOrDefault`/`MaxOrDefault` to single-pass, and refactor `FuncExtensions.Memoize` to lock-free `ConcurrentFactoryDictionary`.
 - **Consequences:** Clean, idiomatic .NET API ergonomics, automatic DI method discovery without cluttering using lists, zero-lock concurrency for function memoization, and elimination of legacy dead code.
+
+## 2026-08-19 — ADR-015: Direct AsyncLocal Storage in `AmbientContext` and Elimination of `AmbientContextProvider`
+- **Context:** Previously, `IAmbientContextProvider` and `AmbientContextProvider` were maintained as a separate DI provider layer by analogy with `IHttpContextAccessor`. However, `AmbientContext` itself is a stateless facade over `AsyncLocal<ImmutableDictionary<string, object>>`. Having both `IAmbientContextProvider` and `IAmbientContext` created redundant indirection, requiring consumers to call `provider.Get()` and confusing developers about which abstraction to inject into DI constructors.
+- **Decision:**
+  - Deleted `IAmbientContextProvider` and `AmbientContextProvider`.
+  - Embedded `AsyncLocal<ImmutableDictionary<string, object>>` directly in `AmbientContext`.
+  - Registered `IAmbientContext` directly as a singleton (`services.AddSingleton<IAmbientContext>(AmbientContext.Current)`).
+  - Updated `ActDim.Observability` (`ObservabilityContext`, `EventObservabilityLoggerFactory`, `EventObservabilityBridge`, and `EventObservabilityExtensions`) to consume `IAmbientContext` directly.
+- **Consequences:** Eliminates two redundant types, removes intermediate `.Get()` calls, streamlines DI constructor injection, and keeps runtime behavior 100% identical and isolated per async flow.
+
+## 2026-08-19 — ADR-016: Scoped Ambient Execution Primitives, Centralized `AmbientKeys`, and Solution-Wide Nullable Annotations
+- **Context:** Applications required uniform access to ambient execution context state (`Services`, `User`, `CancellationToken`, `Blobs`, `LoggerFactory`) across console, background worker, and web application lifecycles. Global fallback mutable static state (`_defaultServices`) was rejected in favor of pure RAII scoping (`using (AmbientContext.WithServices(...))`). Furthermore, BytePath storage interfaces needed placement in `ActDim.Practix.Abstractions` for decoupled access, and nullable compiler diagnostics needed unified configuration across all 24 projects in the solution.
+- **Decision:**
+  - Placed core storage abstractions (`IBlobManager`, `IBlobDataStore`, `IBlobRegistry`, etc.) and `AmbientKeys` in `ActDim.Practix.Abstractions`.
+  - Implemented typed extension methods on `IAmbientContext` (`AmbientContextExtensions`) and clean 1-line static delegating shortcuts on `AmbientContext` (`Services`, `WithServices`, `User`, `WithUser`, `CancellationToken`, `WithCancellationToken`, `WithTimeout`, `Blobs`, `WithBlobManager`, `LoggerFactory`, `WithLoggerFactory`, `Log<T>()`).
+  - Accessing `AmbientContext.Services` outside an active scope throws `InvalidOperationException` to enforce explicit scoping.
+  - Enabled `<Nullable>annotations</Nullable>` across all 24 `.csproj` files to allow modern `?` nullability documentation without compiler warning noise.
+- **Consequences:** Highly ergonomic Developer Experience (DX) for both DI and zero-DI callers, zero code duplication, strict scoped resource safety, and unified compiler behavior across all projects.

@@ -56,7 +56,47 @@ using (observability.Push("priority", "high"))
 }
 ```
 
-### 2. Selective Provider Suppression
+### 2. Method Scopes with OpenTelemetry Semantic Conventions
+
+Use `logger.BeginMethodScope()` to automatically capture the executing method name, source file, and line number without manual string formatting. Scope properties strictly adhere to the [OpenTelemetry Source Code Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/attributes-registry/code/):
+
+```csharp
+public class OrderService
+{
+    private readonly ILogger<OrderService> _logger;
+
+    public OrderService(ILogger<OrderService> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task ProcessOrderAsync(string orderId)
+    {
+        // Automatically captures code.function="ProcessOrderAsync", code.filename="OrderService.cs", code.lineno=...
+        using (_logger.BeginMethodScope())
+        {
+            _logger.LogInformation("Processing order {OrderId}", orderId);
+        }
+
+        // Merge custom state with caller code context
+        using (_logger.BeginMethodScope(new Dictionary<string, object?> { ["OrderId"] = orderId }))
+        {
+            _logger.LogInformation("Order completed");
+        }
+    }
+}
+```
+
+| Scope Key | Constant (`ObservabilityTagNames.Code`) | Description |
+| :--- | :--- | :--- |
+| `code.function` | `ObservabilityTagNames.Code.Function` | Caller method or member name |
+| `code.filename` | `ObservabilityTagNames.Code.FileName` | File name (e.g. `OrderService.cs`) |
+| `code.filepath` | `ObservabilityTagNames.Code.FilePath` | Full source file path |
+| `code.lineno` | `ObservabilityTagNames.Code.LineNumber` | Source code line number |
+
+*Why OpenTelemetry Semantic Conventions?* Standard attribute names (`code.function`, `code.filepath`, `code.lineno`) enable APM tools, log aggregators, and distributed trace visualizers (Jaeger, Grafana Tempo, Datadog, Dynatrace, and .NET Aspire) to natively index, filter, and navigate directly to source code locations.
+
+### 3. Selective Provider Suppression
 
 ```csharp
 // Suppress Console logger output while preserving Activity traces and other logger sinks
@@ -75,7 +115,7 @@ using (observability.SuppressProviders("File", "Console"))
 ## Testing & Quality
 
 - **Test Suite:** `ActDim.Observability.Tests`
-- **Total Tests:** 28 passed (100% success rate, 0 failed, 0 skipped)
+- **Total Tests:** 30 passed (100% success rate, 0 failed, 0 skipped)
 - **Target Framework:** .NET 10.0
 
 ```bash

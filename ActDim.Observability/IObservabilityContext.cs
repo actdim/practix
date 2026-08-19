@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +9,7 @@ namespace ActDim.Observability
     /// being executed, and the per-scope switches of the telemetry pipeline.
     /// </summary>
     /// <remarks>
-    /// This is deliberately a separate concept from <see cref="Abstractions.Context.IAmbientContext"/>, which is a neutral
+    /// This is deliberately a separate concept from <see cref="ActDim.Practix.Abstractions.Context.IAmbientContext"/>, which is a neutral
     /// ambient variable store with no telemetry meaning. Values set here acquire telemetry meaning immediately:
     /// data properties are written to the current <see cref="Activity"/> as tags (OpenTelemetry span attributes) as they
     /// are set, and restored when the returned handle is disposed. Properties set before an <see cref="Activity"/> exists
