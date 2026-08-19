@@ -68,7 +68,8 @@ namespace ActDim.Observability.Tests.VictoriaLogs
 
             if (sb.Length == 0) return;
 
-            var uri = new Uri(new Uri(_options.BaseUrl), "/insert/jsonline");
+            var streamParam = !string.IsNullOrEmpty(_options.Stream) ? $"?_stream={Uri.EscapeDataString(_options.Stream)}" : "";
+            var uri = new Uri(new Uri(_options.BaseUrl), $"/insert/jsonline{streamParam}");
             using var content = new StringContent(sb.ToString(), Encoding.UTF8, "application/x-ndjson");
             using var response = await _httpClient.PostAsync(uri, content, ct);
             response.EnsureSuccessStatusCode();
