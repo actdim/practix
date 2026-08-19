@@ -12,6 +12,33 @@ A lightweight, OpenTelemetry-centric observability library for .NET applications
 - **Status & Progress Tracking:** First-class support for setting operation status text, icons, and progress percentage (`observability.SetStatus("Downloading", icon: "🚀")`, `observability.SetProgress(45.5)`).
 - **Selective Provider & Scope Suppression:** Dynamically suppress console loggers, specific logger providers, or external scope export per async flow (`observability.SuppressConsole()`, `observability.SuppressProviders("File")`, `observability.SuppressExternalScopes()`).
 - **Provider Alias Resolution:** Automatically resolves provider aliases via official .NET `[ProviderAlias]` attributes or custom provider mappings.
+## Architectural Rationale: Dedicated Observability Engines vs Relational Databases
+
+Storing high-throughput logs and distributed traces in traditional relational databases (like PostgreSQL or MySQL) creates significant operational and performance bottlenecks. Dedicated observability engines solve these problems through specialized architectures.
+
+### Key Bottlenecks of Relational Databases for Telemetry
+
+* **I/O & WAL Overhead:** Transactional databases prioritize strict ACID guarantees. Every log entry generates Write-Ahead Log (WAL) traffic and buffer churn, causing massive disk I/O overhead that degrades core application performance.
+* **Storage Inefficiency & Bloat:** Row-oriented architectures compress telemetry poorly. Rotating old data via deletes or TTL triggers heavy background cleanup processes (like `VACUUM`), causing table bloat and CPU spikes.
+* **JSON Indexing Trade-Off:** Querying dynamic JSON attributes requires heavy indexing (such as GIN indexes), which cripples write speeds and increases index size beyond the data itself. Without indexes, queries result in slow full-table scans.
+* **Lack of Observability Tooling:** Relational databases lack native primitives for live tailing, distributed trace waterfalls (spans/DAGs), and log-centric aggregate pipelines.
+
+---
+
+### Core Advantages of Dedicated Observability Engines
+
+* **Columnar & Append-Only Storage:** Uses efficient storage engines (e.g., Apache Parquet, LSM-trees) tailored for time-series and log data, achieving 10–15x higher compression ratios.
+* **Telemetry-First Query Languages:** Purpose-built query languages (like LogsQL or telemetry-aware SQL dialects) parse, extract, and filter arbitrary JSON fields on the fly without heavy index maintenance.
+* **Built-in APM Visualizations:** Native support for end-to-end trace waterfalls, span trees, and real-time log streaming right out of the box.
+
+---
+
+### Recommended Lightweight Open-Source Solutions
+
+* **VictoriaLogs:** A high-performance, resource-efficient log engine requiring minimal CPU and RAM (~50–100 MB). It eliminates high-cardinality bottlenecks, indexes all fields automatically, and features the expressive `LogsQL` language for structured JSON analysis.
+* **OpenObserve:** A single Rust binary that covers logs, traces, and metrics out of the box. It uses Apache Parquet for storage, natively accepts OpenTelemetry (OTLP) data, and provides a full-featured web UI with trace waterfalls, log exploration, and dashboards without requiring Docker, Java, or external databases.
+
+---
 
 ## Installation
 
