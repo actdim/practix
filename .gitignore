@@ -55,6 +55,10 @@ nunit-*.xml
 
 .vs
 
+# Tools & Binaries
+[Tt]ools/
+*.exe
+
 # Environment and secrets
 .env
 .env.local
