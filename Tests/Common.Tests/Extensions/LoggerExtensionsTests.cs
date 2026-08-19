@@ -1,10 +1,9 @@
-using ActDim.Observability;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using Xunit;
 
-namespace ActDim.Observability.Tests
+namespace ActDim.Practix.Common.Tests.Extensions
 {
     public class LoggerExtensionsTests
     {
@@ -18,10 +17,10 @@ namespace ActDim.Observability.Tests
                 Assert.NotNull(testLogger.CapturedScope);
                 var dict = Assert.IsAssignableFrom<IReadOnlyDictionary<string, object?>>(testLogger.CapturedScope);
 
-                Assert.Equal(nameof(BeginMethodScope_CapturesOpenTelemetrySemanticConventions), dict[ObservabilityTagNames.Code.Function]);
-                Assert.Equal("LoggerExtensionsTests.cs", dict[ObservabilityTagNames.Code.FileName]);
-                Assert.True(dict.ContainsKey(ObservabilityTagNames.Code.FilePath));
-                Assert.True((int)dict[ObservabilityTagNames.Code.LineNumber]! > 0);
+                Assert.Equal(nameof(BeginMethodScope_CapturesOpenTelemetrySemanticConventions), dict["code.function"]);
+                Assert.Equal("LoggerExtensionsTests.cs", dict["code.filename"]);
+                Assert.True(dict.ContainsKey("code.filepath"));
+                Assert.True((int)dict["code.lineno"]! > 0);
             }
         }
 
@@ -40,7 +39,7 @@ namespace ActDim.Observability.Tests
                 Assert.NotNull(testLogger.CapturedScope);
                 var dict = Assert.IsAssignableFrom<IReadOnlyDictionary<string, object?>>(testLogger.CapturedScope);
 
-                Assert.Equal(nameof(BeginMethodScope_WithCustomState_MergesStateProperties), dict[ObservabilityTagNames.Code.Function]);
+                Assert.Equal(nameof(BeginMethodScope_WithCustomState_MergesStateProperties), dict["code.function"]);
                 Assert.Equal("tenant-123", dict["tenant.id"]);
                 Assert.Equal(42, dict["order.id"]);
             }

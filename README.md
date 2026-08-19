@@ -30,11 +30,11 @@ All test suites are passing with a **100% success rate (586 / 586 tests passing,
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | **`ActDim.Emitron.Tests`** | `ActDim.Emitron` | **54** | 0 | 0 | ✅ Passed |
 | **`ActDim.Reflectron.Tests`** | `ActDim.Reflectron` | **56** | 0 | 0 | ✅ Passed |
-| **`ActDim.Practix.Common.Tests`** | `ActDim.Practix.Common` | **235** | 0 | 0 | ✅ Passed |
+| **`ActDim.Practix.Common.Tests`** | `ActDim.Practix.Common` | **237** | 0 | 0 | ✅ Passed |
 | **`ActDim.Practix.Json.Tests`** | `ActDim.Practix.Json` | **102** | 0 | 0 | ✅ Passed |
 | **`ActDim.BytePath.Tests`** | `ActDim.BytePath` | **74** | 0 | 0 | ✅ Passed |
 | **`ActDim.Three.Tests`** | `ActDim.Three` | **35** | 0 | 0 | ✅ Passed |
-| **`ActDim.Observability.Tests`** | `ActDim.Observability` | **30** | 0 | 0 | ✅ Passed |
+| **`ActDim.Observability.Tests`** | `ActDim.Observability` | **28** | 0 | 0 | ✅ Passed |
 | **TOTAL** | **Entire Solution** | **586** | **0** | **0** | **100% Passing** |
 
 ### Run Tests
