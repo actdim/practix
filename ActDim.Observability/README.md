@@ -112,10 +112,38 @@ using (observability.SuppressProviders("File", "Console"))
 }
 ```
 
+---
+
+### 4. VictoriaLogs Ingestion & LogsQL Querying
+
+`ActDim.Observability` provides native ingestion into **VictoriaLogs** (`/insert/jsonline`) enriched with `AmbientContext` properties, `Activity.Current` trace IDs, and OpenTelemetry caller metadata (`code.function`, `code.filename`, `code.filepath`, `code.lineno`).
+
+```csharp
+using ActDim.Observability.VictoriaLogs;
+using Microsoft.Extensions.Logging;
+
+// 1. Configure VictoriaLogs provider in DI
+builder.Services.AddLogging(logging =>
+{
+    logging.AddVictoriaLogs(options =>
+    {
+        options.BaseUrl = "http://localhost:9428";
+        options.Stream = "{app=\"actdim\",env=\"production\"}";
+    });
+});
+
+// 2. Query logs via VictoriaLogsClient using LogsQL
+var client = new VictoriaLogsClient(new VictoriaLogsOptions { BaseUrl = "http://localhost:9428" });
+
+// Filter by OpenTelemetry function attribute & message keyword using LogsQL
+var query = @"_stream:{app=""actdim""} AND code.function:ProcessOrder AND msg:""processed""";
+IReadOnlyList<Dictionary<string, object?>> logs = await client.QueryLogsQLAsync(query);
+```
+
 ## Testing & Quality
 
 - **Test Suite:** `ActDim.Observability.Tests`
-- **Total Tests:** 28 passed (100% success rate, 0 failed, 0 skipped)
+- **Total Tests:** 29 passed (100% success rate, 0 failed, 0 skipped)
 - **Target Framework:** .NET 10.0
 
 ```bash
