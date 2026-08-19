@@ -30,8 +30,9 @@ namespace ActDim.Observability.Tests
             if (!isServerRunning)
             {
                 // VictoriaLogs instance is not running locally. Output setup instructions and pass smoothly.
-                // To start VictoriaLogs locally via Docker:
-                // docker run -d -p 9428:9428 victoriametrics/victoria-logs
+                // To start VictoriaLogs locally:
+                // - Windows Standalone binary: victoria-logs-windows-amd64.exe
+                // - Docker: docker run -d -p 9428:9428 victoriametrics/victoria-logs
                 return;
             }
 
