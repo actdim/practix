@@ -29,4 +29,5 @@ Current state snapshot of `actdim/practix` (.NET).
 
 ## Solution Health & Verification
 - **Solution Build & Pack**: All projects in `ActDim.Practix.sln` and `ActDim.Three.sln` build cleanly with 0 errors and 0 warnings.
-- **Total Test Suite**: 586 tests passing across test assemblies (235 in Common.Tests, 102 in Json.Tests, 56 in Reflectron.Tests, 54 in Emitron.Tests, 74 in BytePath.Tests, 30 in Observability.Tests, 35 in Three.Tests) with zero failures.
+- **Total Test Suite**: 552 tests passing in `ActDim.Practix.sln` (237 in Common.Tests, 102 in Json.Tests, 56 in Reflectron.Tests, 54 in Emitron.Tests, 74 in BytePath.Tests, 29 in Observability.Tests) plus 35 in `ActDim.Three.sln` with zero failures.
+- **VictoriaLogs & OpenTelemetry Testing**: Integrated NDJSON ingestion, OpenTelemetry OTLP compatibility, and LogsQL query testing in `Tests/Observability.Tests` with process auto-launching from `Tools/victoria-logs/`.
