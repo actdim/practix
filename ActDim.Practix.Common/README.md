@@ -169,20 +169,24 @@ using (AmbientContext.WithTimeout(TimeSpan.FromSeconds(5), out var timeoutToken)
 
 ---
 
-### 4. Zero-Ceremony Fast Logging
+### 4. Zero-Ceremony Fast Logging & Structured Method Scopes
 
-Access loggers on demand without constructor injection:
+Access loggers on demand and create structured OpenTelemetry method scopes (`code.function`, `code.filename`, `code.filepath`, `code.lineno`) without constructor injection:
 
 ```csharp
 public class OrderManager
 {
     public void ProcessOrder(string orderId)
     {
-        // Resolves ILogger<OrderManager> from ambient LoggerFactory / Services
-        AmbientContext.Log<OrderManager>().LogInformation("Processing order {OrderId}", orderId);
-        
-        // Or using caller instance type
-        AmbientContext.Log(this).LogInformation("Order {OrderId} processed successfully", orderId);
+        // Begins a structured method scope capturing OpenTelemetry caller metadata
+        using (AmbientContext.Log<OrderManager>().BeginMethodScope())
+        {
+            // Resolves ILogger<OrderManager> from ambient LoggerFactory / Services
+            AmbientContext.Log<OrderManager>().LogInformation("Processing order {OrderId}", orderId);
+            
+            // Or using caller instance type
+            AmbientContext.Log(this).LogInformation("Order {OrderId} processed successfully", orderId);
+        }
     }
 }
 ```
