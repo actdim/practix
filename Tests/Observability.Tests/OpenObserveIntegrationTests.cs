@@ -19,7 +19,7 @@ namespace ActDim.Observability.Tests
         public async Task OpenObserve_WriteAndQueryLogs_ExecutesSqlSearchSuccessfully()
         {
             // =========================================================================
-            // 1. ARRANGE: Подготовка сервера OpenObserve, DI контейнера и контекста
+            // 1. ARRANGE: Prepare OpenObserve server, DI container, and ambient context
             // =========================================================================
             var options = new OpenObserveOptions
             {
@@ -41,7 +41,7 @@ namespace ActDim.Observability.Tests
 
             if (!isServerRunning)
             {
-                // Запуск локального процесса OpenObserve при необходимости
+                // Auto-start local OpenObserve executable if available
                 var binaryPath = FindOpenObserveBinary();
                 if (binaryPath != null)
                 {
@@ -75,13 +75,13 @@ namespace ActDim.Observability.Tests
 
             if (!isServerRunning)
             {
-                // Если сервер не доступен и бинарник не найден — аккуратно завершаем тест
+                // OpenObserve instance is not running. Run download-openobserve.cmd or run-openobserve.cmd in Tools/openobserve.
                 return;
             }
 
             try
             {
-                // Настройка DI контейнера приложения с AmbientContext и провайдером OpenObserve
+                // Configure application DI container with AmbientContext and OpenObserve provider
                 var services = new ServiceCollection();
                 services.AddAmbientContext();
                 services.AddLogging(builder =>
@@ -109,19 +109,19 @@ namespace ActDim.Observability.Tests
                 var orderId = "ord-oo-999";
 
                 // =========================================================================
-                // 2. ACT: Выполнение бизнес-логики с логированием и скоупом метода
+                // 2. ACT: Execute business logic with logging and method scope
                 // =========================================================================
                 using (var _methodScope = logger.BeginMethodScope(new[] { KeyValuePair.Create("order.id", (object?)orderId) }))
                 {
                     logger.LogInformation("{TestMessage}", testMessage);
                 }
 
-                // Сброс очереди логгера для моментальной отправки пакета в OpenObserve
+                // Flush logger queue to send batch payload to OpenObserve
                 provider.Flush();
                 await Task.Delay(500, cts.Token);
 
                 // =========================================================================
-                // 3. ASSERT: Выполнение SQL поиска и проверка сохраненных данных в OpenObserve
+                // 3. ASSERT: Execute SQL Search queries and verify recorded telemetry in OpenObserve
                 // =========================================================================
                 var sqlQuery = $"SELECT * FROM actdim WHERE msg LIKE '%{uniqueId}%'";
                 var results = await client.QuerySqlQueryAsync(sqlQuery, cts.Token);

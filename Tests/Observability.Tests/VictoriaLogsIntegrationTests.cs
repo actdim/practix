@@ -19,7 +19,7 @@ namespace ActDim.Observability.Tests
         public async Task VictoriaLogs_WriteAndQueryLogs_ExecutesLogsQLSuccessfully()
         {
             // =========================================================================
-            // 1. ARRANGE: Подготовка сервера VictoriaLogs, DI контейнера и контекста
+            // 1. ARRANGE: Prepare VictoriaLogs server, DI container, and ambient context
             // =========================================================================
             var options = new VictoriaLogsOptions
             {
@@ -38,7 +38,7 @@ namespace ActDim.Observability.Tests
 
             if (!isServerRunning)
             {
-                // Запуск локального процесса VictoriaLogs при необходимости
+                // Auto-start local VictoriaLogs executable if available
                 var binaryPath = FindVictoriaLogsBinary();
                 if (binaryPath != null)
                 {
@@ -69,13 +69,13 @@ namespace ActDim.Observability.Tests
 
             if (!isServerRunning)
             {
-                // Если сервер не доступен и бинарник не найден — аккуратно завершаем тест
+                // VictoriaLogs instance is not running. Place binary into Tools folder or run Docker.
                 return;
             }
 
             try
             {
-                // Настройка DI контейнера приложения с AmbientContext и провайдером VictoriaLogs
+                // Configure application DI container with AmbientContext and VictoriaLogs provider
                 var services = new ServiceCollection();
                 services.AddAmbientContext();
                 services.AddLogging(builder =>
@@ -100,18 +100,18 @@ namespace ActDim.Observability.Tests
                 var orderId = "ord-999";
 
                 // =========================================================================
-                // 2. ACT: Выполнение бизнес-логики с логированием и скоупом метода
+                // 2. ACT: Execute business logic with logging and method scope
                 // =========================================================================
                 using (var _methodScope = logger.BeginMethodScope(new[] { KeyValuePair.Create("order.id", (object?)orderId) }))
                 {
                     logger.LogInformation("{TestMessage}", testMessage);
                 }
 
-                // Сброс очереди логгера для моментальной отправки пакета в VictoriaLogs
+                // Flush logger queue to send batch payload to VictoriaLogs
                 provider.Flush();
 
                 // =========================================================================
-                // 3. ASSERT: Выполнение запросов LogsQL и проверка сохраненных данных
+                // 3. ASSERT: Execute LogsQL queries and verify recorded telemetry
                 // =========================================================================
                 var query1 = $"""msg:"{uniqueId}" """;
                 IReadOnlyList<Dictionary<string, object?>> results1 = Array.Empty<Dictionary<string, object?>>();
@@ -142,12 +142,12 @@ namespace ActDim.Observability.Tests
                 Assert.Equal(nameof(VictoriaLogs_WriteAndQueryLogs_ExecutesLogsQLSuccessfully), logRecord["code.function"]?.ToString());
                 Assert.Equal("VictoriaLogsIntegrationTests.cs", logRecord["code.filename"]?.ToString());
 
-                // Запрос 2: Поиск по атрибуту вызова метода OpenTelemetry (code.function)
+                // Query 2: Filter by OpenTelemetry caller function attribute in LogsQL
                 var query2 = $"""code.function:"{nameof(VictoriaLogs_WriteAndQueryLogs_ExecutesLogsQLSuccessfully)}" """;
                 var results2 = await client.QueryLogsQLAsync(query2, cts.Token);
                 Assert.NotEmpty(results2);
 
-                // Запрос 3: Поиск по контекстному атрибуту тенанта (tenant.id)
+                // Query 3: Filter by tenant.id ambient context property in LogsQL
                 var query3 = $"""tenant.id:"tenant-test-777" """;
                 var results3 = await client.QueryLogsQLAsync(query3, cts.Token);
                 Assert.NotEmpty(results3);
