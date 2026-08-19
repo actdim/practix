@@ -56,15 +56,12 @@ nunit-*.xml
 .vs
 
 # Tools & Binaries
-[Tt]ools/
-!Tools/victoria-logs/
-!Tools/victoria-logs/run-victoria-logs.cmd
-!Tools/victoria-logs/download-victoria-logs.cmd
-!Tools/victoria-logs/download-victoria-logs.ps1
-!Tools/openobserve/
-!Tools/openobserve/run-openobserve.cmd
-!Tools/openobserve/download-openobserve.cmd
-!Tools/openobserve/download-openobserve.ps1
+[Tt]ools/**
+!Tools/**/
+!Tools/**/*.cmd
+!Tools/**/*.ps1
+!Tools/**/*.bat
+!Tools/**/*.sh
 victoria-logs-data/
 openobserve-data/
 data/
