@@ -57,10 +57,16 @@ nunit-*.xml
 
 # Tools & Binaries
 [Tt]ools/
+!Tools/victoria-logs/
 !Tools/victoria-logs/run-victoria-logs.cmd
+!Tools/victoria-logs/download-victoria-logs.cmd
+!Tools/victoria-logs/download-victoria-logs.ps1
 victoria-logs-data/
 data/
 *.exe
+*.parquet
+*.zip
+*.tar.gz
 
 # Environment and secrets
 .env
