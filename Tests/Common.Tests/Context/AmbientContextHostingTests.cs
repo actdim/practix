@@ -58,13 +58,12 @@ namespace ActDim.Practix.Common.Tests.Context
             // Middleware that initialises AmbientContext for the lifetime of each incoming HTTP request
             app.Use(async (context, next) =>
             {
-                using (AmbientContext.WithServices(context.RequestServices))
-                using (AmbientContext.WithUser(context.User))
-                using (AmbientContext.WithCancellationToken(context.RequestAborted))
-                using (AmbientContext.Push("RequestId", "req-12345"))
-                {
-                    await next();
-                }
+                using var _s = AmbientContext.WithServices(context.RequestServices);
+                using var _u = AmbientContext.WithUser(context.User);
+                using var _c = AmbientContext.WithCancellationToken(context.RequestAborted);
+                using var _t = AmbientContext.Push("RequestId", "req-12345");
+
+                await next();
             });
 
             app.MapGet("/test-ambient", () =>
@@ -107,13 +106,12 @@ namespace ActDim.Practix.Common.Tests.Context
             // Middleware establishing per-request scoped ambient overrides over root context
             app.Use(async (context, next) =>
             {
-                using (AmbientContext.WithServices(context.RequestServices))
-                using (AmbientContext.WithUser(context.User))
-                using (AmbientContext.WithCancellationToken(context.RequestAborted))
-                using (AmbientContext.Push("RequestId", "req-scoped-999"))
-                {
-                    await next();
-                }
+                using var _s = AmbientContext.WithServices(context.RequestServices);
+                using var _u = AmbientContext.WithUser(context.User);
+                using var _c = AmbientContext.WithCancellationToken(context.RequestAborted);
+                using var _t = AmbientContext.Push("RequestId", "req-scoped-999");
+
+                await next();
             });
 
             app.MapGet("/api/order", () =>
@@ -131,7 +129,7 @@ namespace ActDim.Practix.Common.Tests.Context
                 });
             });
 
-            // Root Application Level Scope (simulating Program.cs using (AmbientContext.WithServices(app.Services)) { await app.RunAsync(); })
+            // Root Application Level Scope (disposed before post-scope assertion)
             using (AmbientContext.WithServices(app.Services))
             using (AmbientContext.WithCancellationToken(app.Lifetime.ApplicationStopping))
             {
