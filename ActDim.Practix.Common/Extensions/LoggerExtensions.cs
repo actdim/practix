@@ -1,4 +1,3 @@
-using ActDim.Observability;
 using Ardalis.GuardClauses;
 using System;
 using System.Collections.Generic;
@@ -13,16 +12,21 @@ namespace Microsoft.Extensions.Logging
     /// </summary>
     public static class LoggerExtensions
     {
+        private const string CodeFunction = "code.function";
+        private const string CodeFileName = "code.filename";
+        private const string CodeFilePath = "code.filepath";
+        private const string CodeLineNumber = "code.lineno";
+
         /// <summary>
         /// Begins a structured logging scope containing caller context details: method/member name, source file, path, and line number.
         /// </summary>
         /// <remarks>
         /// The scope keys follow the official OpenTelemetry Source Code Semantic Conventions specification:
         /// <list type="bullet">
-        ///   <item><description><c>code.function</c> (<see cref="ObservabilityTagNames.Code.Function"/>): Caller method name.</description></item>
-        ///   <item><description><c>code.filename</c> (<see cref="ObservabilityTagNames.Code.FileName"/>): Source file name.</description></item>
-        ///   <item><description><c>code.filepath</c> (<see cref="ObservabilityTagNames.Code.FilePath"/>): Full source file path.</description></item>
-        ///   <item><description><c>code.lineno</c> (<see cref="ObservabilityTagNames.Code.LineNumber"/>): Source line number.</description></item>
+        ///   <item><description><c>code.function</c>: Caller method name.</description></item>
+        ///   <item><description><c>code.filename</c>: Source file name.</description></item>
+        ///   <item><description><c>code.filepath</c>: Full source file path.</description></item>
+        ///   <item><description><c>code.lineno</c>: Source line number.</description></item>
         /// </list>
         /// Using these standard attributes ensures native indexing and code navigation across modern APM tools
         /// (Jaeger, Grafana Tempo, Datadog, Dynatrace, and .NET Aspire).
@@ -48,10 +52,10 @@ namespace Microsoft.Extensions.Logging
         /// <remarks>
         /// The scope keys follow the official OpenTelemetry Source Code Semantic Conventions specification:
         /// <list type="bullet">
-        ///   <item><description><c>code.function</c> (<see cref="ObservabilityTagNames.Code.Function"/>): Caller method name.</description></item>
-        ///   <item><description><c>code.filename</c> (<see cref="ObservabilityTagNames.Code.FileName"/>): Source file name.</description></item>
-        ///   <item><description><c>code.filepath</c> (<see cref="ObservabilityTagNames.Code.FilePath"/>): Full source file path.</description></item>
-        ///   <item><description><c>code.lineno</c> (<see cref="ObservabilityTagNames.Code.LineNumber"/>): Source line number.</description></item>
+        ///   <item><description><c>code.function</c>: Caller method name.</description></item>
+        ///   <item><description><c>code.filename</c>: Source file name.</description></item>
+        ///   <item><description><c>code.filepath</c>: Full source file path.</description></item>
+        ///   <item><description><c>code.lineno</c>: Source line number.</description></item>
         /// </list>
         /// Using these standard attributes ensures native indexing and code navigation across modern APM tools
         /// (Jaeger, Grafana Tempo, Datadog, Dynatrace, and .NET Aspire).
@@ -75,10 +79,10 @@ namespace Microsoft.Extensions.Logging
             var fileName = string.IsNullOrEmpty(filePath) ? string.Empty : Path.GetFileName(filePath);
             var scopeData = new Dictionary<string, object?>
             {
-                [ObservabilityTagNames.Code.Function] = memberName,
-                [ObservabilityTagNames.Code.FileName] = fileName,
-                [ObservabilityTagNames.Code.FilePath] = filePath,
-                [ObservabilityTagNames.Code.LineNumber] = lineNumber
+                [CodeFunction] = memberName,
+                [CodeFileName] = fileName,
+                [CodeFilePath] = filePath,
+                [CodeLineNumber] = lineNumber
             };
 
             if (state is not null)

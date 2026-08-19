@@ -115,7 +115,7 @@ using (observability.SuppressProviders("File", "Console"))
 ## Testing & Quality
 
 - **Test Suite:** `ActDim.Observability.Tests`
-- **Total Tests:** 30 passed (100% success rate, 0 failed, 0 skipped)
+- **Total Tests:** 28 passed (100% success rate, 0 failed, 0 skipped)
 - **Target Framework:** .NET 10.0
 
 ```bash
