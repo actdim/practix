@@ -37,6 +37,7 @@ Storing high-throughput logs and distributed traces in traditional relational da
 
 * **VictoriaLogs:** A high-performance, resource-efficient log engine requiring minimal CPU and RAM (~50–100 MB). It eliminates high-cardinality bottlenecks, indexes all fields automatically, and features the expressive `LogsQL` language for structured JSON analysis.
 * **OpenObserve:** A single Rust binary that covers logs, traces, and metrics out of the box. It uses Apache Parquet for storage, natively accepts OpenTelemetry (OTLP) data, and provides a full-featured web UI with trace waterfalls, log exploration, and dashboards without requiring Docker, Java, or external databases.
+* **ClickHouse:** An industry-standard, ultra-high-performance columnar analytical database engine for high-volume logs, metrics, and trace telemetry. While we do not maintain a dedicated integration test suite for ClickHouse in this repository, modern distributions and telemetry stacks bundle or integrate with **HyperDX** (an open-source APM & log exploration Web UI), providing a comprehensive out-of-the-box user experience for analyzing traces and logs.
 
 ---
 
