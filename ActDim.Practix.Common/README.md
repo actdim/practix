@@ -122,13 +122,12 @@ await using var app = builder.Build();
 // ══ 1. Per-Request Ambient Middleware ══════════════════════════════════════
 app.Use(async (context, next) =>
 {
-    using (AmbientContext.WithServices(context.RequestServices))
-    using (AmbientContext.WithUser(context.User))
-    using (AmbientContext.WithCancellationToken(context.RequestAborted))
-    using (AmbientContext.Push("TraceId", context.TraceIdentifier))
-    {
-        await next();
-    }
+    using var _s = AmbientContext.WithServices(context.RequestServices);
+    using var _u = AmbientContext.WithUser(context.User);
+    using var _c = AmbientContext.WithCancellationToken(context.RequestAborted);
+    using var _t = AmbientContext.Push("TraceId", context.TraceIdentifier);
+
+    await next();
 });
 
 // ══ 2. Endpoint Handler / Business Logic ═══════════════════════════════════
@@ -144,11 +143,10 @@ app.MapGet("/orders/current", () =>
 });
 
 // ══ 3. Root Application Scope ══════════════════════════════════════════════
-using (AmbientContext.WithServices(app.Services))
-using (AmbientContext.WithCancellationToken(app.Lifetime.ApplicationStopping))
-{
-    await app.RunAsync();
-}
+using var _rootServices = AmbientContext.WithServices(app.Services);
+using var _rootCt = AmbientContext.WithCancellationToken(app.Lifetime.ApplicationStopping);
+
+await app.RunAsync();
 ```
 
 ---
@@ -159,12 +157,10 @@ You can link nested cancellation tokens or apply scoped timeouts without modifyi
 
 ```csharp
 // Link existing ambient token with a child timeout token
-using (AmbientContext.WithTimeout(TimeSpan.FromSeconds(5), out var timeoutToken))
-{
-    // AmbientContext.CancellationToken is now linked to the 5-second timeout
-    await httpClient.GetAsync("https://api.example.com/data", AmbientContext.CancellationToken);
-}
-// Exiting scope restores previous ambient cancellation token
+using var timeoutScope = AmbientContext.WithTimeout(TimeSpan.FromSeconds(5), out var timeoutToken);
+
+// AmbientContext.CancellationToken is now linked to the 5-second timeout
+await httpClient.GetAsync("https://api.example.com/data", AmbientContext.CancellationToken);
 ```
 
 ---
@@ -179,14 +175,13 @@ public class OrderManager
     public void ProcessOrder(string orderId)
     {
         // Begins a structured method scope capturing OpenTelemetry caller metadata
-        using (AmbientContext.Log<OrderManager>().BeginMethodScope())
-        {
-            // Resolves ILogger<OrderManager> from ambient LoggerFactory / Services
-            AmbientContext.Log<OrderManager>().LogInformation("Processing order {OrderId}", orderId);
-            
-            // Or using caller instance type
-            AmbientContext.Log(this).LogInformation("Order {OrderId} processed successfully", orderId);
-        }
+        using var scope = AmbientContext.Log<OrderManager>().BeginMethodScope();
+
+        // Resolves ILogger<OrderManager> from ambient LoggerFactory / Services
+        AmbientContext.Log<OrderManager>().LogInformation("Processing order {OrderId}", orderId);
+        
+        // Or using caller instance type
+        AmbientContext.Log(this).LogInformation("Order {OrderId} processed successfully", orderId);
     }
 }
 ```

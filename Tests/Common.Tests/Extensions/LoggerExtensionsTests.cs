@@ -12,16 +12,15 @@ namespace ActDim.Practix.Common.Tests.Extensions
         {
             var testLogger = new FakeScopeLogger();
 
-            using (testLogger.BeginMethodScope())
-            {
-                Assert.NotNull(testLogger.CapturedScope);
-                var dict = Assert.IsAssignableFrom<IReadOnlyDictionary<string, object?>>(testLogger.CapturedScope);
+            using var scope = testLogger.BeginMethodScope();
 
-                Assert.Equal(nameof(BeginMethodScope_CapturesOpenTelemetrySemanticConventions), dict["code.function"]);
-                Assert.Equal("LoggerExtensionsTests.cs", dict["code.filename"]);
-                Assert.True(dict.ContainsKey("code.filepath"));
-                Assert.True((int)dict["code.lineno"]! > 0);
-            }
+            Assert.NotNull(testLogger.CapturedScope);
+            var dict = Assert.IsAssignableFrom<IReadOnlyDictionary<string, object?>>(testLogger.CapturedScope);
+
+            Assert.Equal(nameof(BeginMethodScope_CapturesOpenTelemetrySemanticConventions), dict["code.function"]);
+            Assert.Equal("LoggerExtensionsTests.cs", dict["code.filename"]);
+            Assert.True(dict.ContainsKey("code.filepath"));
+            Assert.True((int)dict["code.lineno"]! > 0);
         }
 
         [Fact]
@@ -34,15 +33,14 @@ namespace ActDim.Practix.Common.Tests.Extensions
                 ["order.id"] = 42
             };
 
-            using (testLogger.BeginMethodScope(extraState))
-            {
-                Assert.NotNull(testLogger.CapturedScope);
-                var dict = Assert.IsAssignableFrom<IReadOnlyDictionary<string, object?>>(testLogger.CapturedScope);
+            using var scope = testLogger.BeginMethodScope(extraState);
 
-                Assert.Equal(nameof(BeginMethodScope_WithCustomState_MergesStateProperties), dict["code.function"]);
-                Assert.Equal("tenant-123", dict["tenant.id"]);
-                Assert.Equal(42, dict["order.id"]);
-            }
+            Assert.NotNull(testLogger.CapturedScope);
+            var dict = Assert.IsAssignableFrom<IReadOnlyDictionary<string, object?>>(testLogger.CapturedScope);
+
+            Assert.Equal(nameof(BeginMethodScope_WithCustomState_MergesStateProperties), dict["code.function"]);
+            Assert.Equal("tenant-123", dict["tenant.id"]);
+            Assert.Equal(42, dict["order.id"]);
         }
 
         private class FakeScopeLogger : ILogger
