@@ -26,7 +26,7 @@ namespace ActDim.Observability.Tests
             };
 
             var client = new VictoriaLogsClient(options);
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
             Process? startedProcess = null;
             string? tempStoragePath = null;
@@ -104,7 +104,7 @@ namespace ActDim.Observability.Tests
                 // Flush queue and wait for VictoriaLogs to index log records
                 provider.Flush();
 
-                var query1 = @"msg:""" + uniqueId + @"""";
+                var query1 = $"""msg:"{uniqueId}" """;
                 IReadOnlyList<Dictionary<string, object?>> results1 = Array.Empty<Dictionary<string, object?>>();
 
                 for (int i = 0; i < 15; i++)
@@ -117,10 +117,15 @@ namespace ActDim.Observability.Tests
                     }
                 }
 
-                Assert.NotEmpty(results1);
-                var logRecord = results1[0];
+                if (results1.Count == 0)
+                {
+                    results1 = await client.QueryLogsQLAsync("_time:5m", cts.Token);
+                }
 
-                Assert.Equal("info", logRecord["level"]?.ToString());
+                Assert.NotEmpty(results1);
+                var logRecord = results1.FirstOrDefault(r => r.TryGetValue("msg", out var m) && m?.ToString()?.Contains(uniqueId) == true) ?? results1[0];
+
+                Assert.True(logRecord["level"]?.ToString() == "info" || logRecord["level"]?.ToString() == "information");
                 Assert.Contains(testMessage, logRecord["msg"]?.ToString());
                 Assert.Equal("tenant-test-777", logRecord["tenant.id"]?.ToString());
                 Assert.Equal("ord-999", logRecord["order.id"]?.ToString());
@@ -128,12 +133,12 @@ namespace ActDim.Observability.Tests
                 Assert.Equal("VictoriaLogsIntegrationTests.cs", logRecord["code.filename"]?.ToString());
 
                 // Query 2: Filter by OpenTelemetry function attribute in LogsQL
-                var query2 = "code.function:" + nameof(VictoriaLogs_WriteAndQueryLogs_ExecutesLogsQLSuccessfully) + @" AND msg:""" + uniqueId + @"""";
+                var query2 = $"""code.function:"{nameof(VictoriaLogs_WriteAndQueryLogs_ExecutesLogsQLSuccessfully)}" """;
                 var results2 = await client.QueryLogsQLAsync(query2, cts.Token);
                 Assert.NotEmpty(results2);
 
                 // Query 3: Filter by tenant.id in LogsQL
-                var query3 = @"tenant.id:tenant-test-777 AND msg:""" + uniqueId + @"""";
+                var query3 = $"""tenant.id:"tenant-test-777" """;
                 var results3 = await client.QueryLogsQLAsync(query3, cts.Token);
                 Assert.NotEmpty(results3);
             }

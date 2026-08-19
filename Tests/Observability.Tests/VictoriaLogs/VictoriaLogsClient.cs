@@ -52,10 +52,7 @@ namespace ActDim.Observability.Tests.VictoriaLogs
             var sb = new StringBuilder();
             foreach (var record in records)
             {
-                if (!record.ContainsKey("_stream") && !string.IsNullOrEmpty(_options.Stream))
-                {
-                    record["_stream"] = _options.Stream;
-                }
+                record.Remove("_stream");
 
                 if (!record.ContainsKey("_time"))
                 {
