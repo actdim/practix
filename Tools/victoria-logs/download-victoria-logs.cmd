@@ -1,7 +1,7 @@
 @echo off
 title Download VictoriaLogs
 echo ========================================================
-echo  Downloading VictoriaLogs Enterprise v1.51.1 for Windows
+echo  Downloading VictoriaLogs for Windows
 echo ========================================================
 echo.
 

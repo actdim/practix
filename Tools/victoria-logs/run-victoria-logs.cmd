@@ -2,6 +2,7 @@
 setlocal enabledelayedexpansion
 title VictoriaLogs Server (port 9428)
 echo Starting VictoriaLogs server on http://localhost:9428 ...
+echo Opening browser for VictoriaLogs GUI ...
 echo Press Ctrl+C to stop the server.
 echo.
 
@@ -38,6 +39,8 @@ if not defined EXE_PATH (
     pause
     exit /b 1
 )
+
+start "" "http://localhost:9428/select/vmui"
 
 echo Launching: !EXE_PATH!
 "!EXE_PATH!" -storageDataPath "%~dp0data" -httpListenAddr ":9428" -retentionPeriod 1d
