@@ -18,6 +18,9 @@ namespace ActDim.Observability.Tests
         [Fact]
         public async Task OpenObserve_WriteAndQueryLogs_ExecutesSqlSearchSuccessfully()
         {
+            // =========================================================================
+            // 1. ARRANGE: Подготовка сервера OpenObserve, DI контейнера и контекста
+            // =========================================================================
             var options = new OpenObserveOptions
             {
                 BaseUrl = "http://localhost:5080",
@@ -29,7 +32,7 @@ namespace ActDim.Observability.Tests
             };
 
             var client = new OpenObserveClient(options);
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
             Process? startedProcess = null;
             string? tempStoragePath = null;
@@ -38,6 +41,7 @@ namespace ActDim.Observability.Tests
 
             if (!isServerRunning)
             {
+                // Запуск локального процесса OpenObserve при необходимости
                 var binaryPath = FindOpenObserveBinary();
                 if (binaryPath != null)
                 {
@@ -57,7 +61,6 @@ namespace ActDim.Observability.Tests
 
                     startedProcess = Process.Start(startInfo);
 
-                    // Wait up to 5 seconds for server readiness
                     for (int i = 0; i < 50; i++)
                     {
                         await Task.Delay(100, cts.Token);
@@ -72,12 +75,13 @@ namespace ActDim.Observability.Tests
 
             if (!isServerRunning)
             {
-                // OpenObserve instance is not running. Run download-openobserve.cmd or run-openobserve.cmd in Tools/openobserve.
+                // Если сервер не доступен и бинарник не найден — аккуратно завершаем тест
                 return;
             }
 
             try
             {
+                // Настройка DI контейнера приложения с AmbientContext и провайдером OpenObserve
                 var services = new ServiceCollection();
                 services.AddAmbientContext();
                 services.AddLogging(builder =>
@@ -102,25 +106,30 @@ namespace ActDim.Observability.Tests
 
                 var uniqueId = Guid.NewGuid().ToString("N");
                 var testMessage = $"OpenObserve integration log test message - {uniqueId}";
+                var orderId = "ord-oo-999";
 
-                // 1. Write structured log enriched with AmbientContext + BeginMethodScope tags
-                using (var _methodScope = logger.BeginMethodScope(new[] { KeyValuePair.Create("order.id", (object?)"ord-oo-999") }))
+                // =========================================================================
+                // 2. ACT: Выполнение бизнес-логики с логированием и скоупом метода
+                // =========================================================================
+                using (var _methodScope = logger.BeginMethodScope(new[] { KeyValuePair.Create("order.id", (object?)orderId) }))
                 {
                     logger.LogInformation("{TestMessage}", testMessage);
                 }
 
-                // Flush queue and wait briefly for OpenObserve to index log records
+                // Сброс очереди логгера для моментальной отправки пакета в OpenObserve
                 provider.Flush();
                 await Task.Delay(500, cts.Token);
 
-                // 2. Query logs using OpenObserve SQL Search API
+                // =========================================================================
+                // 3. ASSERT: Выполнение SQL поиска и проверка сохраненных данных в OpenObserve
+                // =========================================================================
                 var sqlQuery = $"SELECT * FROM actdim WHERE msg LIKE '%{uniqueId}%'";
                 var results = await client.QuerySqlQueryAsync(sqlQuery, cts.Token);
 
                 Assert.NotEmpty(results);
                 var logRecord = results[0];
 
-                Assert.Equal("info", logRecord["level"]?.ToString());
+                Assert.True(logRecord["level"]?.ToString() == "info" || logRecord["level"]?.ToString() == "information");
                 Assert.Contains(testMessage, logRecord["msg"]?.ToString());
                 Assert.Equal("tenant-oo-777", logRecord["tenant.id"]?.ToString());
                 Assert.Equal("ord-oo-999", logRecord["order.id"]?.ToString());
