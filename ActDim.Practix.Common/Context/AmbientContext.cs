@@ -1,4 +1,5 @@
 using ActDim.BytePath;
+using ActDim.Practix.Abstractions.Compression;
 using ActDim.Practix.Abstractions.Context;
 using ActDim.Practix.Disposal;
 using Ardalis.GuardClauses;
