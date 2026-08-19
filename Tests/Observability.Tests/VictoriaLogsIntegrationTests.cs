@@ -1,4 +1,4 @@
-using ActDim.Observability.VictoriaLogs;
+using ActDim.Observability.Tests.VictoriaLogs;
 using ActDim.Practix.Context;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

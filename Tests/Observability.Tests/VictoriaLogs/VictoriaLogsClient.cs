@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ActDim.Observability.VictoriaLogs
+namespace ActDim.Observability.Tests.VictoriaLogs
 {
     /// <summary>
     /// Lightweight HTTP client for VictoriaLogs JSON Lines ingestion (<c>/insert/jsonline</c>) and LogsQL query processing (<c>/select/logsql/query</c>).
@@ -30,9 +30,6 @@ namespace ActDim.Observability.VictoriaLogs
 
         public VictoriaLogsOptions Options => _options;
 
-        /// <summary>
-        /// Checks if the VictoriaLogs instance is available at <see cref="VictoriaLogsOptions.BaseUrl"/>.
-        /// </summary>
         public async Task<bool> IsServerAvailableAsync(CancellationToken ct = default)
         {
             try
@@ -48,9 +45,6 @@ namespace ActDim.Observability.VictoriaLogs
             }
         }
 
-        /// <summary>
-        /// Ingests a set of structured log records formatted as NDJSON lines into VictoriaLogs via <c>/insert/jsonline</c>.
-        /// </summary>
         public async Task IngestRecordsAsync(IEnumerable<Dictionary<string, object?>> records, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(records, nameof(records));
@@ -80,15 +74,9 @@ namespace ActDim.Observability.VictoriaLogs
             response.EnsureSuccessStatusCode();
         }
 
-        /// <summary>
-        /// Executes a LogsQL query against VictoriaLogs (<c>/select/logsql/query</c>) and returns the resulting log records.
-        /// </summary>
-        /// <param name="logsQlQuery">The LogsQL query string (e.g. <c>_stream:{app="actdim"} AND level:info</c>).</param>
-        /// <param name="ct">Cancellation token.</param>
-        /// <returns>A list of JSON objects representing matched log entries.</returns>
         public async Task<IReadOnlyList<Dictionary<string, object?>>> QueryLogsQLAsync(string logsQlQuery, CancellationToken ct = default)
         {
-            ArgumentException.ThrowIfNullOrEmpty(logsQlQuery, nameof(logsQlQuery));
+            if (string.IsNullOrEmpty(logsQlQuery)) throw new ArgumentException("Query cannot be null or empty", nameof(logsQlQuery));
 
             var uri = new Uri(new Uri(_options.BaseUrl), $"/select/logsql/query?query={Uri.EscapeDataString(logsQlQuery)}");
             using var response = await _httpClient.GetAsync(uri, ct);

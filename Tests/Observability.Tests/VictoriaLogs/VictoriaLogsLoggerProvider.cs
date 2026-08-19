@@ -7,11 +7,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ActDim.Observability.VictoriaLogs
+namespace ActDim.Observability.Tests.VictoriaLogs
 {
-    /// <summary>
-    /// An <see cref="ILoggerProvider"/> that exports enriched log events directly to VictoriaLogs via <see cref="VictoriaLogsClient"/>.
-    /// </summary>
     public sealed class VictoriaLogsLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
         private readonly VictoriaLogsClient _client;
@@ -58,7 +55,6 @@ namespace ActDim.Observability.VictoriaLogs
                 record["exception.stacktrace"] = exception.ToString();
             }
 
-            // Capture Activity / OpenTelemetry trace context
             var activity = Activity.Current;
             if (activity != null)
             {
@@ -66,7 +62,6 @@ namespace ActDim.Observability.VictoriaLogs
                 record["span.id"] = activity.SpanId.ToString();
             }
 
-            // Capture AmbientContext properties
             if (_ambientContext != null)
             {
                 foreach (var kvp in _ambientContext.Properties)
@@ -78,7 +73,6 @@ namespace ActDim.Observability.VictoriaLogs
                 }
             }
 
-            // Capture External Scope Provider tags (e.g. code.function, code.filename, etc.)
             _scopeProvider.ForEachScope((scope, state) =>
             {
                 if (scope is IEnumerable<KeyValuePair<string, object?>> kvps)
@@ -128,11 +122,9 @@ namespace ActDim.Observability.VictoriaLogs
                 }
                 catch
                 {
-                    // Ingest retry/suppression handling
                 }
             }
 
-            // Flush remaining on shutdown
             while (_queue.TryDequeue(out var record))
             {
                 batch.Add(record);
