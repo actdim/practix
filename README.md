@@ -10,7 +10,7 @@ Modern, high-performance .NET libraries and application framework by Active Dime
 - **`ActDim.BytePath`** — Concurrency-aware blob and binary payload storage engine with decoupled registries, sharded filesystem data stores, TTL expiration, and distributed locks (`IBlobManager`, `AddBlobManager`).
 - **`ActDim.BytePath.FileSystemStore`** — File-system blob data store implementation with sharded hash directories.
 - **`ActDim.BytePath.SqliteRegistry`** — SQLite-backed ACID metadata registry with distributed locking and TTL.
-- **`ActDim.Observability`** — OpenTelemetry-centric logging, activity tracing, and ambient context enrichment (`IObservabilityContext`, `AddEventObservability`).
+- **`ActDim.Observability`** — OpenTelemetry-centric logging, activity tracing, and ambient context enrichment (`IObservabilityContext`, `AddEventObservability`). Includes integration test suites & developer tools for VictoriaLogs (LogsQL) and OpenObserve (SQL Search).
 - **`ActDim.Three`** — 3D scene graph, math, geometry, and serialization for Three.js compatibility (`ThreeSerializer`, `SceneDocument`).
 
 ### Framework & Application Modules (`ActDim.Practix.*`)
@@ -24,7 +24,7 @@ Modern, high-performance .NET libraries and application framework by Active Dime
 
 ## Test Verification & Quality Status
 
-All test suites are passing with a **100% success rate (586 / 586 tests passing, 0 failed, 0 skipped)**:
+All test suites are passing with a **100% success rate (588 / 588 tests passing, 0 failed, 0 skipped)**:
 
 | Test Project | Target Library / Module | Tests Passed | Failed | Skipped | Status |
 | :--- | :--- | :---: | :---: | :---: | :---: |
@@ -34,15 +34,15 @@ All test suites are passing with a **100% success rate (586 / 586 tests passing,
 | **`ActDim.Practix.Json.Tests`** | `ActDim.Practix.Json` | **102** | 0 | 0 | ✅ Passed |
 | **`ActDim.BytePath.Tests`** | `ActDim.BytePath` | **74** | 0 | 0 | ✅ Passed |
 | **`ActDim.Three.Tests`** | `ActDim.Three` | **35** | 0 | 0 | ✅ Passed |
-| **`ActDim.Observability.Tests`** | `ActDim.Observability` | **28** | 0 | 0 | ✅ Passed |
-| **TOTAL** | **Entire Solution** | **586** | **0** | **0** | **100% Passing** |
+| **`ActDim.Observability.Tests`** | `ActDim.Observability` | **30** | 0 | 0 | ✅ Passed |
+| **TOTAL** | **Entire Solution** | **588** | **0** | **0** | **100% Passing** |
 
 ### Run Tests
 
 Run all tests across solutions:
 
 ```bash
-# Core framework & engines (551 tests)
+# Core framework & engines (553 tests)
 dotnet test ActDim.Practix.sln
 
 # 3D Math & Scene Graph (35 tests)
