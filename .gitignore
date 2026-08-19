@@ -62,8 +62,6 @@ nunit-*.xml
 !Tools/**/*.ps1
 !Tools/**/*.bat
 !Tools/**/*.sh
-victoria-logs-data/
-openobserve-data/
 data/
 *.exe
 *.parquet
