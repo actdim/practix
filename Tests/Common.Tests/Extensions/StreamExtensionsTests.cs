@@ -224,7 +224,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void WriteString_NullOrEmpty_WritesNothing(string str)
+        public void WriteString_NullOrEmpty_WritesNothing(string? str)
         {
             using var ms = new MemoryStream();
 
@@ -244,7 +244,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
         {
             using var ms = new MemoryStream();
 
-            await ms.WriteStringAsync(SampleText);
+            await ms.WriteStringAsync(SampleText, ct: TestContext.Current.CancellationToken);
             ms.Position = 0L;
 
             Assert.Equal(SampleText, await ms.GetStringAsync(Encoding.UTF8, TestContext.Current.CancellationToken));
@@ -308,7 +308,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
             using var src = Exposable(data);
             using var dst = new MemoryStream();
 
-            var result = await src.ZeroAllocCopyToAsync(dst);
+            var result = await src.ZeroAllocCopyToAsync(dst, ct: TestContext.Current.CancellationToken);
 
             Assert.Same(dst, result);
             Assert.Equal(data, dst.ToArray());
@@ -321,7 +321,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
             using Stream src = new WrapperStream(data, canSeek: true);
             using var dst = new MemoryStream();
 
-            await src.ZeroAllocCopyToAsync(dst);
+            await src.ZeroAllocCopyToAsync(dst, ct: TestContext.Current.CancellationToken);
 
             Assert.Equal(data, dst.ToArray());
         }
@@ -333,7 +333,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
             using Stream src = new WrapperStream(data, canSeek: false);
             using var dst = new MemoryStream();
 
-            await src.ZeroAllocCopyToAsync(dst);
+            await src.ZeroAllocCopyToAsync(dst, ct: TestContext.Current.CancellationToken);
 
             Assert.Equal(data, dst.ToArray());
         }
@@ -464,7 +464,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
             var data = MakeBytes(20_000);
             using Stream src = new WrapperStream(data, canSeek: true);
 
-            using var owner = await src.ReadBytesAsync();
+            using var owner = await src.ReadBytesAsync(ct: TestContext.Current.CancellationToken);
 
             Assert.Equal(data.Length, owner.Length);
             Assert.Equal(data, owner.Memory.ToArray());
@@ -476,7 +476,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
             var data = MakeBytes(20_000);
             using Stream src = new WrapperStream(data, canSeek: false);
 
-            using var owner = await src.ReadBytesAsync();
+            using var owner = await src.ReadBytesAsync(ct: TestContext.Current.CancellationToken);
 
             Assert.Equal(data.Length, owner.Length);
             Assert.Equal(data, owner.Memory.ToArray());

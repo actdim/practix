@@ -43,14 +43,14 @@ public class JsonNamingAttributeTests
     public void Attribute_CanBeAppliedToClass()
     {
         var attrs = typeof(UpperCaseDto).GetCustomAttributes(typeof(JsonNamingAttribute), false);
-        Assert.Equal(1, attrs.Length);
+        Assert.Single(attrs);
     }
 
     [Fact]
     public void Attribute_CanBeAppliedToStruct()
     {
         var attrs = typeof(LowerCaseStruct).GetCustomAttributes(typeof(JsonNamingAttribute), false);
-        Assert.Equal(1, attrs.Length);
+        Assert.Single(attrs);
     }
 
     // ── Integration: NamingPolicyResolver через BaseJsonSerializer ───────────
