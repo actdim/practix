@@ -1,4 +1,3 @@
-#nullable enable
 using ActDim.Practix.Abstractions.Context;
 using Microsoft.Extensions.Logging;
 using System;
@@ -12,7 +11,7 @@ namespace ActDim.Observability
     /// <summary>
     /// Event-centric observability bridge implementing <see cref="ILogger"/> that performs DTO object flattening and
     /// enriches <see cref="Activity"/> spans with dotted OpenTelemetry attributes.
-    /// Supports ambient properties from <see cref="IAmbientContextProvider"/> and external scopes via <see cref="IExternalScopeProvider"/>.
+    /// Supports ambient properties from <see cref="IAmbientContext"/> and external scopes via <see cref="IExternalScopeProvider"/>.
     /// Selective per-provider suppression is performed dynamically by decorated logger providers.
     /// </summary>
     /// <remarks>
@@ -27,17 +26,17 @@ namespace ActDim.Observability
     public sealed class EventObservabilityBridge : ILogger, ISupportExternalScope
     {
         private readonly ILogger _inner;
-        private readonly IAmbientContextProvider? _ambientContextProvider;
+        private readonly IAmbientContext? _ambientContext;
         private readonly EventObservabilityOptions _options;
         private IExternalScopeProvider? _scopeProvider;
 
         public EventObservabilityBridge(
             ILogger inner,
-            IAmbientContextProvider? ambientContextProvider = null,
+            IAmbientContext? ambientContext = null,
             EventObservabilityOptions? options = null)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
-            _ambientContextProvider = ambientContextProvider;
+            _ambientContext = ambientContext;
             _options = options ?? new EventObservabilityOptions();
         }
 
@@ -104,7 +103,7 @@ namespace ActDim.Observability
 
         private string ResolveActivitySourceName()
         {
-            if (_ambientContextProvider?.Get()?.Properties.TryGetValue(ObservabilityContextPropertyNames.ActivitySourceName, out var customVal) == true
+            if (_ambientContext?.Properties.TryGetValue(ObservabilityContextPropertyNames.ActivitySourceName, out var customVal) == true
                 && customVal is string customName && !string.IsNullOrWhiteSpace(customName))
             {
                 return customName;
@@ -168,7 +167,7 @@ namespace ActDim.Observability
                 return;
             }
 
-            var ambientProperties = _ambientContextProvider?.Get()?.Properties;
+            var ambientProperties = _ambientContext?.Properties;
             var includeExternalScopes = ResolveFlag(ambientProperties, ObservabilityContextPropertyNames.IncludeExternalScopes, _options.IncludeExternalScopes);
 
             var spanTags = new TelemetryTagCollector(_options.TagCollisions);

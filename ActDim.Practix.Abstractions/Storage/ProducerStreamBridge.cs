@@ -55,7 +55,7 @@ namespace ActDim.BytePath
                     : await dataStore.PutAsync(blobRecord, source, ct);
 
                 // Reaching here means the store read to the end of the pipe, which only happens once
-                // the writer has completed вЂ” so the producer has finished. Awaiting it is a formality
+                // the writer has completed — so the producer has finished. Awaiting it is a formality
                 // that keeps the task from being abandoned.
                 await producing;
                 return size;
@@ -91,7 +91,7 @@ namespace ActDim.BytePath
 
             // A producer failure travels through the pipe: the reader rethrows it, the store's read
             // fails, and the caller sees the original exception from the write call. So this method
-            // never throws on its own вЂ” there is exactly one path out.
+            // never throws on its own — there is exactly one path out.
             await writer.CompleteAsync(failure);
         }
     }

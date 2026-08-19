@@ -4,7 +4,7 @@
 		<TargetFrameworks>net10.0</TargetFrameworks>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>disable</ImplicitUsings>
-		<Nullable>disable</Nullable>
+		<Nullable>annotations</Nullable>
 		<IsPackable>true</IsPackable>
 		<PackageId>ActDim.Reflectron</PackageId>
 		<Description>High-performance reflection engine providing compiled expression tree property getters, setters, and object accessors.</Description>

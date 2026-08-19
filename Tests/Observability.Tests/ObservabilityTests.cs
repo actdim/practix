@@ -1,4 +1,3 @@
-#nullable enable
 using ActDim.Practix.Abstractions.Context;
 using ActDim.Practix.Context;
 using ActDim.Observability;
