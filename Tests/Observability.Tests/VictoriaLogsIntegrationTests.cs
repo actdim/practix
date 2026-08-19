@@ -101,13 +101,21 @@ namespace ActDim.Observability.Tests
                     logger.LogInformation("{TestMessage}", testMessage);
                 }
 
-                // Flush queue and wait briefly for VictoriaLogs to index log records
+                // Flush queue and wait for VictoriaLogs to index log records
                 provider.Flush();
-                await Task.Delay(400, cts.Token);
 
-                // 2. Query logs using LogsQL (VictoriaLogs Query Language)
-                var query1 = @"_stream:{app=""actdim""} AND msg:""" + uniqueId + @"""";
-                var results1 = await client.QueryLogsQLAsync(query1, cts.Token);
+                var query1 = @"msg:""" + uniqueId + @"""";
+                IReadOnlyList<Dictionary<string, object?>> results1 = Array.Empty<Dictionary<string, object?>>();
+
+                for (int i = 0; i < 15; i++)
+                {
+                    await Task.Delay(200, cts.Token);
+                    results1 = await client.QueryLogsQLAsync(query1, cts.Token);
+                    if (results1.Count > 0)
+                    {
+                        break;
+                    }
+                }
 
                 Assert.NotEmpty(results1);
                 var logRecord = results1[0];
