@@ -1,7 +1,6 @@
 
 using ActDim.Practix.Service.OpenApi;
 using ActDim.Practix.Service.Settings;
-using ActDim.Practix.Service.Extensions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;

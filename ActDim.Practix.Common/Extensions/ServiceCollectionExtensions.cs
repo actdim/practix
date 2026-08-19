@@ -3,10 +3,9 @@ using ActDim.Practix.Abstractions.Context;
 using ActDim.Practix.Caching;
 using ActDim.Practix.Compression;
 using ActDim.Practix.Context;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace ActDim.Practix.Common.Extensions
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for setting up core <c>ActDim.Practix.Common</c> services in an <see cref="IServiceCollection"/>.

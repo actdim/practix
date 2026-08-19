@@ -1,9 +1,9 @@
-using Microsoft.Extensions.DependencyInjection;
+using ActDim.BytePath;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.IO;
 
-namespace ActDim.BytePath
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for configuring <see cref="SQLiteBlobRegistry"/> in an <see cref="IServiceCollection"/> and on <see cref="IBlobManagerBuilder"/>.

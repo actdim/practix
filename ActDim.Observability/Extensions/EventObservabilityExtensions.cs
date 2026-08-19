@@ -1,14 +1,14 @@
 #nullable enable
+using ActDim.Observability;
 using ActDim.Practix.Abstractions.Context;
 using ActDim.Practix.Context;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 
-namespace ActDim.Observability
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for registering <see cref="EventObservabilityBridge"/> in an <see cref="IServiceCollection"/>.

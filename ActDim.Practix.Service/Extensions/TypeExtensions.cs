@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -74,7 +77,6 @@ namespace ActDim.Practix.Service.OpenApi
                 return true;
             }
 
-            // typeof(System.Collections.IEnumerable).IsAssignableFrom(type)
             if (type.IsArray)
             {
                 var elementType = type.GetElementType();
@@ -87,7 +89,6 @@ namespace ActDim.Practix.Service.OpenApi
                 return enumerableType.GenericTypeArguments[0].IsOpenApiPrimitive();
             }
 
-            // CompatibleDictionaryType.IsAssignableFrom(type)
             if (CompatibleDictionaryType.Equals(type))
             {
                 return true;
@@ -109,8 +110,6 @@ namespace ActDim.Practix.Service.OpenApi
         /// <summary>
         /// GetSwaggerSchemaId
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
         public static string GetOpenApiSchemaId(this Type type, string schemaPrefix = default, string ownClassPrefix = default)
         {
             if (type.IsOpenApiPrimitive())
@@ -130,7 +129,6 @@ namespace ActDim.Practix.Service.OpenApi
             }
         }
 
-        // BaseStructType
         private static readonly Type BaseValueType = typeof(ValueType);
         private static readonly Type BaseObjectType = typeof(object);
         private static readonly IEnumerable<Type> EmptyTypeList = [];

@@ -89,3 +89,13 @@
   - Relocated `IncompleteDataException` to `ActDim.Practix.Abstractions/Exceptions/IncompleteDataException.cs` under `ActDim.Practix.Abstractions.Exceptions` and derived it from `DataFormatException` (`IncompleteDataException : DataFormatException`).
   - Deleted custom `ActDim.Practix.Common.InvalidDataException` to eliminate shadowing with BCL `System.IO.InvalidDataException`.
 - **Consequences:** Provides a clean, expressively typed domain exception hierarchy in `Abstractions` (`DataFormatException` -> `IncompleteDataException`) with zero BCL naming collisions.
+
+## 2026-08-19 — ADR-014: Extension Method Organization, Target Namespace Alignment, and DI Standardization
+- **Context:** Extension methods across projects were stored in arbitrary non-standard folders and namespaces. DI registration methods on `IServiceCollection` were placed in ad-hoc `.Extensions` namespaces requiring manual using directives in Startup/Program.cs. Third-party and domain extensions (e.g. `GuardExtensions`, `MemoryCacheExtensions`, `MemoryStreamManagerExtensions`, `SceneDocumentExtensions`) were placed in generic namespace bags rather than matching the target types they extend. Additionally, `EnumerableExtensions.Partition` and `FuncExtensions.Memoize` contained legacy experimental code and blocking concurrency primitives.
+- **Decision:**
+  - Standardize all extension classes into `Extensions/` subfolders across all projects.
+  - Set all DI `IServiceCollection` extension methods across all projects to `namespace Microsoft.Extensions.DependencyInjection` per Microsoft Framework Design Guidelines.
+  - Align non-system domain and third-party extensions with the namespaces of the target types they extend (`Ardalis.GuardClauses`, `Microsoft.Extensions.Caching.Memory`, `Microsoft.IO`, `ActDim.Three.Core`, `ActDim.Three.Core.Buffers`).
+  - Keep general BCL utility extensions in modular namespaces (`ActDim.Practix.Extensions`, `ActDim.Reflectron`, `ActDim.Emitron`) to avoid global `System.*` IntelliSense clutter.
+  - Refactor `EnumerableExtensions.Partition` to use runtime-optimized `source.Chunk(size)`, optimize `MinOrDefault`/`MaxOrDefault` to single-pass, and refactor `FuncExtensions.Memoize` to lock-free `ConcurrentFactoryDictionary`.
+- **Consequences:** Clean, idiomatic .NET API ergonomics, automatic DI method discovery without cluttering using lists, zero-lock concurrency for function memoization, and elimination of legacy dead code.

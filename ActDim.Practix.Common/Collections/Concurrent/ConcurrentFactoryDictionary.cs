@@ -25,9 +25,20 @@ namespace ActDim.Practix.Collections.Concurrent
         /// </summary>
         /// <param name="valueFactory">The factory delegate used to generate values for missing keys.</param>
         public ConcurrentFactoryDictionary(Func<TKey, TValue> valueFactory)
+            : this(valueFactory, EqualityComparer<TKey>.Default)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConcurrentFactoryDictionary{TKey, TValue}"/> class using the specified value factory and key comparer.
+        /// </summary>
+        /// <param name="valueFactory">The factory delegate used to generate values for missing keys.</param>
+        /// <param name="comparer">The equality comparer to use for keys.</param>
+        public ConcurrentFactoryDictionary(Func<TKey, TValue> valueFactory, IEqualityComparer<TKey> comparer)
         {
             Guard.Against.Null(valueFactory, nameof(valueFactory));
-            _dictionary = new ConcurrentDictionary<TKey, Lazy<TValue>>();
+            Guard.Against.Null(comparer, nameof(comparer));
+            _dictionary = new ConcurrentDictionary<TKey, Lazy<TValue>>(comparer);
             _valueFactory = key => new Lazy<TValue>(() => valueFactory(key), LazyThreadSafetyMode.ExecutionAndPublication);
         }
 

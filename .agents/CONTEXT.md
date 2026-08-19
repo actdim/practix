@@ -20,17 +20,11 @@ Current state snapshot of `actdim/practix` (.NET).
 - **`ActDim.Practix.DataAccess`**: Data access layer. [Non-Packable Application Assembly]
 - **`ActDim.Practix.Service`**: Primary backend service host using standard Microsoft DI (`IServiceCollection`), including API response envelopes (`BaseApiResult`, `ApiResult` in `ActDim.Practix.Service.Api`). [Non-Packable Application Assembly]
 
-## Packaging & Dependency Injection Standard
+## Packaging, DI & Extensions Standards
 - **NuGet Packaging Standard**: 10 library projects configured for NuGet package creation with centralized `Directory.Build.props` metadata, explicit `<IsPackable>true</IsPackable>`, `<PackageReadmeFile>README.md</PackageReadmeFile>`, and embedded `README.md` files. Internal application/repo projects explicitly set `<IsPackable>false</IsPackable>`.
-- **Zero Autofac Dependency**: Solution standardized completely on `Microsoft.Extensions.DependencyInjection` via granular extension methods (`AddAmbientContext`, `AddCompressionManager`, `AddMemoryCachingProxy`, `AddDistributedCachingProxy`, `AddPractixJson`, `AddFileSystemBlobDataStore`, `AddSQLiteBlobRegistry`, `AddBlobManager`, `AddEventObservability`).
+- **Zero Autofac Dependency & Microsoft DI**: Solution standardized completely on `Microsoft.Extensions.DependencyInjection` via granular extension methods placed under `namespace Microsoft.Extensions.DependencyInjection` in `Extensions/` subfolders (`AddAmbientContext`, `AddCompressionManager`, `AddMemoryCachingProxy`, `AddDistributedCachingProxy`, `AddPractixJson`, `AddFileSystemBlobDataStore`, `AddSQLiteBlobRegistry`, `AddBlobManager`, `AddEventObservability`, `AddAppRegistryRepo`, `AddAppRegistryService`, `AddCoreService`, `AddApiGen`).
+- **Extensions Organization**: All extension classes live in `Extensions/` folders with namespaces aligned to target extended types (`Ardalis.GuardClauses`, `Microsoft.Extensions.Caching.Memory`, `Microsoft.IO`, `ActDim.Three.Core`).
 
 ## Solution Health & Verification
-- **Solution Build & Pack**: 17/17 projects building cleanly. All 10 NuGet packages generate `.nupkg` and `.snupkg` symbol packages with 0 missing README warnings (`dotnet pack ActDim.Practix.sln`).
-- **Total Test Suite**: 514 tests passing across 6 test assemblies:
-  - `ActDim.Practix.Json.Tests` (102 tests)
-  - `ActDim.Practix.Common.Tests` (213 tests)
-  - `ActDim.Emitron.Tests` (41 tests)
-  - `ActDim.Reflectron.Tests` (56 tests)
-  - `ActDim.BytePath.Tests` (74 tests)
-  - `ActDim.Observability.Tests` (28 tests)
-- Zero failures.
+- **Solution Build & Pack**: All projects in `ActDim.Practix.sln` and `ActDim.Three.sln` build cleanly with 0 errors and 0 warnings.
+- **Total Test Suite**: 550+ tests passing across test assemblies (222 in Common.Tests, 102 in Json.Tests, 56 in Reflectron.Tests, 54 in Emitron.Tests, 74 in BytePath.Tests, 28 in Observability.Tests, 35 in Three.Tests) with zero failures.

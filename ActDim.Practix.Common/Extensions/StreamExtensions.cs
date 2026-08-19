@@ -8,9 +8,8 @@ using System;
 using System.Threading.Tasks;
 using System.Threading;
 
-namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
+namespace ActDim.Practix.Extensions
 {
-
     /// <summary>
     /// Adds overloads to the stream Read method and adds the FullRead method,
     /// which will continue to read until it reads everything that was requested,

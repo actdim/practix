@@ -1,11 +1,11 @@
 using ActDim.Practix.Common.Introspection;
-using Microsoft.IO;
+using ActDim.Practix.Extensions;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace ActDim.Practix.Extensions
+namespace Microsoft.IO
 {
     /// <summary>
     /// Extension methods for <see cref="RecyclableMemoryStreamManager"/> providing caller-tagged context streams.

@@ -19,208 +19,38 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.*/
 
+using Ardalis.GuardClauses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Ardalis.GuardClauses;
 
-namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
+namespace ActDim.Practix.Extensions
 {
-    // sealed class PartitionHelper<T> : IEnumerable<IEnumerable<T>>
-    // {
-    //     readonly IEnumerable<T> _items;
-    //     readonly int _partitionSize;
-    //     bool _hasMoreItems;
-    //     internal PartitionHelper(IEnumerable<T> i, int size)
-    //     {
-    //         _items = i;
-    //         _partitionSize = size;
-    //     }
-    //     public IEnumerator<IEnumerable<T>> GetEnumerator()
-    //     {
-    //         using (var enumerator = _items.GetEnumerator())
-    //         {
-    //             _hasMoreItems = enumerator.MoveNext();
-    //             while (_hasMoreItems)
-    //             {
-    //                 yield return GetNextBatch(enumerator).ToList().AsReadOnly();
-    //             }
-    //         }
-    //     }
-    //     IEnumerable<T> GetNextBatch(IEnumerator<T> enumerator)
-    //     {
-    //         for (var i = 0; i < _partitionSize; ++i)
-    //         {
-    //             yield return enumerator.Current;
-    //             _hasMoreItems = enumerator.MoveNext();
-    //             if (!_hasMoreItems)
-    //             {
-    //                 yield break;
-    //             }
-    //         }
-    //     }
-    //     IEnumerator IEnumerable.GetEnumerator()
-    //     {
-    //         return GetEnumerator();
-    //     }
-    // }
-
     /// <summary>
-    /// IEnumerable extensions
+    /// Extension methods for <see cref="IEnumerable{T}"/> and <see cref="IEnumerable"/> sequences.
     /// </summary>
     public static class EnumerableExtensions
     {
-        // http://blogs.msdn.com/b/pfxteam/archive/2012/11/16/plinq-and-int32-maxvalue.aspx
-        // http://stackoverflow.com/questions/438188/split-a-collection-into-n-parts-with-linq
-        // https://code.google.com/p/morelinq/source/browse/MoreLinq/Batch.cs?r=f85495b139a19bce7df2be98ad88754ba8932a28
-        // http://stackoverflow.com/questions/13709626/split-an-ienumerablet-into-fixed-sized-chunks-return-an-ienumerableienumerab
-        // http://stackoverflow.com/questions/1349491/how-can-i-split-an-ienumerablestring-into-groups-of-ienumerablestring
-        // https://www.codeproject.com/Articles/779344/Considerations-on-Efficient-use-of-LINQ-Extension
-        // https://github.com/tompazourek/Endless
-
-        // public static ISet<T> ToHashSet<T>(this IEnumerable<T> source)
-        // {
-        //     return new HashSet<T>(source);
-        // }
-
         /// <summary>
-        ///
+        /// Splits the elements of a sequence into chunks of size at most <paramref name="size"/>.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="source">sequence</param>
-        /// <param name="size">(page/batch)Size</param>
-        /// <returns></returns>
-        public static IEnumerable<ReadOnlyCollection<T>> Partition<T>(this IEnumerable<T> source, int size) //IEnumerable<IEnumerable<T>>
+        /// <typeparam name="T">The type of the elements of the source sequence.</typeparam>
+        /// <param name="source">The sequence to partition.</param>
+        /// <param name="size">The maximum size of each chunk.</param>
+        /// <returns>A sequence of chunks of size at most <paramref name="size"/>.</returns>
+        public static IEnumerable<ReadOnlyCollection<T>> Partition<T>(this IEnumerable<T> source, int size)
         {
             Guard.Against.Null(source, nameof(source));
             Guard.Against.NegativeOrZero(size, nameof(size));
 
-            var count = 0;
-            // subset/segment/part/chunk
-            T[] portion = null;
-            // var portion = new List<T>(size);
-            // IList<T> portion = null;
-            using (var enumerator = source.GetEnumerator())
+            foreach (var chunk in source.Chunk(size))
             {
-                while (enumerator.MoveNext())
-                {
-                    if (portion == null)
-                    {
-                        portion = new T[size];
-                        // portion = new List<T>(size);
-                    }
-
-                    // portion.Add(enumerator.Current);
-                    portion[count] = enumerator.Current;
-
-                    count++;
-
-                    if (count == size)
-                    {
-                        // yield return portion.AsReadOnly();
-                        yield return new ReadOnlyCollection<T>(portion);
-
-                        // portion = new List<T>(size);
-                        portion = null;
-                        count = 0;
-                    }
-                }
-
-                // if (count > 0) //portion.Count > 0
-                // {
-                //     portion.TrimExcess();
-                //     yield return portion.AsReadOnly();
-                // }
-
-                if (portion != null)
-                {
-                    Array.Resize(ref portion, count);
-                    yield return new ReadOnlyCollection<T>(portion);
-                }
+                yield return new ReadOnlyCollection<T>(chunk);
             }
         }
-
-        // /// <summary>
-        // /// </summary>
-        // /// <typeparam name="T"></typeparam>
-        // /// <param name="items"></param>
-        // /// <param name="size">(page/batch)Size</param>
-        // /// <returns></returns>
-        // public static IEnumerable<IEnumerable<T>> Partition<T>(this IEnumerable<T> items, int size) //Batch/Paginate
-        // {
-        //     return new PartitionHelper<T>(items, size);
-        // }
-
-        // public static IEnumerable<T> AsDuckEnumerable<T>(this object source)
-        // {
-        // 	dynamic src = source;
-        // 	var e = src.GetEnumerator();
-        // 	try
-        // 	{
-        // 		while (e.MoveNext())
-        // 		{
-        // 		    yield return e.Current;
-        // 		}
-        // 	}
-        // 	finally
-        // 	{
-        // 		var d = e as IDisposable;
-        // 		if (d != null)
-        // 		{
-        // 			d.Dispose();
-        // 		}
-        // 	}
-        // }
-
-        // public static IEnumerable<TResult> Zip<TFirst, TSecond, TThird, TResult>(
-        //     this IEnumerable<TFirst> first,
-        //     IEnumerable<TSecond> second,
-        //     IEnumerable<TThird> third,
-        //     Func<TFirst, TSecond, TThird, TResult> resultSelector)
-        // {
-        //     // Contract.Requires(first != null && second != null && third != null && resultSelector != null);
-        //     using (IEnumerator<TFirst> iterator1 = first.GetEnumerator())
-        //     using (IEnumerator<TSecond> iterator2 = second.GetEnumerator())
-        //     using (IEnumerator<TThird> iterator3 = third.GetEnumerator())
-        //     {
-        //         while (iterator1.MoveNext() && iterator2.MoveNext() && iterator3.MoveNext())
-        //         {
-        //             yield return resultSelector(iterator1.Current, iterator2.Current, iterator3.Current);
-        //         }
-        //     }
-        // }
-
-        // public static IEnumerable<TResult> Zip<TFirst, TSecond, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> func)
-        // {
-        //     var ie1 = first.GetEnumerator();
-        //     var ie2 = second.GetEnumerator();
-        //     while (ie1.MoveNext() && ie2.MoveNext())
-        //     {
-        //         yield return func(ie1.Current, ie2.Current);
-        //     }
-        // }
-
-        // public static IEnumerable<T> Traverse<T>(this IEnumerable<T> source, Func<T, IEnumerable<T>> childrenSelector)
-        // {
-        //     return source.SelectMany(e => Traverse(e, childrenSelector));
-        // }
-
-        // public static IEnumerable<T> Traverse<T>(T item, Func<T, IEnumerable<T>> childrenSelector)
-        // {
-        //     yield return item;
-        //     foreach (var subItem in childrenSelector(item).Traverse(childrenSelector))
-        //     {
-        //         yield return subItem;
-        //     }
-        // }
 
         /// <summary>
         /// Converts an <see cref="IEnumerable{TSource}"/> to a <see cref="Dictionary{TKey, TElement}"/> keeping the first value encountered for duplicate keys (non-greedy).
@@ -241,14 +71,13 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
 
             var result = new Dictionary<TKey, TElement>(comparer);
 
-            foreach (var item in source) // element
+            foreach (var item in source)
             {
                 var key = keySelector(item);
                 if (!result.ContainsKey(key))
                 {
                     result.Add(key, elementSelector(item));
                 }
-                // dictionary[keySelector(item)] = elementSelector(item); //Greedy
             }
 
             return result;
@@ -311,7 +140,27 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// </summary>
         public static bool IsNullOrEmpty<T>(this IEnumerable<T> source)
         {
-            return source == null || !source.Any();
+            if (source is null)
+            {
+                return true;
+            }
+
+            if (source is ICollection<T> genericCollection)
+            {
+                return genericCollection.Count == 0;
+            }
+
+            if (source is IReadOnlyCollection<T> readOnlyCollection)
+            {
+                return readOnlyCollection.Count == 0;
+            }
+
+            if (source is ICollection nonGenericCollection)
+            {
+                return nonGenericCollection.Count == 0;
+            }
+
+            return !source.Any();
         }
 
         /// <summary>
@@ -319,9 +168,14 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// </summary>
         public static bool IsNullOrEmpty(this IEnumerable source)
         {
-            if (source == null)
+            if (source is null)
             {
                 return true;
+            }
+
+            if (source is ICollection collection)
+            {
+                return collection.Count == 0;
             }
 
             var enumerator = source.GetEnumerator();
@@ -334,45 +188,66 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
                 (enumerator as IDisposable)?.Dispose();
             }
         }
+
         /// <summary>
         /// Invokes a transform function on each element of a sequence and returns the minimum Double value
         /// if the sequence is not empty; otherwise returns the specified default value.
         /// </summary>
-        /// <typeparam name="TSource">The targetType of the elements of source.</typeparam>
+        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
         /// <param name="source">A sequence of values to determine the minimum value of.</param>
         /// <param name="selector">A transform function to apply to each element.</param>
         /// <param name="defaultValue">The default value.</param>
         /// <returns>The minimum value in the sequence or default value if sequence is empty.</returns>
         public static double MinOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector, double defaultValue)
         {
-            if (source.Any())
+            Guard.Against.Null(source, nameof(source));
+            Guard.Against.Null(selector, nameof(selector));
+
+            var hasValue = false;
+            var min = double.MaxValue;
+
+            foreach (var item in source)
             {
-                return source.Min(selector);
+                var val = selector(item);
+                if (!hasValue || val < min)
+                {
+                    min = val;
+                    hasValue = true;
+                }
             }
 
-            return defaultValue;
+            return hasValue ? min : defaultValue;
         }
 
         /// <summary>
         /// Invokes a transform function on each element of a sequence and returns the maximum Double value
         /// if the sequence is not empty; otherwise returns the specified default value.
         /// </summary>
-        /// <typeparam name="TSource">The targetType of the elements of source.</typeparam>
+        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
         /// <param name="source">A sequence of values to determine the maximum value of.</param>
         /// <param name="selector">A transform function to apply to each element.</param>
         /// <param name="defaultValue">The default value.</param>
         /// <returns>The maximum value in the sequence or default value if sequence is empty.</returns>
         public static double MaxOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector, double defaultValue)
         {
-            if (source.Any())
+            Guard.Against.Null(source, nameof(source));
+            Guard.Against.Null(selector, nameof(selector));
+
+            var hasValue = false;
+            var max = double.MinValue;
+
+            foreach (var item in source)
             {
-                return source.Max(selector);
+                var val = selector(item);
+                if (!hasValue || val > max)
+                {
+                    max = val;
+                    hasValue = true;
+                }
             }
 
-            return defaultValue;
+            return hasValue ? max : defaultValue;
         }
-
-
 
         /// <summary>
         /// Returns the 0-based index of the first element in the sequence matching the predicate, or -1 if not found.
@@ -408,23 +283,28 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// </summary>
         public static bool EstimateCount<T>(this IEnumerable<T> source, int max, Func<T, bool> predicate)
         {
-            var i = 0;
-            var result = false;
+            Guard.Against.Null(source, nameof(source));
+            Guard.Against.Null(predicate, nameof(predicate));
 
+            if (max <= 0)
+            {
+                return true;
+            }
+
+            var count = 0;
             foreach (var item in source)
             {
-                if (result = (i >= max))
-                {
-                    break;
-                }
-
                 if (predicate(item))
                 {
-                    i++;
+                    count++;
+                    if (count >= max)
+                    {
+                        return true;
+                    }
                 }
             }
 
-            return result;
+            return false;
         }
 
         /// <summary>
@@ -432,26 +312,31 @@ namespace ActDim.Practix.Extensions // ActDim.Practix.Linq
         /// </summary>
         public static bool EstimateCount<T>(this IEnumerable<T> source, int max, Func<T, int, bool> predicate)
         {
-            var i = 0;
-            var j = 0;
-            var result = false;
+            Guard.Against.Null(source, nameof(source));
+            Guard.Against.Null(predicate, nameof(predicate));
 
-            foreach (var item in source)
+            if (max <= 0)
             {
-                if (result = (i >= max))
-                {
-                    break;
-                }
-
-                if (predicate(item, j))
-                {
-                    i++;
-                }
-
-                j++;
+                return true;
             }
 
-            return result;
+            var count = 0;
+            var index = 0;
+            foreach (var item in source)
+            {
+                if (predicate(item, index))
+                {
+                    count++;
+                    if (count >= max)
+                    {
+                        return true;
+                    }
+                }
+
+                index++;
+            }
+
+            return false;
         }
 
         /// <summary>
