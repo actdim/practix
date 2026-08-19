@@ -112,10 +112,24 @@ using (observability.SuppressProviders("File", "Console"))
 }
 ```
 
+### 4. Integration Testing & Tooling (VictoriaLogs & OpenObserve)
+
+`ActDim.Observability.Tests` includes integration test suites and developer scripts for validating telemetry ingestion and log search:
+
+- **VictoriaLogs Integration (`VictoriaLogsIntegrationTests`):**
+  - Validates NDJSON ingestion (`/insert/jsonline`), `_msg` field format, `AmbientContext` properties, `BeginMethodScope()` OTel caller metadata (`code.function`, `code.filename`, `code.filepath`, `code.lineno`), and **LogsQL** queries.
+  - Launcher & Download Scripts: `Tools/victoria-logs/run-victoria-logs.cmd` (opens Web GUI at `http://localhost:9428/select/vmui`) and `download-victoria-logs.cmd`.
+
+- **OpenObserve Integration (`OpenObserveIntegrationTests`):**
+  - Validates JSON log ingestion (`/api/{org}/{stream}/_json`), `AmbientContext` enrichment, and **SQL Search API** (`POST /api/{org}/_search`).
+  - Launcher & Download Scripts: `Tools/openobserve/run-openobserve.cmd` (opens Web GUI at `http://localhost:5080`) and `download-openobserve.cmd`.
+
+- **Process Auto-Launch:** Both integration tests automatically detect running local instances or auto-launch local binaries from `Tools/` into isolated temporary storage paths.
+
 ## Testing & Quality
 
 - **Test Suite:** `ActDim.Observability.Tests`
-- **Total Tests:** 29 passed (100% success rate, 0 failed, 0 skipped)
+- **Total Tests:** 30 passed (100% success rate, 0 failed, 0 skipped)
 - **Target Framework:** .NET 10.0
 
 ```bash
