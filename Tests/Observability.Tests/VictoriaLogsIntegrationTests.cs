@@ -146,25 +146,45 @@ namespace ActDim.Observability.Tests
 
         private static string? FindVictoriaLogsBinary()
         {
-            var candidateNames = new[] { "victoria-logs-windows-amd64.exe", "victoria-logs.exe" };
-            var searchPaths = new[]
+            var candidateNames = new[]
             {
-                AppDomain.CurrentDomain.BaseDirectory,
-                Directory.GetCurrentDirectory(),
+                "victoria-logs-windows-amd64-prod.exe",
+                "victoria-logs-windows-amd64.exe",
+                "victoria-logs.exe"
+            };
+
+            var searchDirectories = new[]
+            {
+                Path.Combine(Directory.GetCurrentDirectory(), "Tools", "victoria-logs"),
                 Path.Combine(Directory.GetCurrentDirectory(), "Tools"),
+                Directory.GetCurrentDirectory(),
+                AppDomain.CurrentDomain.BaseDirectory,
+                Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "Tools", "victoria-logs"),
                 Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "Tools")
             };
 
-            foreach (var path in searchPaths)
+            foreach (var dir in searchDirectories)
             {
+                if (!Directory.Exists(dir)) continue;
+
                 foreach (var name in candidateNames)
                 {
-                    var fullPath = Path.Combine(path, name);
+                    var fullPath = Path.Combine(dir, name);
                     if (File.Exists(fullPath))
                     {
                         return fullPath;
                     }
                 }
+
+                try
+                {
+                    var found = Directory.EnumerateFiles(dir, "*victoria-logs*.exe", SearchOption.AllDirectories).FirstOrDefault();
+                    if (found != null)
+                    {
+                        return found;
+                    }
+                }
+                catch { }
             }
 
             return null;
