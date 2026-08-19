@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$DownloadUrl = "https://github.com/VictoriaMetrics/VictoriaLogs/releases/download/v1.51.1/victoria-logs-windows-amd64-v1.51.1-enterprise.zip",
+    [string]$DownloadUrl = "https://github.com/VictoriaMetrics/VictoriaLogs/releases/download/v1.51.1/victoria-logs-windows-amd64-v1.51.1.zip",
     [string]$TargetDir = $PSScriptRoot
 )
 
