@@ -179,7 +179,7 @@ public class CoreJsonSerializerTests
     public async Task SerializeObjectAsync_ToStream_WritesJson()
     {
         using var ms = new MemoryStream();
-        await _ser.SerializeAsync(new { Value = 99 }, ms);
+        await _ser.SerializeAsync(new { Value = 99 }, ms, cancellationToken: TestContext.Current.CancellationToken);
         var json = Encoding.UTF8.GetString(ms.ToArray());
         Assert.Equal("{\"Value\":99}", json);
     }
@@ -248,7 +248,7 @@ public class CoreJsonSerializerTests
     {
         var json = "{\"name\":\"Frank\",\"age\":33}"u8.ToArray();
         using var ms = new MemoryStream(json);
-        var result = await _ser.DeserializeAsync<PersonRecord>(ms);
+        var result = await _ser.DeserializeAsync<PersonRecord>(ms, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal("Frank", result.Name);
     }
 

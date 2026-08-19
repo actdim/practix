@@ -1279,9 +1279,9 @@ namespace ActDim.Practix.Common.Tests.Compression
         [InlineData(null)]
         [InlineData("")]
         [InlineData("   ")]
-        public void GetArchiveFormatByFileExtension_Blank_Throws(string ext)
+        public void GetArchiveFormatByFileExtension_Blank_Throws(string? ext)
         {
-            Assert.ThrowsAny<ArgumentException>(() => Manager.GetArchiveFormatByFileExtension(ext));
+            Assert.ThrowsAny<ArgumentException>(() => Manager.GetArchiveFormatByFileExtension(ext!));
         }
 
         [Fact]
@@ -1319,9 +1319,9 @@ namespace ActDim.Practix.Common.Tests.Compression
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
-        public void FixArchiveFileExtension_BlankName_Throws(string fileName)
+        public void FixArchiveFileExtension_BlankName_Throws(string? fileName)
         {
-            Assert.ThrowsAny<ArgumentException>(() => Manager.FixArchiveFileExtension(fileName, ArchiveFormat.Zip));
+            Assert.ThrowsAny<ArgumentException>(() => Manager.FixArchiveFileExtension(fileName!, ArchiveFormat.Zip));
         }
     }
 }
