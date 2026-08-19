@@ -57,6 +57,9 @@ nunit-*.xml
 
 # Tools & Binaries
 [Tt]ools/
+!Tools/victoria-logs/run-victoria-logs.cmd
+victoria-logs-data/
+data/
 *.exe
 
 # Environment and secrets
