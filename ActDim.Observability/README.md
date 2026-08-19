@@ -145,11 +145,11 @@ using (observability.SuppressProviders("File", "Console"))
 
 - **VictoriaLogs Integration (`VictoriaLogsIntegrationTests`):**
   - Validates NDJSON ingestion (`/insert/jsonline`), `_msg` field format, `AmbientContext` properties, `BeginMethodScope()` OTel caller metadata (`code.function`, `code.filename`, `code.filepath`, `code.lineno`), and **LogsQL** queries.
-  - Launcher & Download Scripts: `Tools/victoria-logs/run-victoria-logs.cmd` (opens Web GUI at `http://localhost:9428/select/vmui`) and `download-victoria-logs.cmd`.
+  - Launcher & Download Scripts: `Tools/victoria-logs/run-victoria-logs.cmd` (auto-opens VMUI Web GUI at [http://localhost:9428/select/vmui](http://localhost:9428/select/vmui)) and `download-victoria-logs.cmd`.
 
 - **OpenObserve Integration (`OpenObserveIntegrationTests`):**
   - Validates JSON log ingestion (`/api/{org}/{stream}/_json`), `AmbientContext` enrichment, and **SQL Search API** (`POST /api/{org}/_search`).
-  - Launcher & Download Scripts: `Tools/openobserve/run-openobserve.cmd` (opens Web GUI at `http://localhost:5080`) and `download-openobserve.cmd`.
+  - Launcher & Download Scripts: `Tools/openobserve/run-openobserve.cmd` (auto-opens Web GUI at [http://localhost:5080](http://localhost:5080) with default admin credentials `root@example.com` / `Complexpass#123`) and `download-openobserve.cmd`.
 
 - **Process Auto-Launch:** Both integration tests automatically detect running local instances or auto-launch local binaries from `Tools/` into isolated temporary storage paths.
 
