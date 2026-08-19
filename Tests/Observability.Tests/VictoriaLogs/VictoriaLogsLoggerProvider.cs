@@ -41,7 +41,7 @@ namespace ActDim.Observability.Tests.VictoriaLogs
             {
                 ["_time"] = DateTimeOffset.UtcNow.ToString("O"),
                 ["_stream"] = _client.Options.Stream,
-                ["msg"] = message,
+                ["_msg"] = message,
                 ["level"] = logLevel.ToString().ToLowerInvariant(),
                 ["logger"] = categoryName,
                 ["event.id"] = eventId.Id != 0 ? eventId.Id : null,

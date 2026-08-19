@@ -123,10 +123,11 @@ namespace ActDim.Observability.Tests
                 }
 
                 Assert.NotEmpty(results1);
-                var logRecord = results1.FirstOrDefault(r => r.TryGetValue("msg", out var m) && m?.ToString()?.Contains(uniqueId) == true) ?? results1[0];
+                var logRecord = results1.FirstOrDefault(r => (r.TryGetValue("_msg", out var m) || r.TryGetValue("msg", out m)) && m?.ToString()?.Contains(uniqueId) == true) ?? results1[0];
 
+                var msgValue = logRecord.TryGetValue("_msg", out var msgObj) ? msgObj?.ToString() : logRecord["msg"]?.ToString();
                 Assert.True(logRecord["level"]?.ToString() == "info" || logRecord["level"]?.ToString() == "information");
-                Assert.Contains(testMessage, logRecord["msg"]?.ToString());
+                Assert.Contains(testMessage, msgValue);
                 Assert.Equal("tenant-test-777", logRecord["tenant.id"]?.ToString());
                 Assert.Equal("ord-999", logRecord["order.id"]?.ToString());
                 Assert.Equal(nameof(VictoriaLogs_WriteAndQueryLogs_ExecutesLogsQLSuccessfully), logRecord["code.function"]?.ToString());
