@@ -1,5 +1,5 @@
 ---
-slug: ambient-context-register-for-dispose
+slug: pipeline-register-for-dispose
 type: feat
 status: open
 priority: medium
@@ -10,7 +10,7 @@ updated: 2026-08-20
 # Feature: Pipeline & Execution Scope End-of-Life Resource Registration (`RegisterForDispose`)
 
 ## Goal
-Provide a decoupled mechanism (via ASP.NET Core request pipeline middleware, `ActDim.Practix.Service`, and optionally `AmbientContext`) to register arbitrary `IDisposable` and `IAsyncDisposable` objects created deep within business logic for automatic cleanup at the end of an HTTP request or background execution scope.
+Provide a decoupled mechanism (via ASP.NET Core request pipeline middleware, `ActDim.Practix.Service`, and execution scopes) to register arbitrary `IDisposable` and `IAsyncDisposable` objects created deep within business logic for automatic cleanup at the end of an HTTP request or background execution scope.
 
 ## Problem Statement & Context
 1. **The Cleanup Gap Beyond Streams**:
@@ -23,8 +23,8 @@ Provide a decoupled mechanism (via ASP.NET Core request pipeline middleware, `Ac
 1. **ASP.NET Core Pipeline Integration (`ActDim.Practix.Service`)**:
    - Leverage ASP.NET Core middleware / action filters / request scope services to automatically capture and dispose request-scoped resources.
 
-2. **Decoupled Registration API (Optional `AmbientContext` Bridge)**:
-   - Provide a framework facade (e.g. `AmbientContext.RegisterForDispose` or `IExecutionScope.RegisterForDispose`) so business code can register disposables without referencing ASP.NET Core web abstractions.
+2. **Decoupled Registration API**:
+   - Provide a framework facade (e.g. `RegisterForDispose` in execution pipeline or context) so business code can register disposables without referencing ASP.NET Core web abstractions.
    - In ASP.NET Core, automatically forward registered disposables to `HttpContext.Response.RegisterForDispose(...)`.
 
 3. **Standalone / Background Execution Scopes (`CreateExecutionScope`)**:
