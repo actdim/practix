@@ -22,11 +22,8 @@ _Current-state snapshot. Keep SHORT; history goes to SESSIONS/._
   for decoder output. `WriteInChunks` (was `WriteSafe`) bounds the per-call buffer and, in the async
   form, sets the cancellation granularity; it is pointless for a plain `FileStream`/`MemoryStream`.
 - `Extensions/StringExtensions.cs`: `ToMemory`/`ToMemoryAsync` encode straight into a pre-sized
-  recyclable stream via `WriteString` — do NOT stage through a rented buffer and
-  `GetContextStream(buffer, …)`, that copies the bytes a second time. Both return the stream **rewound**;
-  keep the two in step. Neither has any test.
-- Tests: `Tests/Common.Tests` → **276 passing** (`Compression/CompressionManagerTests.cs` 125,
-  `Extensions/StreamExtensionsTests.cs` ~44). `ActDim.Practix.Common` builds clean.
+  recyclable stream via `WriteString` — avoid staging through an intermediate buffer. Both return the stream **rewound**.
+- Tests: `Tests/Common.Tests` → **238 passing** (`ActDim.Practix.sln` 559 total passing). `ActDim.Practix.Common` builds clean with 0 errors.
 - Trap: `ActDim.Practix.Common.InvalidDataException` (empty class) shadows `System.IO.InvalidDataException`
   inside `ActDim.Practix.Common.*` namespaces — always qualify.
 - `ShortId` is now a stateless static (`ShortId.Generate(len[, charSet])`) over

@@ -107,9 +107,8 @@ namespace ActDim.Practix.Extensions
             // Pre-sized so the stream does not have to chain extra blocks while being written.
             var stream = MemoryManager.Default.GetStream(nameof(StringExtensions), length);
 
-            // Encoding straight into the stream, rather than into a rented buffer handed to
-            // GetContextStream(buffer, offset, count): that overload copies the buffer into the
-            // stream's own blocks, so staging the bytes first would write them twice.
+            // Encoding straight into the stream to avoid staging bytes into an intermediate
+            // buffer first (which would copy bytes twice).
             stream.WriteString(value, encoding);
 
             // Hand back a stream ready to be read, not one parked at the end of what was just
