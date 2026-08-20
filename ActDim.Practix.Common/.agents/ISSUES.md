@@ -1,6 +1,7 @@
 # Issues   (glyphs: [ ] open  [~] in-progress  [!] blocked  [x] done)
 
 ## Active
+- [ ] feat--memory-arena-auto-cleanup — Memory Arena pattern with automatic cleanup of rented streams/buffers upon scope disposal.
 - [ ] feat--iconfiguration-application-config-manager — Convenient application configuration manager based on IConfiguration.
 - [~] debt--compression-interface-cleanup — 14 documented problems in `ICompressionManager` / `IArchiveEntry` / `ArchiveEntrySource`.
 - [ ] task--compression-large-payload-spill — `CompressionManager.CreateTempStream` memory vs FileStream spilling.
