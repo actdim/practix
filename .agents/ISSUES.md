@@ -3,7 +3,6 @@
 _Solution-level issues board. Project-specific issues live exclusively in their respective subproject folders._
 
 ## Active
-- `feat--metrics-enrichment-and-timers`: Metrics helper extensions (`MeasureDuration`, `TrackInFlight`) and low-cardinality ambient context tag filtering
 
 ## Subproject Issue Boards
 - **ActDim.BytePath**: [`.agents/ISSUES.md`](file:///d:/Src/my/actdim/public/dotnet/ActDim.BytePath/.agents/ISSUES.md)
