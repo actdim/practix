@@ -52,7 +52,11 @@ public void ConfigureServices(IServiceCollection services)
 
 ## Ambient Context Usage Guide
 
-`AmbientContext` allows passing execution state (services, user identity, cancellation tokens, blob managers, custom metadata) down the asynchronous execution tree (`async/await`, `Task.Run`, background workers) without threading parameters through every method signature.
+`AmbientContext` allows passing execution state (services, user identity, cancellation tokens, blob managers, memory manager, custom metadata) down the asynchronous execution tree (`async/await`, `Task.Run`, background workers) without threading parameters through every method signature.
+
+> [!NOTE]
+> **Thread Safety & Execution Flow Isolation:**  
+> Unlike global static variables (which mutate global state and cause race conditions when accessed concurrently across threads), `AmbientContext` is backed by `AsyncLocal<ImmutableDictionary<string, object>>`. Context mutations flow strictly down the async execution tree (`async/await`, `Task.Run`). Temporary `using (AmbientContext.With...)` overrides apply exclusively to the current call branch without cross-thread pollution or race conditions.
 
 ### 1. Console / Worker Application (`Program.cs`)
 
