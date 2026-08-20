@@ -36,5 +36,10 @@ namespace ActDim.Practix.Abstractions.Context
         /// Key storing the active <see cref="ActDim.Practix.Abstractions.Compression.ICompressionManager"/>.
         /// </summary>
         public const string CompressionManager = Prefix + "CompressionManager";
+
+        /// <summary>
+        /// Key storing the active <see cref="Microsoft.IO.RecyclableMemoryStreamManager"/>.
+        /// </summary>
+        public const string MemoryManager = Prefix + "MemoryManager";
     }
 }

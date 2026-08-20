@@ -154,6 +154,23 @@ namespace ActDim.Practix.Context
         /// </summary>
         public static IDisposable WithCompressionManager(ActDim.Practix.Abstractions.Compression.ICompressionManager compressionManager) => Current.WithCompressionManager(compressionManager);
 
+        // ══ Memory Management ══════════════════════════════════════════════════
+
+        /// <summary>
+        /// Gets the active <see cref="Microsoft.IO.RecyclableMemoryStreamManager"/> instance. Resolves from ambient override -> <see cref="ActDim.Practix.Common.Memory.MemoryManager.Default"/>.
+        /// </summary>
+        public static Microsoft.IO.RecyclableMemoryStreamManager Memory => Current.GetMemoryManager() ?? ActDim.Practix.Common.Memory.MemoryManager.Default;
+
+        /// <summary>
+        /// Temporarily overrides the current <see cref="Microsoft.IO.RecyclableMemoryStreamManager"/> within a <see langword="using"/> scope.
+        /// </summary>
+        public static IDisposable WithMemoryManager(Microsoft.IO.RecyclableMemoryStreamManager memoryManager) => Current.WithMemoryManager(memoryManager);
+
+        /// <summary>
+        /// Temporarily overrides the current <see cref="Microsoft.IO.RecyclableMemoryStreamManager"/> within a <see langword="using"/> scope.
+        /// </summary>
+        public static IDisposable WithMemory(Microsoft.IO.RecyclableMemoryStreamManager memoryManager) => Current.WithMemory(memoryManager);
+
         // ══ Fast Logging ══════════════════════════════════════════════════════
 
         /// <summary>

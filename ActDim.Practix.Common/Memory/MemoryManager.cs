@@ -1,11 +1,11 @@
 using Microsoft.IO;
 
-namespace ActDim.Practix.Memory
+namespace ActDim.Practix.Common.Memory
 {
     /// <summary>
     /// Holds process-wide default <see cref="RecyclableMemoryStreamManager"/> instance configured for optimal memory pooling.
     /// </summary>
-    public class MemoryManager
+    public static class MemoryManager
     {
         /// <summary>
         /// Gets the process-wide shared <see cref="RecyclableMemoryStreamManager"/> instance.
@@ -15,8 +15,6 @@ namespace ActDim.Practix.Memory
 #pragma warning disable S3963 // "static" fields should be initialized inline
         static MemoryManager()
         {
-            Default = new RecyclableMemoryStreamManager();
-
             var blockSize = 8192; // 8 KB
             var largeBufferMultiple = 1024 * 1024; // 1 MB
             var maxBufferSize = 16 * largeBufferMultiple;
