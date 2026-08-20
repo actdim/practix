@@ -5,7 +5,7 @@ namespace ActDim.Observability
     /// Well-known ambient property names owned by <see cref="IObservabilityContext"/>.
     /// </summary>
     /// <remarks>
-    /// Two kinds of keys live here. Data keys (<see cref="Status"/>, <see cref="Progress"/>, <see cref="Icon"/>,
+    /// Two kinds of keys live here. Data keys (<see cref="Status"/>,
     /// or custom keys pushed via <see cref="IObservabilityContext.Push"/>) describe the operation and are exported as
     /// <see cref="System.Diagnostics.Activity"/> tags (OpenTelemetry span attributes). Control keys, prefixed with
     /// <c>__ActDim.Observability_</c>, configure the telemetry pipeline for the duration of a scope and are never exported.
@@ -41,18 +41,8 @@ namespace ActDim.Observability
         public const string ActivitySourceName = ControlPrefix + "ActivitySourceName";
 
         /// <summary>
-        /// Data key holding the current operation status text (e.g. "Downloading").
+        /// Data key holding the current <see cref="ObservabilityStatus"/> object.
         /// </summary>
         public const string Status = "status";
-
-        /// <summary>
-        /// Data key holding the operation progress percentage (0..100).
-        /// </summary>
-        public const string Progress = "progress";
-
-        /// <summary>
-        /// Data key holding the visual status icon or emoji (e.g. "🚀", "⚡").
-        /// </summary>
-        public const string Icon = "icon";
     }
 }

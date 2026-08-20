@@ -9,7 +9,7 @@ A lightweight, OpenTelemetry-centric observability library for .NET applications
 - **Activity & OpenTelemetry Enrichment:** Automatically transforms scope objects, DTOs, and structured log parameters into flattened, dotted OpenTelemetry attributes (`user.id`, `order.price`).
 - **Auto Activity Creation on Scope:** Automatically starts an `Activity` span on `logger.BeginScope()` when no ambient span exists (`Activity.Current == null`), resolved via `observability.PushActivitySourceName(...)` or `EventObservabilityOptions.DefaultActivitySourceName`.
 - **Ambient Context Separation:** `IAmbientContext` serves as a neutral ambient variable store. Only properties explicitly pushed via `IObservabilityContext` are exported to `Activity` tags.
-- **Status & Progress Tracking:** First-class support for setting operation status text, icons, and progress percentage (`observability.SetStatus("Downloading", icon: "🚀")`, `observability.SetProgress(45.5)`).
+- **Operation Status & Progress Tracking:** First-class support for setting unified operation status, icons, progress percentage, and step indices (`observability.SetStatus("Downloading Dataset", progress: 45.5, icon: "🚀", step: 1, totalSteps: 3)`), readable via `observability.Status`.
 - **Selective Provider & Scope Suppression:** Dynamically suppress console loggers, specific logger providers, or external scope export per async flow (`observability.SuppressConsole()`, `observability.SuppressProviders("File")`, `observability.SuppressExternalScopes()`).
 - **Provider Alias Resolution:** Automatically resolves provider aliases via official .NET `[ProviderAlias]` attributes or custom provider mappings.
 ## Architectural Rationale: Dedicated Observability Engines vs Relational Databases
@@ -436,16 +436,24 @@ services.AddEventObservability(logging =>
 
 ## Usage
 
-### 1. Status & Progress Reporting
+### 1. Operation Status & Progress Reporting
 
 ```csharp
 var observability = serviceProvider.GetRequiredService<IObservabilityContext>();
 
-using (observability.SetStatus("Downloading Dataset", icon: "🚀"))
-using (observability.SetProgress(45.5))
+// Set a unified operation status (name, progress %, icon, step)
+using (observability.SetStatus("Downloading Dataset", progress: 45.5, icon: "🚀", step: 1, totalSteps: 3))
 using (observability.Push("priority", "high"))
 {
-    logger.LogInformation("Importing rows into database");
+    // Read active status anywhere in the execution flow:
+    ObservabilityStatus? currentStatus = observability.Status;
+    logger.LogInformation("Importing rows into database for status {StatusName}", currentStatus?.Name);
+}
+
+// Or pass an ObservabilityStatus instance:
+using (observability.SetStatus(new ObservabilityStatus("Processing Rows", progress: 75.0, icon: "⚡", step: 2, totalSteps: 3)))
+{
+    logger.LogInformation("Processing batch rows");
 }
 ```
 
