@@ -4,8 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ActDim.Practix.Memory;
-using Microsoft.IO;
+using ActDim.Practix.Common.Memory;
 
 namespace ActDim.Practix.Extensions
 {
@@ -79,7 +78,7 @@ namespace ActDim.Practix.Extensions
             var length = encoding.GetByteCount(value);
 
             // Pre-sized so the stream does not have to chain extra blocks while being written.
-            var stream = MemoryManager.Default.GetContextStream(length);
+            var stream = MemoryManager.Default.GetStream(nameof(StringExtensions), length);
 
             await stream.WriteStringAsync(value, encoding, ct);
 
@@ -106,7 +105,7 @@ namespace ActDim.Practix.Extensions
             var length = encoding.GetByteCount(value);
 
             // Pre-sized so the stream does not have to chain extra blocks while being written.
-            var stream = MemoryManager.Default.GetContextStream(length);
+            var stream = MemoryManager.Default.GetStream(nameof(StringExtensions), length);
 
             // Encoding straight into the stream, rather than into a rented buffer handed to
             // GetContextStream(buffer, offset, count): that overload copies the buffer into the

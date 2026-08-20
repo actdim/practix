@@ -218,6 +218,24 @@ namespace ActDim.Practix.Common.Tests.Context
         }
 
         [Fact]
+        public void Memory_ResolvesFromAmbientOverride_OrDefaultsToProcessManager()
+        {
+            var defaultMemory = AmbientContext.Memory;
+            Assert.NotNull(defaultMemory);
+            Assert.Same(ActDim.Practix.Common.Memory.MemoryManager.Default, defaultMemory);
+
+            var customManager = new Microsoft.IO.RecyclableMemoryStreamManager();
+
+            using (AmbientContext.WithMemoryManager(customManager))
+            {
+                Assert.Same(customManager, AmbientContext.Memory);
+                Assert.Same(customManager, AmbientContext.Current.GetMemoryManager());
+            }
+
+            Assert.Same(ActDim.Practix.Common.Memory.MemoryManager.Default, AmbientContext.Memory);
+        }
+
+        [Fact]
         public void Logging_ResolvesLoggerFactory_AndSupportsScopedOverrides()
         {
             var logger = AmbientContext.Log<AmbientContextTests>();

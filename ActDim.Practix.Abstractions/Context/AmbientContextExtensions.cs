@@ -123,5 +123,30 @@ namespace ActDim.Practix.Abstractions.Context
             ArgumentNullException.ThrowIfNull(compressionManager, nameof(compressionManager));
             return context.PushProperty(AmbientKeys.CompressionManager, compressionManager);
         }
+
+        /// <summary>
+        /// Gets the scoped <see cref="Microsoft.IO.RecyclableMemoryStreamManager"/> from the ambient context, or <c>null</c> if not set.
+        /// </summary>
+        public static Microsoft.IO.RecyclableMemoryStreamManager? GetMemoryManager(this IAmbientContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context, nameof(context));
+            return context.Properties.TryGetValue(AmbientKeys.MemoryManager, out var val) && val is Microsoft.IO.RecyclableMemoryStreamManager mm ? mm : null;
+        }
+
+        /// <summary>
+        /// Temporarily sets the scoped <see cref="Microsoft.IO.RecyclableMemoryStreamManager"/> for the duration of the returned disposable scope.
+        /// </summary>
+        public static IDisposable WithMemoryManager(this IAmbientContext context, Microsoft.IO.RecyclableMemoryStreamManager memoryManager)
+        {
+            ArgumentNullException.ThrowIfNull(context, nameof(context));
+            ArgumentNullException.ThrowIfNull(memoryManager, nameof(memoryManager));
+            return context.PushProperty(AmbientKeys.MemoryManager, memoryManager);
+        }
+
+        /// <summary>
+        /// Temporarily sets the scoped <see cref="Microsoft.IO.RecyclableMemoryStreamManager"/> for the duration of the returned disposable scope.
+        /// </summary>
+        public static IDisposable WithMemory(this IAmbientContext context, Microsoft.IO.RecyclableMemoryStreamManager memoryManager)
+            => WithMemoryManager(context, memoryManager);
     }
 }

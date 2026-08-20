@@ -10,9 +10,8 @@ using System.Threading.Tasks;
 using ActDim.Practix.Abstractions.Compression;
 using ActDim.Practix.Abstractions.Exceptions;
 using ActDim.Practix.Extensions;
-using ActDim.Practix.Memory;
-using Ardalis.GuardClauses;
 using ActDim.Practix.Common.Memory;
+using Ardalis.GuardClauses;
 
 namespace ActDim.Practix.Compression
 {
