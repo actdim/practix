@@ -24,16 +24,21 @@ namespace ActDim.Observability
         IReadOnlyDictionary<string, object> Properties { get; }
 
         /// <summary>
-        /// Sets the current operation status text and an optional icon for the duration of the returned handle,
-        /// exporting them as <see cref="Activity"/> tags.
+        /// Gets the current ambient execution status, or <see langword="null"/> if no status is currently active.
         /// </summary>
-        IDisposable SetStatus(string status, string? icon = null);
+        ObservabilityStatus? Status { get; }
 
         /// <summary>
-        /// Sets the operation progress percentage, clamped to 0..100, for the duration of the returned handle,
+        /// Sets the current execution status state (name, progress percentage, icon, step index) for the duration of the returned handle,
         /// exporting it as an <see cref="Activity"/> tag.
         /// </summary>
-        IDisposable SetProgress(double percentage);
+        IDisposable SetStatus(ObservabilityStatus status);
+
+        /// <summary>
+        /// Sets the current execution status state for the duration of the returned handle,
+        /// exporting it as an <see cref="Activity"/> tag.
+        /// </summary>
+        IDisposable SetStatus(string? name = null, double? progress = null, string? icon = null, int? step = null, int? totalSteps = null);
 
         /// <summary>
         /// Sets an arbitrary telemetry property for the duration of the returned handle,

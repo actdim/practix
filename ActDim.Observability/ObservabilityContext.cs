@@ -26,21 +26,21 @@ namespace ActDim.Observability
         public IReadOnlyDictionary<string, object> Properties => AmbientContext.Properties;
 
         /// <inheritdoc />
-        public IDisposable SetStatus(string status, string? icon = null)
-        {
-            var statusScope = PushExported(ObservabilityContextPropertyNames.Status, status);
-            if (string.IsNullOrEmpty(icon))
-            {
-                return statusScope;
-            }
+        public ObservabilityStatus? Status =>
+            Properties.TryGetValue(ObservabilityContextPropertyNames.Status, out var raw) && raw is ObservabilityStatus status
+                ? status
+                : null;
 
-            return new CompositeDisposable(statusScope, PushExported(ObservabilityContextPropertyNames.Icon, icon!));
+        /// <inheritdoc />
+        public IDisposable SetStatus(ObservabilityStatus status)
+        {
+            return PushExported(ObservabilityContextPropertyNames.Status, status);
         }
 
         /// <inheritdoc />
-        public IDisposable SetProgress(double percentage)
+        public IDisposable SetStatus(string? name = null, double? progress = null, string? icon = null, int? step = null, int? totalSteps = null)
         {
-            return PushExported(ObservabilityContextPropertyNames.Progress, Math.Clamp(percentage, 0.0, 100.0));
+            return SetStatus(new ObservabilityStatus(name, progress, icon, step, totalSteps));
         }
 
         /// <inheritdoc />
@@ -167,19 +167,24 @@ namespace ActDim.Observability
 
         private sealed class CompositeDisposable : IDisposable
         {
-            private readonly IDisposable _first;
-            private readonly IDisposable _second;
+            private readonly IDisposable[] _disposables;
 
             public CompositeDisposable(IDisposable first, IDisposable second)
             {
-                _first = first;
-                _second = second;
+                _disposables = [first, second];
+            }
+
+            public CompositeDisposable(IEnumerable<IDisposable> disposables)
+            {
+                _disposables = [.. disposables];
             }
 
             public void Dispose()
             {
-                _second.Dispose();
-                _first.Dispose();
+                for (var i = _disposables.Length - 1; i >= 0; i--)
+                {
+                    _disposables[i]?.Dispose();
+                }
             }
         }
     }

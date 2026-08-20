@@ -149,24 +149,26 @@ namespace ActDim.Observability.Tests
         }
 
         [Fact]
-        public void EventObservabilityBridge_Supports_Status_Progress_And_Icon()
+        public void EventObservabilityBridge_Supports_ObservabilityStatus()
         {
             using var scope = StartTestActivity("StatusProgressActivity");
             var logger = _serviceProvider.GetRequiredService<ILogger<ObservabilityTests>>();
             var observability = _serviceProvider.GetRequiredService<IObservabilityContext>();
 
-            using (observability.SetStatus("Downloading Dataset", icon: "🚀"))
-            using (observability.SetProgress(45.5))
+            var expectedStatus = new ObservabilityStatus("Downloading Dataset", progress: 45.5, icon: "🚀", step: 1, totalSteps: 3);
+
+            using (observability.SetStatus(expectedStatus))
             using (observability.Push("PriorityTag", "high"))
             using (logger.BeginScope("ImportRows"))
             {
                 logger.LogInformation("Importing rows into database");
 
-                Assert.Equal("Downloading Dataset", scope.Activity.GetTagItem("status"));
-                Assert.Equal("🚀", scope.Activity.GetTagItem("icon"));
-                Assert.Equal(45.5, scope.Activity.GetTagItem("progress"));
+                Assert.Equal(expectedStatus, observability.Status);
+                Assert.Equal(expectedStatus, scope.Activity.GetTagItem("status"));
                 Assert.Equal("high", scope.Activity.GetTagItem("priority.tag"));
             }
+
+            Assert.Null(observability.Status);
         }
 
         [Fact]
@@ -176,23 +178,22 @@ namespace ActDim.Observability.Tests
             var logger = _serviceProvider.GetRequiredService<ILogger<ObservabilityTests>>();
             var observability = _serviceProvider.GetRequiredService<IObservabilityContext>();
 
+            var expectedStatus = new ObservabilityStatus("Processing Rows", progress: 75.0, icon: "⚡", step: 2, totalSteps: 3);
+
             using (logger.BeginScope("ImportBatch"))
             {
                 // Push data properties while the operation is already in flight
-                using (observability.SetStatus("Processing Rows", icon: "⚡"))
-                using (observability.SetProgress(75.0))
+                using (observability.SetStatus(expectedStatus))
                 using (observability.Push("BatchId", "b-99"))
                 {
-                    Assert.Equal("Processing Rows", scope.Activity.GetTagItem("status"));
-                    Assert.Equal("⚡", scope.Activity.GetTagItem("icon"));
-                    Assert.Equal(75.0, scope.Activity.GetTagItem("progress"));
+                    Assert.Equal(expectedStatus, observability.Status);
+                    Assert.Equal(expectedStatus, scope.Activity.GetTagItem("status"));
                     Assert.Equal("b-99", scope.Activity.GetTagItem("batch.id"));
                 }
 
                 // Disposing the handle restores previous values (or removes newly added attributes)
+                Assert.Null(observability.Status);
                 Assert.Null(scope.Activity.GetTagItem("status"));
-                Assert.Null(scope.Activity.GetTagItem("icon"));
-                Assert.Null(scope.Activity.GetTagItem("progress"));
                 Assert.Null(scope.Activity.GetTagItem("batch.id"));
             }
         }
