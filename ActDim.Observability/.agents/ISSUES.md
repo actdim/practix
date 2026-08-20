@@ -1,6 +1,7 @@
 # Active Issues
 
 ## Active
+- [feat--metrics-enrichment-and-timers](ISSUES/feat--metrics-enrichment-and-timers.md) — Metrics helper extensions (`MeasureDuration`, `TrackInFlight`) and low-cardinality ambient context tag filtering.
 - [bug--collection-tag-values-not-exportable](ISSUES/bug--collection-tag-values-not-exportable.md) — a collection passed to `Push` or `LogEvent.ActivityTags` reaches the span as an object OTLP cannot express.
 - [bug--logger-providers-registered-later-not-decorated](ISSUES/bug--logger-providers-registered-later-not-decorated.md) — DI registration is order-dependent and not idempotent.
 - [bug--span-tag-restore-assumes-lifo](ISSUES/bug--span-tag-restore-assumes-lifo.md) — out-of-order disposal leaves a stale span attribute and desynchronizes `ExportedKeys`.
