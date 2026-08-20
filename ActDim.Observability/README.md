@@ -41,6 +41,371 @@ Storing high-throughput logs and distributed traces in traditional relational da
 
 ---
 
+## .NET Observability & Logging Architecture: Best Practices Guide
+
+Understanding how modern telemetry works in .NET is essential for building resilient, high-performance applications. Modern observability rests on **Three Pillars**: Traces, Metrics, and Logs.
+
+```mermaid
+flowchart TD
+    subgraph App[".NET Application (ActDim.Observability)"]
+        Logs["Logs (ILogger / EventObservabilityBridge)"]
+        Traces["Traces (System.Diagnostics.Activity)"]
+        Metrics["Metrics (System.Diagnostics.Metrics)"]
+    end
+
+    subgraph Instrumentations["Built-in & BCL Instrumentations"]
+        ASPNET["ASP.NET Core (HTTP Requests)"]
+        Kestrel["Kestrel & Hosting (Server)"]
+        HTTP["HttpClient & System.Net (DNS / HTTP)"]
+        EF["EF Core & SqlClient (DB Queries)"]
+        Runtime["System.Runtime (GC / ThreadPool / CPU)"]
+    end
+
+    subgraph Collection["Export Architecture & Pipeline"]
+        Direct["Direct OTLP Exporter (App -> Sink)"]
+        Collector["OpenTelemetry Collector (Tail Sampling & Multi-Sink Routing)"]
+    end
+
+    subgraph Sinks["Observability Backends & Visualizers"]
+        VL["VictoriaLogs (High-Perf Log Engine / LogsQL)"]
+        OO["OpenObserve (All-in-One: Logs + Traces + Metrics UI)"]
+        Grafana["Grafana Dashboards (Loki/VL Logs, Tempo Traces, Prom Metrics)"]
+    end
+
+    Instrumentations --> Traces
+    Instrumentations --> Metrics
+
+    Logs --> Direct
+    Traces --> Direct
+    Metrics --> Direct
+
+    Logs --> Collector
+    Traces --> Collector
+    Metrics --> Collector
+
+    Direct --> VL
+    Direct --> OO
+    Collector --> VL
+    Collector --> OO
+    Collector --> Grafana
+```
+
+---
+
+### 1. Complete .NET Setup Code (Logging, Tracing & Metrics)
+
+Below is the standard, production-ready configuration using `Microsoft.Extensions.DependencyInjection` and `OpenTelemetry`:
+
+```csharp
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using ActDim.Observability;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// 1. Define Resource attributes (Service Name, Version, Environment)
+var resourceBuilder = ResourceBuilder.CreateDefault()
+    .AddService(
+        serviceName: builder.Configuration["Telemetry:ServiceName"] ?? "PractixService",
+        serviceVersion: "1.0.0",
+        serviceInstanceId: Environment.MachineName);
+
+// 2. Configure Dynamic Trace Sampling from appsettings.json
+var samplingRatio = builder.Configuration.GetValue<double>("Telemetry:TraceSamplingRatio", 0.1); // Default 10%
+var enableSampling = builder.Configuration.GetValue<bool>("Telemetry:EnableSampling", true);
+
+// During active incidents, set Telemetry:EnableSampling = false in appsettings.json to capture 100% of traces!
+Sampler sampler = enableSampling
+    ? new ParentBasedSampler(new TraceIdRatioBasedSampler(samplingRatio))
+    : new AlwaysOnSampler();
+
+// 3. Register OpenTelemetry Tracing & Metrics
+builder.Services.AddOpenTelemetry()
+    .WithResource(resourceBuilder)
+    .WithTracing(tracing =>
+    {
+        tracing
+            .SetSampler(sampler)
+            .AddSource(EventObservabilityOptions.DefaultActivitySourceName)
+            .AddAspNetCoreInstrumentation(opts =>
+            {
+                opts.RecordException = true;
+            })
+            .AddHttpClientInstrumentation(opts =>
+            {
+                opts.RecordException = true;
+            })
+            .AddEntityFrameworkCoreInstrumentation(opts =>
+            {
+                opts.SetDbStatementForText = true;
+            })
+            .AddOtlpExporter(opts =>
+            {
+                opts.Endpoint = new Uri(builder.Configuration["Telemetry:OtlpEndpoint"] ?? "http://localhost:4317");
+                opts.Protocol = OtlpExportProtocol.Grpc;
+            });
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics
+            // Enable Exemplars (attaches active TraceId/SpanId to Metric Histograms)
+            .SetExemplarFilter(ExemplarFilterType.TraceBased)
+            // System & Framework Meters
+            .AddMeter("Microsoft.AspNetCore.Hosting")
+            .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+            .AddMeter("System.Net.Http")
+            .AddMeter("System.Net.NameResolution") // DNS resolution timing & metrics
+            .AddMeter("System.Runtime")             // GC, ThreadPool, Locks, CPU
+            .AddRuntimeInstrumentation()
+            .AddOtlpExporter(opts =>
+            {
+                opts.Endpoint = new Uri(builder.Configuration["Telemetry:OtlpEndpoint"] ?? "http://localhost:4317");
+                opts.Protocol = OtlpExportProtocol.Grpc;
+            });
+    });
+
+// 4. Register ActDim.Observability & EventObservabilityBridge
+builder.Services.AddEventObservability(logging =>
+{
+    logging.AddConsole();
+    logging.AddOtlpExporter(opts =>
+    {
+        opts.Endpoint = new Uri(builder.Configuration["Telemetry:OtlpEndpoint"] ?? "http://localhost:4318/v1/logs");
+        opts.Protocol = OtlpExportProtocol.HttpProtobuf;
+    });
+}, options =>
+{
+    options.IncludeExternalScopes = true;
+});
+
+var app = builder.Build();
+app.Run();
+```
+
+---
+
+### 2. Built-in Framework & System Instrumentations
+
+OpenTelemetry .NET leverages BCL `ActivitySource` and `Meter` events built into the .NET runtime and ASP.NET Core:
+
+| Component | Package / API | Emitted Telemetry & Metrics |
+| :--- | :--- | :--- |
+| **ASP.NET Core** | `OpenTelemetry.Instrumentation.AspNetCore` | Server HTTP spans (`http.request.method`, `http.response.status_code`, `url.path`, route templates). |
+| **Kestrel Server** | `AddMeter("Microsoft.AspNetCore.Server.Kestrel")` | Active connections, connection duration, TLS handshakes, request queue length. |
+| **Hosting** | `AddMeter("Microsoft.AspNetCore.Hosting")` | Request rate, active requests, unhandled exception counters. |
+| **HttpClient & System.Net** | `AddMeter("System.Net.Http")`, `AddMeter("System.Net.NameResolution")` | Client HTTP spans, DNS lookup duration, socket connection timing, connection pool saturation. |
+| **Entity Framework Core / SQL** | `OpenTelemetry.Instrumentation.EntityFrameworkCore` | DB command spans (`db.system`, `db.statement`), connection open/close duration. |
+| **System.Runtime** | `AddRuntimeInstrumentation()`, `AddMeter("System.Runtime")` | GC heap allocation rate, GC pauses, ThreadPool queue length, thread count, CPU % and memory working set. |
+
+---
+
+### 3. Dynamic Ratio-Based Sampling via `appsettings.json`
+
+High-throughput production services emitting 100% of traces create massive storage costs and network overhead. **Head Sampling** evaluates trace sampling at span creation.
+
+#### `appsettings.json` Configuration
+
+```json
+{
+  "Telemetry": {
+    "ServiceName": "OrderProcessingService",
+    "OtlpEndpoint": "http://otel-collector:4317",
+    "TraceSamplingRatio": 0.05,
+    "EnableSampling": true
+  }
+}
+```
+
+#### Incident Override Mode (Zero-Loss Telemetry Toggle)
+
+During production incidents or debugging sessions, operators can update `Telemetry:EnableSampling` to `false` via environment variables or configuration reload without deploying code:
+
+```bash
+# Override env var during incident to capture 100% of traces:
+Telemetry__EnableSampling=false
+```
+
+```csharp
+// Code implementation dynamically evaluates the configuration value:
+Sampler sampler = configuration.GetValue<bool>("Telemetry:EnableSampling", true)
+    ? new ParentBasedSampler(new TraceIdRatioBasedSampler(configuration.GetValue<double>("Telemetry:TraceSamplingRatio", 0.1)))
+    : new AlwaysOnSampler();
+```
+
+---
+
+### 4. Metrics & Exemplars
+
+An **Exemplar** links a metric measurement (such as a 99th percentile request duration histogram bucket) directly to the exact `trace_id` and `span_id` of the HTTP request that produced it.
+
+```
+Grafana Metric Chart: kestrel.request.duration [Histogram Bucket: > 500ms]
+                     │
+                     └── Exemplar Attached: [trace_id = 4bf92f3577b34da6a3ce929d0e0e4736]
+                                 │
+                                 └── (Click) -> Opens Trace Waterfall in OpenObserve / Tempo / Jaeger!
+```
+
+#### Enabling Exemplars in .NET
+To enable Exemplars, use `.SetExemplarFilter(ExemplarFilterType.TraceBased)`. This automatically attaches trace context from `Activity.Current` whenever a metric measurement is recorded while a trace is sampled.
+
+---
+
+### 5. OpenTelemetry Collector Architecture & Pipelines
+
+The **OpenTelemetry Collector** is a high-performance proxy component deployed alongside your application stack.
+
+```mermaid
+flowchart LR
+    App[".NET App (Logs, Traces, Metrics)"] -->|OTLP / gRPC or HTTP| Receiver["Receiver (otlp)"]
+    subgraph OtelCollector["OpenTelemetry Collector Pipeline"]
+        Receiver --> Processors["Processors (batch, memory_limiter, tail_sampling)"]
+        Processors --> Exporters["Exporters (otlp, prometheus, victorialogs)"]
+    end
+    Exporters -->|Logs + Traces + Metrics| OO["OpenObserve (All-in-One APM UI)"]
+    Exporters -->|Logs| VL["VictoriaLogs (LogsQL)"]
+    Exporters -->|Traces| Tempo["Grafana Tempo / Jaeger"]
+    Exporters -->|Metrics| Prom["Prometheus"]
+```
+
+#### Why Use an Otel Collector?
+1. **Process Offloading:** Offloads heavy batching, compression (GZip/Zstd), retries, and network TLS overhead out of the .NET application process.
+2. **Security & Credential Isolation:** API tokens, basic auth headers, and production credentials live in the Collector configuration rather than microservice environment variables.
+3. **Multi-Backend Routing:** Simultaneously forwards logs to **VictoriaLogs**, traces to **Tempo** or **OpenObserve**, and metrics to **Prometheus**.
+4. **Tail Sampling:** Evaluates sampling rules *after* the entire distributed trace finishes.
+
+#### OpenTelemetry Collector Tail Sampling Configuration (`otel-collector-config.yaml`)
+
+Unlike Head Sampling (which drops traces randomly at the start), **Tail Sampling** buffers completed traces in the Collector memory and applies intelligent rules:
+
+```yaml
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 75
+    spike_limit_percentage: 15
+
+  batch:
+    send_batch_size: 8192
+    timeout: 1s
+
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 10000
+    expected_new_traces_per_sec: 2000
+    policies:
+      # Policy 1: Always drop health checks & metric scrapes
+      - name: drop-health-checks
+        type: string_attribute
+        string_attribute:
+          key: http.target
+          values: [ "/healthz", "/metrics", "/ready" ]
+          enabled_regex_matching: false
+          invert_match: true
+
+      # Policy 2: Always keep 100% of traces containing HTTP 5xx errors or exceptions
+      - name: keep-all-errors
+        type: status_code
+        status_code:
+          status_codes: [ ERROR ]
+
+      # Policy 3: Always keep 100% of slow requests (> 500ms duration)
+      - name: keep-slow-requests
+        type: latency
+        latency:
+          threshold_ms: 500
+
+      # Policy 4: Sample 5% of normal successful requests (HTTP 200 OK)
+      - name: sample-normal-traffic
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 5.0
+
+exporters:
+  otlp/openobserve:
+    endpoint: "http://openobserve:5080/api/default"
+    headers:
+      Authorization: "Basic cm9vdEBleGFtcGxlLmNvbTpDb21wbGV4cGFzcyMxMjM="
+  
+  otlp/victorialogs:
+    endpoint: "http://victoria-logs:9428/insert/opentelemetry/v1/logs"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, tail_sampling, batch]
+      exporters: [otlp/openobserve]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/victorialogs, otlp/openobserve]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/openobserve]
+```
+
+---
+
+### 6. Structured Logging & Context Scopes (`logger.BeginScope`)
+
+#### Structured Logging vs. String Interpolation
+
+```csharp
+// ❌ INCORRECT: String Interpolation (Destroys structure, produces unindexed raw text)
+logger.LogInformation($"Processed order {orderId} for user {userId}");
+
+// ✅ CORRECT: Named Template Parameters (Extracts structured key-value pairs)
+logger.LogInformation("Processed order {OrderId} for user {UserId}", orderId, userId);
+```
+
+- **Why it matters:** Columnar log engines (**VictoriaLogs**, **OpenObserve**, **ClickHouse**) automatically parse template parameters into typed JSON attributes (`OrderId: "1234"`). This enables instant filtering with `LogsQL` (`OrderId:="1234"`) or SQL without slow regex searches.
+
+#### Why Logging Scopes are Vital (`logger.BeginScope`)
+
+Logging scopes push ambient contextual key-value pairs onto the current async execution flow:
+
+```csharp
+using (logger.BeginScope(new Dictionary<string, object> { ["tenant.id"] = "acme", ["user.id"] = "42" }))
+{
+    // Every log statement executed in this block (or child async methods) automatically inherits tenant.id and user.id!
+    logger.LogInformation("Processing payment");
+    await ExecutePaymentStepAsync();
+    logger.LogInformation("Payment completed");
+}
+```
+
+#### How `ActDim.Observability` Enhances Scopes
+
+- **Scope Flattening:** `EventObservabilityBridge` automatically flattens dictionary scopes, anonymous objects, and DTOs into dotted OTel tags (`tenant.id`, `user.id`, `order.price`).
+- **Auto Activity Creation:** Calling `logger.BeginScope()` or `logger.BeginMethodScope()` starts a new OpenTelemetry `Activity` span if no active span exists (`Activity.Current == null`).
+- **Ambient Context Binding:** Integrates directly with `IAmbientContext` and `IObservabilityContext`, capturing ambient state without parameter drilling.
+
+#### Zero-Ceremony & Framework Independence (Serilog vs. Native .NET Logging)
+
+- **Zero Third-Party Logging Dependencies:** `ActDim.Observability` eliminates the need for heavy external logging frameworks like Serilog or NLog. Standard `Microsoft.Extensions.Logging` combined with OpenTelemetry OTLP Exporters delivers zero-allocation, high-performance structured logging natively out of the box.
+- **Seamless Serilog Interop:** If an existing application already relies on **Serilog**, `ActDim.Observability` integrates transparently. Developers can retain `builder.Host.UseSerilog()` or Serilog sinks—`EventObservabilityBridge` decorates `ILoggerFactory` via standard BCL interfaces, capturing scopes and ambient state without conflicts.
+
+---
+
 ## Installation
 
 Install via the .NET CLI:
