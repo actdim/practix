@@ -404,6 +404,67 @@ using (logger.BeginScope(new Dictionary<string, object> { ["tenant.id"] = "acme"
 - **Zero Third-Party Logging Dependencies:** `ActDim.Observability` eliminates the need for heavy external logging frameworks like Serilog or NLog. Standard `Microsoft.Extensions.Logging` combined with OpenTelemetry OTLP Exporters delivers zero-allocation, high-performance structured logging natively out of the box.
 - **Seamless Serilog Interop:** If an existing application already relies on **Serilog**, `ActDim.Observability` integrates transparently. Developers can retain `builder.Host.UseSerilog()` or Serilog sinks—`EventObservabilityBridge` decorates `ILoggerFactory` via standard BCL interfaces, capturing scopes and ambient state without conflicts.
 
+#### Why Logger Categories Use Full Type Names (`type.FullName`) & Namespace Hierarchy
+
+When obtaining a logger via `ILogger<T>` or `LoggerFactory.CreateLogger(typeof(T))`, .NET assigns the category name using the **full type name with namespace** (e.g. `ActDim.Practix.Common.Context.AmbientContext`) rather than just the short class name (`AmbientContext`).
+
+```mermaid
+flowchart TD
+    Root["ActDim (Global Company/Solution Prefix)"] --> Module["ActDim.Practix.Common (Subsystem Prefix)"]
+    Module --> Class1["ActDim.Practix.Common.Context.AmbientContext (Specific Type)"]
+    Module --> Class2["ActDim.Practix.Common.Compression.CompressionManager (Specific Type)"]
+
+    style Root fill:#1f2937,stroke:#374151,color:#fff
+    style Module fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style Class1 fill:#065f46,stroke:#10b981,color:#fff
+    style Class2 fill:#065f46,stroke:#10b981,color:#fff
+```
+
+##### 1. Hierarchical Prefix Matching & Implicit Wildcards in `appsettings.json`
+
+In `Microsoft.Extensions.Logging`, category filtering uses **implicit prefix matching** (`StartsWith`). Specifying a root or child namespace prefix acts as an **implicit wildcard** (`Namespace.*`). 
+
+Setting a rule for `"Microsoft"` automatically applies to all child namespaces under `Microsoft.*` (`Microsoft.AspNetCore`, `Microsoft.EntityFrameworkCore`, `Microsoft.Extensions`), while specific sub-namespace rules act as targeted overrides:
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information",
+      "Microsoft.EntityFrameworkCore.Database.Command": "Warning",
+      "System.Net.Http.HttpClient": "Warning",
+      "ActDim": "Debug",
+      "ActDim.Practix.Common.Context.AmbientContext": "Error"
+    }
+  }
+}
+```
+
+##### Production Recommended Log Levels for Microsoft Frameworks
+
+| Namespace / Category | Recommended Level | Rationale & Why |
+| :--- | :--- | :--- |
+| `"Default"` | `Information` | Default baseline verbosity for application business logic. |
+| `"Microsoft"` | `Warning` | **Implicit Wildcard (`Microsoft.*`).** Prevents framework chatter (routine routing matches, parameter binding, middleware pipeline execution) from spamming log sinks. |
+| `"Microsoft.Hosting.Lifetime"` | `Information` | **Targeted Override.** Crucial for infrastructure monitoring—captures application startup, listening URLs/ports, graceful shutdown, and Kubernetes readiness/liveness probes. |
+| `"Microsoft.EntityFrameworkCore"` | `Warning` | Mutes internal ORM pipeline diagnostics, state tracker checks, and model building events. |
+| `"Microsoft.EntityFrameworkCore.Database.Command"` | `Warning` (Prod) / `Information` (Dev) | In Production, `Warning` prevents logging SQL text and parameters (protecting PII and storage quotas). In Development, `Information` exposes executed SQL queries. |
+| `"System.Net.Http.HttpClient"` | `Warning` | Mutes verbose HTTP client request/response header dumps for outbound microservice calls. |
+| `"ActDim"` | `Debug` | **Implicit Wildcard (`ActDim.*`).** Enables detailed diagnostic logging across all company modules (`ActDim.Emitron`, `ActDim.Reflectron`, `ActDim.Observability`, `ActDim.Practix`). |
+
+##### 2. Explicit Wildcards in Log Aggregators (VictoriaLogs, OpenObserve, Grafana Loki)
+
+While .NET configuration evaluates prefixes implicitly (`StartsWith`), downstream columnar log engines support **explicit wildcards** and regular expressions for querying accumulated type categories:
+
+- **VictoriaLogs (`LogsQL`):** `_stream:{category=~"Microsoft.AspNetCore.*"}` or `category:="ActDim.Practix.*"`
+- **OpenObserve / SQL:** `SELECT * FROM logs WHERE category LIKE 'ActDim.Practix.%'`
+- **Grafana Loki (`LogQL`):** `{category=~"Microsoft.AspNetCore.*"}`
+
+##### 3. Category Collision Avoidance
+In enterprise microservices and multi-project solutions, common class names such as `Service`, `Repository`, `Worker`, `Configuration`, or `Pipeline` appear across dozens of namespaces. Using `type.FullName` prevents category collisions in log aggregators (**VictoriaLogs**, **OpenObserve**, **ClickHouse**), ensuring each log entry is unambiguously mapped to its exact source code origin.
+
 ---
 
 ## Installation
