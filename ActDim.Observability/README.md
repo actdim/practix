@@ -433,6 +433,12 @@ Setting a rule for `"Microsoft"` automatically applies to all child namespaces u
       "Default": "Information",
       "Microsoft": "Warning",
       "Microsoft.Hosting.Lifetime": "Information",
+      "Microsoft.AspNetCore.Server.Kestrel": "Warning",
+      "Microsoft.AspNetCore.Routing": "Warning",
+      "Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware": "Information",
+      "Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware": "Error",
+      "Microsoft.AspNetCore.Authentication": "Warning",
+      "Microsoft.EntityFrameworkCore": "Warning",
       "Microsoft.EntityFrameworkCore.Database.Command": "Warning",
       "System.Net.Http.HttpClient": "Warning",
       "ActDim": "Debug",
@@ -442,17 +448,22 @@ Setting a rule for `"Microsoft"` automatically applies to all child namespaces u
 }
 ```
 
-##### Production Recommended Log Levels for Microsoft Frameworks
+##### Production Recommended Log Levels for Core .NET & ASP.NET Core Frameworks
 
 | Namespace / Category | Recommended Level | Rationale & Why |
 | :--- | :--- | :--- |
-| `"Default"` | `Information` | Default baseline verbosity for application business logic. |
-| `"Microsoft"` | `Warning` | **Implicit Wildcard (`Microsoft.*`).** Prevents framework chatter (routine routing matches, parameter binding, middleware pipeline execution) from spamming log sinks. |
-| `"Microsoft.Hosting.Lifetime"` | `Information` | **Targeted Override.** Crucial for infrastructure monitoring—captures application startup, listening URLs/ports, graceful shutdown, and Kubernetes readiness/liveness probes. |
-| `"Microsoft.EntityFrameworkCore"` | `Warning` | Mutes internal ORM pipeline diagnostics, state tracker checks, and model building events. |
-| `"Microsoft.EntityFrameworkCore.Database.Command"` | `Warning` (Prod) / `Information` (Dev) | In Production, `Warning` prevents logging SQL text and parameters (protecting PII and storage quotas). In Development, `Information` exposes executed SQL queries. |
-| `"System.Net.Http.HttpClient"` | `Warning` | Mutes verbose HTTP client request/response header dumps for outbound microservice calls. |
-| `"ActDim"` | `Debug` | **Implicit Wildcard (`ActDim.*`).** Enables detailed diagnostic logging across all company modules (`ActDim.Emitron`, `ActDim.Reflectron`, `ActDim.Observability`, `ActDim.Practix`). |
+| `"Default"` | `Information` | Baseline verbosity for application business logic. |
+| `"Microsoft"` | `Warning` | **Global Framework Wildcard (`Microsoft.*`).** Mutes framework internal noise (routine parameter binding, DI resolution, pipeline dispatch). |
+| `"Microsoft.Hosting.Lifetime"` | `Information` | **Host Lifecycle.** Essential for infrastructure & K8s monitoring—logs application startup, listening URLs/ports, environment name, and graceful shutdown. |
+| `"Microsoft.AspNetCore.Server.Kestrel"` | `Warning` | **Web Server Socket Layer.** Mutes routine TCP connection/disconnection logs per request while preserving TLS handshake and socket errors (`Warning`/`Error`). |
+| `"Microsoft.AspNetCore.Routing"` | `Warning` | **Route Matching Engine.** Mutes `DfaMatcher` diagnostic evaluations that execute on every single incoming HTTP request. |
+| `"Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware"` | `Information` | **HTTP Audit.** When HTTP Logging Middleware is enabled, setting `Information` captures incoming request/response headers and body payloads. |
+| `"Microsoft.AspNetCore.Diagnostics"` | `Error` | **Unhandled Exception Handler.** Ensures unhandled web API exceptions and stack traces are logged at `Error` level. |
+| `"Microsoft.AspNetCore.Authentication"` | `Warning` | Mutes routine token validation/claims processing chatter while keeping security warnings (`Warning`). |
+| `"Microsoft.EntityFrameworkCore"` | `Warning` | **ORM Pipeline Wildcard (`Microsoft.EntityFrameworkCore.*`).** Suppresses internal state-tracker, model building, and change-tracker events. |
+| `"Microsoft.EntityFrameworkCore.Database.Command"` | `Warning` (Prod) / `Information` (Dev) | **SQL Execution.** In Production, `Warning` prevents logging SQL text and parameters (protecting PII and storage quota). In Development, `Information` exposes executed SQL statements. |
+| `"System.Net.Http.HttpClient"` | `Warning` | **Outbound HTTP Calls.** Mutes `HttpClient` request lifecycle and header dumps for outgoing microservice calls. |
+| `"ActDim"` | `Debug` | **Company Domain Wildcard (`ActDim.*`).** Enables detailed diagnostic logs across all company modules (`ActDim.Emitron`, `ActDim.Reflectron`, `ActDim.Observability`, `ActDim.Practix`). |
 
 ##### 2. Explicit Wildcards in Log Aggregators (VictoriaLogs, OpenObserve, Grafana Loki)
 
