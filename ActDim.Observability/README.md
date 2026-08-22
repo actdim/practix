@@ -37,6 +37,7 @@ Storing high-throughput logs and distributed traces in traditional relational da
 
 * **VictoriaLogs:** A high-performance, resource-efficient log engine requiring minimal CPU and RAM (~50–100 MB). It eliminates high-cardinality bottlenecks, indexes all fields automatically, and features the expressive `LogsQL` language for structured JSON analysis.
 * **OpenObserve:** A single Rust binary that covers logs, traces, and metrics out of the box. It uses Apache Parquet for storage, natively accepts OpenTelemetry (OTLP) data, and provides a full-featured web UI with trace waterfalls, log exploration, and dashboards without requiring Docker, Java, or external databases.
+* **Seq (Datalust):** A developer-friendly, .NET-native observability server designed specifically for structured logs, distributed traces, and metrics. Seq offers a free single-user license for local development (`docker run -d -p 5341:80 -e ACCEPT_EULA=Y datalust/seq`), zero-setup OTLP ingestion out of the box (`http://localhost:5341/ingest/otlp`), and features an intuitive real-time Web UI with instant signals, log tailing, and trace waterfall views.
 * **ClickHouse:** An industry-standard, ultra-high-performance columnar analytical database engine for high-volume logs, metrics, and trace telemetry. While we do not maintain a dedicated integration test suite for ClickHouse in this repository, modern distributions and telemetry stacks bundle or integrate with **HyperDX** (an open-source APM & log exploration Web UI), providing a comprehensive out-of-the-box user experience for analyzing traces and logs.
 
 ---
@@ -69,6 +70,7 @@ flowchart TD
     subgraph Sinks["Observability Backends & Visualizers"]
         VL["VictoriaLogs (High-Perf Log Engine / LogsQL)"]
         OO["OpenObserve (All-in-One: Logs + Traces + Metrics UI)"]
+        Seq["Seq (Datalust: .NET-Native Logs + Traces + Metrics UI)"]
         Grafana["Grafana Dashboards (Loki/VL Logs, Tempo Traces, Prom Metrics)"]
     end
 
@@ -85,8 +87,10 @@ flowchart TD
 
     Direct --> VL
     Direct --> OO
+    Direct --> Seq
     Collector --> VL
     Collector --> OO
+    Collector --> Seq
     Collector --> Grafana
 ```
 
@@ -347,20 +351,25 @@ exporters:
     tls:
       insecure: true
 
+  otlp/seq:
+    endpoint: "http://seq:5341/ingest/otlp"
+    tls:
+      insecure: true
+
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, tail_sampling, batch]
-      exporters: [otlp/openobserve]
+      exporters: [otlp/openobserve, otlp/seq]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlp/victorialogs, otlp/openobserve]
+      exporters: [otlp/victorialogs, otlp/openobserve, otlp/seq]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlp/openobserve]
+      exporters: [otlp/openobserve, otlp/seq]
 ```
 
 ---
@@ -596,6 +605,10 @@ using (observability.SuppressProviders("File", "Console"))
 - **OpenObserve Integration (`OpenObserveIntegrationTests`):**
   - Validates JSON log ingestion (`/api/{org}/{stream}/_json`), `AmbientContext` enrichment, and **SQL Search API** (`POST /api/{org}/_search`).
   - Launcher & Download Scripts: `Tools/openobserve/run-openobserve.cmd` (auto-opens Web GUI at [http://localhost:5080](http://localhost:5080) with default admin credentials `root@example.com` / `Complexpass#123`) and `download-openobserve.cmd`.
+
+- **Seq (Datalust) Developer Setup:**
+  - Highly recommended .NET-native observability server providing structured log tailing, signal filtering, metric charts, and distributed trace waterfalls in a single clean UI.
+  - Free single-user license for local development (`docker run -d -p 5341:80 -e ACCEPT_EULA=Y datalust/seq`). Web UI auto-opens at [http://localhost:5341](http://localhost:5341) with native OTLP ingestion on `http://localhost:5341/ingest/otlp`.
 
 - **Process Auto-Launch:** Both integration tests automatically detect running local instances or auto-launch local binaries from `Tools/` into isolated temporary storage paths.
 
