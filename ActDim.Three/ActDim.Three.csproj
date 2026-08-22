@@ -22,6 +22,6 @@
 		<DefineConstants>TRACE</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+	  <PackageReference Include="Newtonsoft.Json" />
 	</ItemGroup>
 </Project>
