@@ -108,7 +108,7 @@ SceneDocument doc = ThreeSerializer.FromJson<SceneDocument>(jsonString);
 ## Testing & Quality
 
 - **Test Suite:** `ActDim.Three.Tests`
-- **Total Tests:** 35 passed (100% success rate, 0 failed, 0 skipped)
+- **Total Tests:** 39 passed (100% success rate, 0 failed, 0 skipped)
 - **Target Framework:** .NET 10.0
 
 ```bash
