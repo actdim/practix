@@ -68,6 +68,47 @@
                 "panel": "shared"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "nuget: update central packages (dotnet-outdated)",
+            "type": "shell",
+            "command": "${workspaceFolder}/Tools/nuget/update-packages.cmd",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "tools: run VictoriaLogs",
+            "type": "shell",
+            "command": "${workspaceFolder}/Tools/victoria-logs/run-victoria-logs.cmd",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "tools: run OpenObserve",
+            "type": "shell",
+            "command": "${workspaceFolder}/Tools/openobserve/run-openobserve.cmd",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "tools: run Seq",
+            "type": "shell",
+            "command": "${workspaceFolder}/Tools/seq/run-seq.cmd",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
         }
     ]
 }
