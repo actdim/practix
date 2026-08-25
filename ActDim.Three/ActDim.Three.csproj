@@ -21,7 +21,4 @@
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<DefineConstants>TRACE</DefineConstants>
 	</PropertyGroup>
-	<ItemGroup>
-	  <PackageReference Include="Newtonsoft.Json" />
-	</ItemGroup>
 </Project>

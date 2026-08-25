@@ -43,5 +43,11 @@ namespace ActDim.Three.Objects
         public Line()
         {
         }
+
+        public Line(IGeometry geometry, IMaterial material) : this()
+        {
+            Geometry = geometry;
+            Material = material;
+        }
     }
 }

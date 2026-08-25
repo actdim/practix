@@ -4,6 +4,7 @@ using ActDim.Three;
 using ActDim.Three.Core;
 using ActDim.Three.Core.Buffers;
 using ActDim.Three.Materials;
+using ActDim.Three.NewtonsoftJson;
 using ActDim.Three.Objects;
 
 namespace ActDim.Three.Tests
@@ -23,8 +24,8 @@ namespace ActDim.Three.Tests
 			var scene = new Scene();
 			scene.Add(new Mesh { Geometry = geometry, Material = MeshStandardMaterial.Default() });
 
-			var json1 = JsonConvert.SerializeObject(scene.ToSceneDocument());
-			var doc = JsonConvert.DeserializeObject<SceneDocument>(json1);
+			var json1 = ThreeNewtonsoftSerializer.ToJson(scene.ToSceneDocument());
+			var doc = ThreeNewtonsoftSerializer.FromJson<SceneDocument>(json1);
 
 			var geo = Assert.IsType<BufferGeometry>(doc.Geometries[0]);
 
@@ -40,7 +41,7 @@ namespace ActDim.Three.Tests
 			Assert.IsType<Float32Array>(morph.Values);
 
 			// byte-stable round-trip
-			Assert.Equal(json1, JsonConvert.SerializeObject(doc));
+			Assert.Equal(json1, ThreeNewtonsoftSerializer.ToJson(doc));
 		}
 
 		[Fact]
@@ -56,10 +57,10 @@ namespace ActDim.Three.Tests
 			var scene = new Scene();
 			scene.Add(mesh);
 
-			var json = JsonConvert.SerializeObject(scene.ToSceneDocument());
+			var json = ThreeNewtonsoftSerializer.ToJson(scene.ToSceneDocument());
 			Assert.Contains("\"material\":[", json); // emitted as an array
 
-			var doc = JsonConvert.DeserializeObject<SceneDocument>(json);
+			var doc = ThreeNewtonsoftSerializer.FromJson<SceneDocument>(json);
 			Assert.Equal(2, doc.Materials.Count);
 
 			var readMesh = Assert.IsType<Mesh>(doc.Object.Children[0]);

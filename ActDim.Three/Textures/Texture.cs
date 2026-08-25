@@ -9,7 +9,7 @@ namespace ActDim.Three.Textures
     {
         /// <summary>Image associated with this texture (referenced by uuid in JSON).</summary>
         [IgnoreDataMember]
-        internal Image Image { get; set; }
+        public Image Image { get; set; }
 
         [DataMember(Name = "image")]
         public Guid? ImageUuid => Image?.Uuid;

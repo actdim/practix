@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using ActDim.Three.Core;
 
 namespace ActDim.Three
@@ -8,10 +7,8 @@ namespace ActDim.Three
     /// The three.js "Object" document (JSON Object/Scene format 4): metadata + flat resource pools
     /// (referenced by uuid) + the node tree. This is the format-facing type; the core domain objects it
     /// wraps stay attribute-free and can be serialized on their own. All three.js rules (pools, uuid
-    /// references, dedup, field names) live in <see cref="Serialization.SceneDocumentConverter"/>
-    /// (Newtonsoft) and <see cref="Serialization.SceneDocumentStjConverter"/> (System.Text.Json).
+    /// references, dedup, field names) live in <see cref="Serialization.SceneDocumentStjConverter"/> (System.Text.Json).
     /// </summary>
-    [JsonConverter(typeof(Serialization.SceneDocumentConverter))]
     [System.Text.Json.Serialization.JsonConverter(typeof(Serialization.SceneDocumentStjConverter))]
     public class SceneDocument
     {

@@ -4,6 +4,7 @@ using Xunit;
 using ActDim.Three;
 using ActDim.Three.Core;
 using ActDim.Three.Materials;
+using ActDim.Three.NewtonsoftJson;
 using ActDim.Three.Objects;
 using ActDim.Three.Textures;
 
@@ -24,7 +25,7 @@ namespace ActDim.Three.Tests
 		[Fact]
 		public void ResolvesMaterialTextureAndImageReferences()
 		{
-			var doc = JsonConvert.DeserializeObject<SceneDocument>(TexturedJson);
+			var doc = ThreeNewtonsoftSerializer.FromJson<SceneDocument>(TexturedJson);
 
 			Assert.IsType<MeshStandardMaterial>(doc.Materials[0]);
 			Assert.IsType<Texture>(Assert.Single(doc.Textures));
@@ -34,7 +35,7 @@ namespace ActDim.Three.Tests
 			// material resolved its `map` reference (material -> texture), and the image survives only if
 			// that texture resolved its `image` reference (texture -> image). So non-empty pools after a
 			// round-trip prove both references were wired on read.
-			var roundTrip = JsonConvert.DeserializeObject<SceneDocument>(JsonConvert.SerializeObject(doc));
+			var roundTrip = ThreeNewtonsoftSerializer.FromJson<SceneDocument>(ThreeNewtonsoftSerializer.ToJson(doc));
 			Assert.Single(roundTrip.Textures);
 			Assert.Single(roundTrip.Images);
 		}
@@ -50,7 +51,7 @@ namespace ActDim.Three.Tests
 		[Fact]
 		public void ReadsLegacyGeometryVerticesAndNormals()
 		{
-			var doc = JsonConvert.DeserializeObject<SceneDocument>(LegacyGeometryJson);
+			var doc = ThreeNewtonsoftSerializer.FromJson<SceneDocument>(LegacyGeometryJson);
 
 			var geometry = Assert.IsType<Geometry>(doc.Geometries[0]);
 			Assert.Equal([0f, 0f, 0f, 1f, 2f, 3f], geometry.Vertices);

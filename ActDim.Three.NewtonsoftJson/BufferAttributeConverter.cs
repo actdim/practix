@@ -5,19 +5,18 @@ using Newtonsoft.Json;
 using ActDim.Three.Core;
 using ActDim.Three.Core.Buffers;
 
-namespace ActDim.Three.Serialization
+namespace ActDim.Three.NewtonsoftJson
 {
     /// <summary>
     /// (De)serializes a <see cref="BufferAttribute"/> in the three.js shape
-    /// (<c>{ uuid, name, itemSize, count, type, array, normalized }</c>). The numeric <c>array</c> is
-    /// read into and written from a typed primitive buffer — no <c>object[]</c> and no per-element object
-    /// boxing (numbers stream through <see cref="JsonReader.ReadAsDouble"/> and typed
-    /// <see cref="JsonWriter.WriteValue(float)"/> overloads).
+    /// (<c>{ uuid, name, itemSize, count, type, array, normalized }</c>) using Newtonsoft.Json.
     /// </summary>
     public class BufferAttributeConverter : JsonConverter
     {
+        /// <inheritdoc />
         public override bool CanConvert(Type objectType) => objectType == typeof(BufferAttribute);
 
+        /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var attr = (BufferAttribute)value;
@@ -42,7 +41,7 @@ namespace ActDim.Three.Serialization
             writer.WritePropertyName("count");
             writer.WriteValue(attr.Count);
 
-            // `type` is written before `array` so a future reader can stream straight into the typed buffer.
+            // `type` is written before `array` so a reader can stream straight into the typed buffer.
             writer.WritePropertyName("type");
             writer.WriteValue(attr.Type);
 
@@ -58,6 +57,7 @@ namespace ActDim.Three.Serialization
             writer.WriteEndObject();
         }
 
+        /// <inheritdoc />
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null)
@@ -152,13 +152,10 @@ namespace ActDim.Three.Serialization
             }
             else if (array != null)
             {
-                // TODO: when `type` precedes `array`, stream straight into an exact-sized T[] instead of
-                // buffering doubles then converting.
                 attr.Values = TypedArrays.FromDoubles(type, array);
             }
             else if (arrayPresent)
             {
-                // Empty array: pick the buffer kind from the declared type.
                 attr.Values = type == TypedArrays.StringArray
                     ? TypedArrays.FromStrings([])
                     : TypedArrays.FromDoubles(type, []);
@@ -167,8 +164,6 @@ namespace ActDim.Three.Serialization
             return attr;
         }
 
-        // Reads a flat JSON array into either a numeric buffer or (custom) a string buffer, decided per
-        // element by token type. Mixed arrays are not expected; strings win if any element is a string.
         private static void ReadArray(JsonReader reader, int capacityHint, out List<double> numbers, out List<string> strings)
         {
             numbers = null;

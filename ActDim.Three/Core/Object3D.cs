@@ -30,6 +30,57 @@ namespace ActDim.Three.Core
         public bool ReceiveShadow { get; set; }
 
         /// <summary>
+        /// 32-bit visibility bitmask for selective camera/light rendering. Default is 1 (channel 0).
+        /// </summary>
+        [DataMember(Name = "layers")]
+        public uint Layers { get; set; } = 1;
+
+        /// <summary>
+        /// Enables the specified layer channel (0..31).
+        /// </summary>
+        public void EnableLayer(int channel)
+        {
+            if (channel >= 0 && channel < 32)
+            {
+                Layers |= (1u << channel);
+            }
+        }
+
+        /// <summary>
+        /// Disables the specified layer channel (0..31).
+        /// </summary>
+        public void DisableLayer(int channel)
+        {
+            if (channel >= 0 && channel < 32)
+            {
+                Layers &= ~(1u << channel);
+            }
+        }
+
+        /// <summary>
+        /// Toggles the specified layer channel (0..31).
+        /// </summary>
+        public void ToggleLayer(int channel)
+        {
+            if (channel >= 0 && channel < 32)
+            {
+                Layers ^= (1u << channel);
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the object belongs to the specified layer channel (0..31).
+        /// </summary>
+        public bool IsOnLayer(int channel)
+        {
+            if (channel >= 0 && channel < 32)
+            {
+                return (Layers & (1u << channel)) != 0;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// List with object's children.
         /// </summary>
         [DataMember(Name = "children")]
