@@ -2,13 +2,7 @@ using ActDim.Observability.Tests.OpenObserve;
 using ActDim.Practix.Context;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace ActDim.Observability.Tests
@@ -16,7 +10,7 @@ namespace ActDim.Observability.Tests
     public class OpenObserveIntegrationTests
     {
         [Fact]
-        public async Task OpenObserve_WriteAndQueryLogs_ExecutesSqlSearchSuccessfully()
+            public async Task OpenObserve_WriteAndQueryLogs_ExecutesSqlSearchSuccessfully()
         {
             // =========================================================================
             // 1. ARRANGE: Prepare OpenObserve server, DI container, and ambient context
