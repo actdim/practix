@@ -73,7 +73,10 @@ namespace ActDim.BytePath
 
         private static string NormalizeConnectionString(string connectionString)
         {
-            if (string.IsNullOrWhiteSpace(connectionString)) return connectionString;
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                return connectionString;
+            }
 
             var trimmed = connectionString.Trim();
             if (trimmed.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase) ||
