@@ -23,6 +23,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\ActDim.Emitron\ActDim.Emitron.csproj" />
 		<ProjectReference Include="..\ActDim.Practix.Abstractions\ActDim.Practix.Abstractions.csproj" />
 		<ProjectReference Include="..\ActDim.Practix.Common\ActDim.Practix.Common.csproj" />
 		<ProjectReference Include="..\ActDim.Practix.Json\ActDim.Practix.Json.csproj" />
@@ -51,7 +52,6 @@
 		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
 		<PackageReference Include="OpenTelemetry.Extensions.Hosting" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
-		<PackageReference Include="SmartFormat.NET" />
 		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" />
 		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
 		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />

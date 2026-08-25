@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
-using SmartFormat;
+using ActDim.Emitron;
 using Swashbuckle.AspNetCore.Swagger;
 using System.Text;
 using System.Text.Json;
@@ -1063,13 +1063,12 @@ namespace ActDim.Practix.Service
             // https://github.com/axuno/SmartFormat
 
             // result
-            var url = Smart.Format(template,
-                new
-                {
-                    version = docInfo.Version,
-                    documentName = docInfo.GetDocName(),
-                    extension = "json"
-                });
+            var url = template.Interpolate(new
+            {
+                version = docInfo.Version,
+                documentName = docInfo.GetDocName(),
+                extension = "json"
+            });
 
             return $"/{url.Trim('/')}";
         }
