@@ -49,6 +49,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActDim.BytePath.SqliteRegis
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActDim.Practix.RepoDb", "ActDim.Practix.RepoDb\ActDim.Practix.RepoDb.csproj", "{DC6606D7-4D84-42FC-B474-C440D037E0B1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActDim.Three.NewtonsoftJson", "ActDim.Three.NewtonsoftJson\ActDim.Three.NewtonsoftJson.csproj", "{6FF93398-BCFA-8DF4-1F87-C83E455943F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -311,6 +313,18 @@ Global
 		{DC6606D7-4D84-42FC-B474-C440D037E0B1}.Release|x64.Build.0 = Release|Any CPU
 		{DC6606D7-4D84-42FC-B474-C440D037E0B1}.Release|x86.ActiveCfg = Release|Any CPU
 		{DC6606D7-4D84-42FC-B474-C440D037E0B1}.Release|x86.Build.0 = Release|Any CPU
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Debug|x64.ActiveCfg = Debug|x64
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Debug|x64.Build.0 = Debug|x64
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Debug|x86.Build.0 = Debug|Any CPU
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Release|x64.ActiveCfg = Release|x64
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Release|x64.Build.0 = Release|x64
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Release|x86.ActiveCfg = Release|Any CPU
+		{6FF93398-BCFA-8DF4-1F87-C83E455943F7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

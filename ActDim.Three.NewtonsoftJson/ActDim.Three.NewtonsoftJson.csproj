@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>annotations</Nullable>
+		<OutputType>Library</OutputType>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<IsPackable>true</IsPackable>
+		<PackageId>ActDim.Three.NewtonsoftJson</PackageId>
+		<Description>Newtonsoft.Json serializer adapters and custom converters for ActDim.Three 3D scene graphs and typed array buffers.</Description>
+		<PackageTags>actdim;three;3d;graphics;json;newtonsoft</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Platforms>AnyCPU;x64</Platforms>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DefineConstants>TRACE;DEBUG</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<DefineConstants>TRACE</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\ActDim.Three\ActDim.Three.csproj" />
+	</ItemGroup>
+</Project>

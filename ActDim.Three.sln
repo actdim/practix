@@ -1,9 +1,11 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.3.11512.155
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActDim.Three", "ActDim.Three\ActDim.Three.csproj", "{B1774D29-1A4C-3270-5609-DC55A9A9AD85}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActDim.Three.NewtonsoftJson", "ActDim.Three.NewtonsoftJson\ActDim.Three.NewtonsoftJson.csproj", "{C4E7216F-3A9B-4D88-82E9-A1B2C3D4E5F6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActDim.Three.Tests", "Tests\Three.Tests\ActDim.Three.Tests.csproj", "{F72F3AE1-13DF-352C-E2C3-DBA2BB795B89}"
 EndProject
@@ -17,6 +19,10 @@ Global
 		{B1774D29-1A4C-3270-5609-DC55A9A9AD85}.Debug|x64.Build.0 = Debug|x64
 		{B1774D29-1A4C-3270-5609-DC55A9A9AD85}.Release|x64.ActiveCfg = Release|x64
 		{B1774D29-1A4C-3270-5609-DC55A9A9AD85}.Release|x64.Build.0 = Release|x64
+		{C4E7216F-3A9B-4D88-82E9-A1B2C3D4E5F6}.Debug|x64.ActiveCfg = Debug|x64
+		{C4E7216F-3A9B-4D88-82E9-A1B2C3D4E5F6}.Debug|x64.Build.0 = Debug|x64
+		{C4E7216F-3A9B-4D88-82E9-A1B2C3D4E5F6}.Release|x64.ActiveCfg = Release|x64
+		{C4E7216F-3A9B-4D88-82E9-A1B2C3D4E5F6}.Release|x64.Build.0 = Release|x64
 		{F72F3AE1-13DF-352C-E2C3-DBA2BB795B89}.Debug|x64.ActiveCfg = Debug|x64
 		{F72F3AE1-13DF-352C-E2C3-DBA2BB795B89}.Debug|x64.Build.0 = Debug|x64
 		{F72F3AE1-13DF-352C-E2C3-DBA2BB795B89}.Release|x64.ActiveCfg = Release|x64

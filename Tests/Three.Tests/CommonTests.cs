@@ -280,16 +280,7 @@ namespace ActDim.Three.Tests
 				Name = "My Mesh4"
 			};
 
-			var sphereGeoAsChild = new SphereBufferGeometry(new SphereGeometryParameters
-			{
-				Radius = 3,
-				WidthSegments = 22,
-				HeightSegments = 22,
-				PhiStart = 0,
-				PhiLength = (float)System.Math.PI * 2,
-				ThetaStart = 0,
-				ThetaLength = (float)System.Math.PI * 2
-			});
+			var sphereGeoAsChild = new SphereGeometry(3, 22, 22);
 
 			var sphereMeshAsChild = new Mesh
 			{
@@ -318,16 +309,7 @@ namespace ActDim.Three.Tests
 
 			scene.Add(group2);
 
-			var sphereGeometry = new SphereBufferGeometry(new SphereGeometryParameters
-			{
-				Radius = 10,
-				WidthSegments = 10,
-				HeightSegments = 5,
-				PhiStart = 0,
-				PhiLength = (float)System.Math.PI * 2,
-				ThetaStart = 0,
-				ThetaLength = (float)System.Math.PI * 2
-			});
+			var sphereGeometry = new SphereGeometry(10, 10, 5);
 
 			var sphereMesh = new Mesh
 			{

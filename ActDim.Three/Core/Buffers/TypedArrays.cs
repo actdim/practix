@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Newtonsoft.Json;
 
 namespace ActDim.Three.Core.Buffers
 {
@@ -80,7 +79,7 @@ namespace ActDim.Three.Core.Buffers
                 Float16Array => Fill(static d => (Half)(float)d, static a => new Float16Array { Data = a }),
                 Float32Array => Fill(static d => (float)d, static a => new Float32Array { Data = a }),
                 Float64Array => Fill(static d => d, static a => new Float64Array { Data = a }),
-                _ => throw new JsonSerializationException($"Unknown buffer attribute type '{type}'."),
+                _ => throw new InvalidOperationException($"Unknown buffer attribute type '{type}'."),
             };
         }
 
@@ -123,7 +122,7 @@ namespace ActDim.Three.Core.Buffers
                 Float32Array => Fill(o => Convert.ToSingle(o, ci), static a => new Float32Array { Data = a }),
                 Float64Array => Fill(o => Convert.ToDouble(o, ci), static a => new Float64Array { Data = a }),
                 StringArray => Fill(o => Convert.ToString(o, ci), static a => new StringArray { Data = a }),
-                _ => throw new JsonSerializationException($"Unknown buffer attribute type '{type}'."),
+                _ => throw new InvalidOperationException($"Unknown buffer attribute type '{type}'."),
             };
         }
     }

@@ -14,7 +14,7 @@ namespace ActDim.Three.Serialization
     /// converters: flattening the object graph into resource pools (identity dedup + uuid assignment),
     /// the node/element type maps, and reference-wiring helpers. Token I/O stays in each converter.
     /// </summary>
-    internal static class DocumentGraph
+    public static class DocumentGraph
     {
         #region Flatten (свёртка)
 
@@ -78,25 +78,34 @@ namespace ActDim.Three.Serialization
 
         private static void CollectTextures(IMaterial material, Pools pools)
         {
-            if (material is not MeshStandardMaterial standard)
+            if (material is MeshStandardMaterial standard)
+            {
+                foreach (var kvp in standard.GetTextures())
+                {
+                    AddTexture(kvp.Value, pools);
+                }
+                return;
+            }
+
+            foreach (var (_, prop) in TextureSlots(material.GetType()))
+            {
+                var texture = (Texture)prop.GetValue(material);
+                AddTexture(texture, pools);
+            }
+        }
+
+        private static void AddTexture(Texture texture, Pools pools)
+        {
+            if (texture == null)
             {
                 return;
             }
 
-            foreach (var kvp in standard.GetTextures())
+            EnsureUuid(texture);
+            if (pools.AddUnique(pools.Textures, texture) && texture.Image != null)
             {
-                var texture = kvp.Value;
-                if (texture == null)
-                {
-                    continue;
-                }
-
-                EnsureUuid(texture);
-                if (pools.AddUnique(pools.Textures, texture) && texture.Image != null)
-                {
-                    EnsureUuid(texture.Image);
-                    pools.AddUnique(pools.Images, texture.Image);
-                }
+                EnsureUuid(texture.Image);
+                pools.AddUnique(pools.Images, texture.Image);
             }
         }
 
@@ -124,6 +133,7 @@ namespace ActDim.Three.Serialization
             Line line => line.Material,
             LineSegments segments => segments.Material,
             Points points => points.Material,
+            Sprite sprite => sprite.Material,
             _ => null,
         };
 
@@ -186,6 +196,7 @@ namespace ActDim.Three.Serialization
                 case Line line: line.Material = material; break;
                 case LineSegments segments: segments.Material = material; break;
                 case Points points: points.Material = material; break;
+                case Sprite sprite: sprite.Material = material; break;
             }
         }
 

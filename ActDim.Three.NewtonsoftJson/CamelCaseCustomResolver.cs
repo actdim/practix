@@ -1,10 +1,14 @@
-using Newtonsoft.Json.Serialization;
 using System;
+using Newtonsoft.Json.Serialization;
 
-namespace ActDim.Three.Serialization
+namespace ActDim.Three.NewtonsoftJson
 {
-    class CamelCaseCustomResolver : CamelCasePropertyNamesContractResolver
+    /// <summary>
+    /// Custom camelCase contract resolver for Newtonsoft.Json that preserves dictionary key names.
+    /// </summary>
+    public class CamelCaseCustomResolver : CamelCasePropertyNamesContractResolver
     {
+        /// <inheritdoc />
         protected override JsonDictionaryContract CreateDictionaryContract(Type objectType)
         {
             JsonDictionaryContract contract = base.CreateDictionaryContract(objectType);

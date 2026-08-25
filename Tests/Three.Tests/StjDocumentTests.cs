@@ -49,7 +49,7 @@ namespace ActDim.Three.Tests
 		public void StjReadsNewtonsoftOutput()
 		{
 			// Interop: Newtonsoft writes the document, System.Text.Json reads it back.
-			var newtonsoft = Newtonsoft.Json.JsonConvert.SerializeObject(BuildScene().ToSceneDocument());
+			var newtonsoft = ActDim.Three.NewtonsoftJson.ThreeNewtonsoftSerializer.ToJson(BuildScene().ToSceneDocument());
 
 			var doc = JsonSerializer.Deserialize<SceneDocument>(newtonsoft);
 

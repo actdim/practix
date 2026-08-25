@@ -3,6 +3,7 @@ using System.Text.Json;
 using Xunit;
 using ActDim.Three.Core;
 using ActDim.Three.Core.Buffers;
+using ActDim.Three.NewtonsoftJson;
 using ActDim.Three.Serialization;
 
 namespace ActDim.Three.Tests
@@ -33,7 +34,7 @@ namespace ActDim.Three.Tests
 		[Fact]
 		public void FromDoubles_ThrowsOnUnknownType()
 		{
-			Assert.Throws<Newtonsoft.Json.JsonSerializationException>(
+			Assert.Throws<InvalidOperationException>(
 				() => TypedArrays.FromDoubles("NopeArray", [1]));
 		}
 

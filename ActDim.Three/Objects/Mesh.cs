@@ -50,5 +50,15 @@ namespace ActDim.Three.Objects
                 return Material?.Uuid;
             }
         }
+
+        public Mesh()
+        {
+        }
+
+        public Mesh(IGeometry geometry, IMaterial material) : this()
+        {
+            Geometry = geometry;
+            Material = material;
+        }
     }
 }

@@ -8,7 +8,7 @@ using ActDim.Three.Core.Buffers;
 namespace ActDim.Three.Serialization
 {
     /// <summary>
-    /// System.Text.Json counterpart of <see cref="BufferAttributeConverter"/>: (de)serializes a
+    /// System.Text.Json converter: (de)serializes a
     /// <see cref="BufferAttribute"/> in the three.js shape with a typed primitive buffer — no
     /// <c>object[]</c> and no per-element object boxing.
     /// </summary>

@@ -22,10 +22,12 @@
 
     <ItemGroup>
       <PackageReference Include="xunit.v3" />
+      <PackageReference Include="Newtonsoft.Json" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\ActDim.Three\ActDim.Three.csproj" />
+      <ProjectReference Include="..\..\ActDim.Three.NewtonsoftJson\ActDim.Three.NewtonsoftJson.csproj" />
     </ItemGroup>    
 
 </Project>

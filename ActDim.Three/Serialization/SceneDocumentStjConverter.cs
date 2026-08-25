@@ -12,7 +12,7 @@ using ActDim.Three.Textures;
 namespace ActDim.Three.Serialization
 {
     /// <summary>
-    /// System.Text.Json counterpart of <see cref="SceneDocumentConverter"/>. Structure comes from
+    /// System.Text.Json converter for <see cref="SceneDocument"/>. Structure comes from
     /// <see cref="DocumentGraph"/>; resource/node bodies go through a private <see cref="JsonSerializerOptions"/>
     /// with <see cref="DataContractResolver"/> (three.js names) and <see cref="BufferAttributeStjConverter"/>
     /// (typed buffers). Nodes are written with their runtime type and their children re-written

@@ -11,7 +11,8 @@ Modern, high-performance .NET libraries and application framework by Active Dime
 - **`ActDim.BytePath.FileSystemStore`** — File-system blob data store implementation with sharded hash directories.
 - **`ActDim.BytePath.SqliteRegistry`** — SQLite-backed ACID metadata registry with distributed locking and TTL.
 - **`ActDim.Observability`** — OpenTelemetry-centric logging, activity tracing, and ambient context enrichment (`IObservabilityContext`, `AddEventObservability`). Includes integration test suites & developer tools for VictoriaLogs (LogsQL) and OpenObserve (SQL Search).
-- **`ActDim.Three`** — 3D scene graph, math, geometry, and serialization for Three.js compatibility (`ThreeSerializer`, `SceneDocument`).
+- **`ActDim.Three`** — High-performance 3D scene graph, math, geometry, and native `System.Text.Json` serialization for Three.js compatibility (`ThreeSerializer`, `SceneDocument`).
+- **`ActDim.Three.NewtonsoftJson`** — Dedicated `Newtonsoft.Json` compatibility adapter and custom converters for `ActDim.Three` (`ThreeNewtonsoftSerializer`, `SceneDocumentConverter`).
 
 ### Framework & Application Modules (`ActDim.Practix.*`)
 - **`ActDim.Practix.Abstractions`** — Core domain abstractions, design patterns, and framework contracts.
