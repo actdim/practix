@@ -35,6 +35,7 @@ Storing high-throughput logs and distributed traces in traditional relational da
 
 ### Recommended Lightweight Open-Source Solutions
 
+* **.NET Aspire Dashboard:** Microsoft's official, open-source telemetry visualization dashboard (`mcr.microsoft.com/dotnet/aspire-dashboard`). It natively ingests logs, traces, and metrics directly via standard OpenTelemetry OTLP (`http://localhost:4317` / `http://localhost:4318`) with **zero third-party logger providers or custom adapters required**. Aspire offers real-time trace waterfalls, structured log exploration, resource graphs, and metric charts out of the box.
 * **VictoriaLogs:** A high-performance, resource-efficient log engine requiring minimal CPU and RAM (~50–100 MB). It eliminates high-cardinality bottlenecks, indexes all fields automatically, and features the expressive `LogsQL` language for structured JSON analysis.
 * **OpenObserve:** A single Rust binary that covers logs, traces, and metrics out of the box. It uses Apache Parquet for storage, natively accepts OpenTelemetry (OTLP) data, and provides a full-featured web UI with trace waterfalls, log exploration, and dashboards without requiring Docker, Java, or external databases.
 * **Seq (Datalust):** A developer-friendly, .NET-native observability server designed specifically for structured logs, distributed traces, and metrics. Seq offers a free single-user license for local development (`docker run -d -p 5341:80 -e ACCEPT_EULA=Y datalust/seq`), zero-setup OTLP ingestion out of the box (`http://localhost:5341/ingest/otlp`), and features an intuitive real-time Web UI with instant signals, log tailing, and trace waterfall views.
@@ -68,6 +69,7 @@ flowchart TD
     end
 
     subgraph Sinks["Observability Backends & Visualizers"]
+        Aspire[".NET Aspire Dashboard (Native OTLP Logs + Traces + Metrics UI)"]
         VL["VictoriaLogs (High-Perf Log Engine / LogsQL)"]
         OO["OpenObserve (All-in-One: Logs + Traces + Metrics UI)"]
         Seq["Seq (Datalust: .NET-Native Logs + Traces + Metrics UI)"]
@@ -85,9 +87,11 @@ flowchart TD
     Traces --> Collector
     Metrics --> Collector
 
+    Direct --> Aspire
     Direct --> VL
     Direct --> OO
     Direct --> Seq
+    Collector --> Aspire
     Collector --> VL
     Collector --> OO
     Collector --> Seq
@@ -609,6 +613,13 @@ using (observability.SuppressProviders("File", "Console"))
 - **Seq (Datalust) Developer Setup:**
   - Highly recommended .NET-native observability server providing structured log tailing, signal filtering, metric charts, and distributed trace waterfalls in a single clean UI.
   - Free single-user license for local development (`docker run -d -p 5341:80 -e ACCEPT_EULA=Y datalust/seq`). Web UI auto-opens at [http://localhost:5341](http://localhost:5341) with native OTLP ingestion on `http://localhost:5341/ingest/otlp`.
+
+- **.NET Aspire Dashboard Setup:**
+  - Microsoft's official, open-source telemetry visualization dashboard for local development. Natively ingests OTLP logs, traces, and metrics directly with **zero custom logger providers or third-party adapters**:
+    ```bash
+    docker run --name aspire-dashboard -d --restart unless-stopped -p 18888:18888 -p 4317:18889 -p 4318:18890 mcr.microsoft.com/dotnet/aspire-dashboard:latest
+    ```
+  - Web UI auto-opens at [http://localhost:18888](http://localhost:18888) with OTLP gRPC endpoint on `http://localhost:4317` and HTTP endpoint on `http://localhost:4318`.
 
 - **Process Auto-Launch:** Both integration tests automatically detect running local instances or auto-launch local binaries from `Tools/` into isolated temporary storage paths.
 
