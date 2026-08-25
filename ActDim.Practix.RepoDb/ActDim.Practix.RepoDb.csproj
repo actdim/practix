@@ -19,6 +19,7 @@
 	<ItemGroup>
 		<PackageReference Include="Ardalis.GuardClauses" />
 		<PackageReference Include="RepoDb" />
+		<PackageReference Include="RepoDb.Sqlite.Microsoft" />
 	</ItemGroup>
 
 	<ItemGroup>
