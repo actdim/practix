@@ -3,7 +3,7 @@
 SQLite metadata registry implementation for `ActDim.BytePath`.
 
 ## Features
-- **ACID Metadata Registry**: Backed by SQLite (`sqlite-net-pcl`) with transactions (`BEGIN IMMEDIATE`) ensuring zero concurrency race conditions.
+- **ACID Metadata Registry**: Backed by SQLite (`RepoDb.Sqlite.Microsoft` / `Microsoft.Data.Sqlite`) with transactions (`BEGIN IMMEDIATE`) ensuring zero concurrency race conditions.
 - **Distributed Read/Write Locks**: Pessimistic cooperative locking with expiration and automatic cleanup.
 - **TTL & Sliding Expiration**: Direct querying of expired keys and age-based key scanning.
 
