@@ -1,56 +1,60 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SQLite;
+using ActDim.Practix.RepoDb;
+using ActDim.Practix.RepoDb.Extensions;
+using Microsoft.Data.Sqlite;
+using RepoDb;
+using RepoDb.Attributes;
 
 namespace ActDim.BytePath
 {
-    [Table("blob_records")]
+    [Map("blob_records")]
     internal class BlobRecordTransport
     {
-        [PrimaryKey]
-        [Column("blob_key")]
-        public string Key { get; set; }
+        [Primary, Map("blob_key")]
+        public string Key { get; set; } = string.Empty;
 
-        [Column("metadata")]
-        public string Metadata { get; set; }
+        [Map("metadata")]
+        public string Metadata { get; set; } = string.Empty;
 
-        [Column("content_type")]
-        public string ContentType { get; set; }
+        [Map("content_type")]
+        public string ContentType { get; set; } = string.Empty;
 
-        [Column("size")]
+        [Map("size")]
         public long? Size { get; set; }
 
-        [Column("hash")]
-        public string Hash { get; set; }
+        [Map("hash")]
+        public string Hash { get; set; } = string.Empty;
 
-        [Column("created_at")]
+        [Map("created_at")]
         public long CreatedAtUnix { get; set; }
 
-        [Column("updated_at")]
+        [Map("updated_at")]
         public long UpdatedAtUnix { get; set; }
 
-        [Column("accessed_at")]
+        [Map("accessed_at")]
         public long AccessedAtUnix { get; set; }
 
-        [Column("sliding_expiration_seconds")]
+        [Map("sliding_expiration_seconds")]
         public long? SlidingExpirationSeconds { get; set; }
 
-        [Column("expires_at")]
+        [Map("expires_at")]
         public long? ExpiresAtUnix { get; set; }
     }
 
     public class SQLiteBlobRegistry : IBlobRegistry
     {
         private static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(5);
-        private readonly SQLiteAsyncConnection _db;
+        private readonly string _connectionString;
         private readonly TimeSpan _defaultTimeout;
         private readonly SemaphoreSlim _dbSemaphore = new(1, 1);
 
         public SQLiteBlobRegistry(string connectionString) : this(connectionString, DefaultTimeout)
         {
-
         }
 
         public SQLiteBlobRegistry(string connectionString, TimeSpan defaultTimeout)
@@ -60,12 +64,34 @@ namespace ActDim.BytePath
                 throw new ArgumentException("Connection string is required.", nameof(connectionString));
             }
 
+            _connectionString = NormalizeConnectionString(connectionString);
             _defaultTimeout = defaultTimeout <= TimeSpan.Zero ? TimeSpan.FromSeconds(30) : defaultTimeout;
 
-            // SQLiteOpenFlags.FullMutex is not required and it can't replace _dbSemaphore!
-            _db = new SQLiteAsyncConnection(connectionString);
-
+            RepoDbBootstrapper.InitializeSqLite();
             EnsureSchemaAsync().GetAwaiter().GetResult();
+        }
+
+        private static string NormalizeConnectionString(string connectionString)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString)) return connectionString;
+
+            var trimmed = connectionString.Trim();
+            if (trimmed.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.StartsWith("DataSource=", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.StartsWith("Filename=", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.StartsWith("URI=", StringComparison.OrdinalIgnoreCase))
+            {
+                return trimmed;
+            }
+
+            return $"Data Source={trimmed}";
+        }
+
+        private async Task<SqliteConnection> CreateOpenConnectionAsync(CancellationToken ct = default)
+        {
+            var conn = new SqliteConnection(_connectionString);
+            await conn.OpenAsync(ct);
+            return conn;
         }
 
         public async Task DeleteLockedAsync(BlobRecord record, CancellationToken ct)
@@ -79,8 +105,9 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
-                await _db.ExecuteAsync("DELETE FROM blob_locks WHERE blob_key = ?;", record.Key);
-                await _db.ExecuteAsync("DELETE FROM blob_records WHERE blob_key = ?;", record.Key);
+                await using var conn = await CreateOpenConnectionAsync(ct);
+                await conn.ExecuteNonQueryAsync("DELETE FROM blob_locks WHERE blob_key = @Key;", new { Key = record.Key }, cancellationToken: ct);
+                await conn.ExecuteNonQueryAsync("DELETE FROM blob_records WHERE blob_key = @Key;", new { Key = record.Key }, cancellationToken: ct);
             }
             finally
             {
@@ -93,7 +120,8 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
-                await _db.ExecuteAsync("DELETE FROM blob_locks WHERE blob_key = ?;", key);
+                await using var conn = await CreateOpenConnectionAsync(ct);
+                await conn.ExecuteNonQueryAsync("DELETE FROM blob_locks WHERE blob_key = @Key;", new { Key = key }, cancellationToken: ct);
             }
             finally
             {
@@ -106,15 +134,16 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
+                await using var conn = await CreateOpenConnectionAsync(ct);
                 var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                var rows = await _db.QueryAsync<BlobRecordTransport>(
+                var rows = await conn.ExecuteQueryAsync<BlobRecordTransport>(
                     "SELECT blob_key FROM blob_records " +
-                    "WHERE expires_at IS NOT NULL AND expires_at <= ? " +
+                    "WHERE expires_at IS NOT NULL AND expires_at <= @Now " +
                     "  AND NOT EXISTS (" +
                     "    SELECT 1 FROM blob_locks " +
-                    "    WHERE blob_locks.blob_key = blob_records.blob_key AND blob_locks.expires_at > ?" +
+                    "    WHERE blob_locks.blob_key = blob_records.blob_key AND blob_locks.expires_at > @Now" +
                     "  );",
-                    now, now);
+                    new { Now = now }, cancellationToken: ct);
                 return ToKeys(rows);
             }
             finally
@@ -128,24 +157,25 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
+                await using var conn = await CreateOpenConnectionAsync(ct);
                 var cutoffUnix = cutoff.ToUnixTimeSeconds();
                 if (includeLocked)
                 {
-                    var all = await _db.QueryAsync<BlobRecordTransport>(
-                        "SELECT blob_key FROM blob_records WHERE updated_at < ?;",
-                        cutoffUnix);
+                    var all = await conn.ExecuteQueryAsync<BlobRecordTransport>(
+                        "SELECT blob_key FROM blob_records WHERE updated_at < @Cutoff;",
+                        new { Cutoff = cutoffUnix }, cancellationToken: ct);
                     return ToKeys(all);
                 }
 
                 var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                var rows = await _db.QueryAsync<BlobRecordTransport>(
+                var rows = await conn.ExecuteQueryAsync<BlobRecordTransport>(
                     "SELECT blob_key FROM blob_records " +
-                    "WHERE updated_at < ? " +
+                    "WHERE updated_at < @Cutoff " +
                     "  AND NOT EXISTS (" +
                     "    SELECT 1 FROM blob_locks " +
-                    "    WHERE blob_locks.blob_key = blob_records.blob_key AND blob_locks.expires_at > ?" +
+                    "    WHERE blob_locks.blob_key = blob_records.blob_key AND blob_locks.expires_at > @Now" +
                     "  );",
-                    cutoffUnix, now);
+                    new { Cutoff = cutoffUnix, Now = now }, cancellationToken: ct);
                 return ToKeys(rows);
             }
             finally
@@ -154,14 +184,16 @@ namespace ActDim.BytePath
             }
         }
 
-        private static IList<string> ToKeys(List<BlobRecordTransport> rows)
+        private static IList<string> ToKeys(IEnumerable<BlobRecordTransport> rows)
         {
-            var keys = new List<string>(rows.Count);
+            var keys = new List<string>();
             foreach (var row in rows)
             {
-                keys.Add(row.Key);
+                if (row.Key != null)
+                {
+                    keys.Add(row.Key);
+                }
             }
-
             return keys;
         }
 
@@ -170,7 +202,8 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
-                await _db.ExecuteAsync("DELETE FROM blob_locks WHERE expires_at <= ?;", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                await using var conn = await CreateOpenConnectionAsync(ct);
+                await conn.ExecuteNonQueryAsync("DELETE FROM blob_locks WHERE expires_at <= @Now;", new { Now = DateTimeOffset.UtcNow.ToUnixTimeSeconds() }, cancellationToken: ct);
             }
             finally
             {
@@ -344,15 +377,10 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
-                var sqlPattern = NormalizePattern(pattern);
-                var rows = await _db.QueryAsync<BlobRecordTransport>("SELECT blob_key FROM blob_records WHERE blob_key LIKE ?;", sqlPattern);
-                var results = new List<string>(rows.Count);
-                foreach (var row in rows)
-                {
-                    results.Add(row.Key);
-                }
-
-                return results;
+                await using var conn = await CreateOpenConnectionAsync(ct);
+                var sqlPattern = pattern.NormalizeSqlPattern();
+                var rows = await conn.ExecuteQueryAsync<BlobRecordTransport>("SELECT blob_key FROM blob_records WHERE blob_key LIKE @Pattern;", new { Pattern = sqlPattern }, cancellationToken: ct);
+                return ToKeys(rows);
             }
             finally
             {
@@ -399,14 +427,14 @@ namespace ActDim.BytePath
             }
         }
 
-
-        private async Task<BlobRecord> GetRecordAsync(string key, CancellationToken ct)
+        private async Task<BlobRecord?> GetRecordAsync(string key, CancellationToken ct)
         {
             await _dbSemaphore.WaitAsync(ct);
             try
             {
-                var t = await _db.Table<BlobRecordTransport>().Where(r => r.Key == key).FirstOrDefaultAsync();
-                return t != null ? ToRecord(t) : null;
+                await using var conn = await CreateOpenConnectionAsync(ct);
+                var transport = (await conn.QueryAsync<BlobRecordTransport>(r => r.Key == key, cancellationToken: ct)).FirstOrDefault();
+                return transport != null ? ToRecord(transport) : null;
             }
             finally
             {
@@ -419,7 +447,8 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
-                await _db.UpdateAsync(ToTransport(record));
+                await using var conn = await CreateOpenConnectionAsync(ct);
+                await conn.UpdateAsync(ToTransport(record), cancellationToken: ct);
             }
             finally
             {
@@ -434,9 +463,10 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
-                var rows = await _db.ExecuteAsync(
-                    "INSERT OR IGNORE INTO blob_records (blob_key, created_at, updated_at, accessed_at) VALUES (?, ?, ?, ?);",
-                    key, now, now, now
+                await using var conn = await CreateOpenConnectionAsync(ct);
+                var rows = await conn.ExecuteNonQueryAsync(
+                    "INSERT OR IGNORE INTO blob_records (blob_key, created_at, updated_at, accessed_at) VALUES (@Key, @Now, @Now, @Now);",
+                    new { Key = key, Now = now }, cancellationToken: ct
                 );
                 return rows > 0;
             }
@@ -458,10 +488,10 @@ namespace ActDim.BytePath
             AccessedAt = DateTimeOffset.FromUnixTimeSeconds(t.AccessedAtUnix),
             SlidingExpiration = t.SlidingExpirationSeconds.HasValue
                 ? TimeSpan.FromSeconds(t.SlidingExpirationSeconds.Value)
-                : (TimeSpan?)null,
+                : null,
             ExpiresAt = t.ExpiresAtUnix.HasValue
                 ? DateTimeOffset.FromUnixTimeSeconds(t.ExpiresAtUnix.Value)
-                : (DateTimeOffset?)null,
+                : null,
         };
 
         private static BlobRecordTransport ToTransport(BlobRecord r) => new BlobRecordTransport
@@ -480,11 +510,6 @@ namespace ActDim.BytePath
             ExpiresAtUnix = r.ExpiresAt.HasValue ? (long?)((long)Math.Ceiling(r.ExpiresAt.Value.ToUnixTimeMilliseconds() / 1000.0)) : null,
         };
 
-        /// <summary>
-        /// <see cref="TimeSpan.Zero"/> means "attempt once, do not wait" — the deadline is already
-        /// reached when the first attempt returns, so the retry loop exits immediately. A negative
-        /// value is treated as unspecified and falls back to the default timeout.
-        /// </summary>
         private TimeSpan NormalizeAcquireTimeout(TimeSpan timeout)
         {
             return timeout < TimeSpan.Zero ? _defaultTimeout : timeout;
@@ -537,30 +562,34 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
+                await using var conn = await CreateOpenConnectionAsync(ct);
                 var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 var effectiveTimeout = timeout < TimeSpan.FromSeconds(1) ? TimeSpan.FromSeconds(1) : timeout;
                 var expiresAt = (long)Math.Ceiling((DateTimeOffset.UtcNow + effectiveTimeout).ToUnixTimeMilliseconds() / 1000.0);
 
-                await _db.ExecuteAsync("BEGIN IMMEDIATE;");
-                await _db.ExecuteAsync("DELETE FROM blob_locks WHERE expires_at <= ?;", now);
-                var inserted = await _db.ExecuteAsync(
-                    "INSERT INTO blob_locks (blob_key, is_write_lock, locked_by, locked_at, expires_at) " +
-                    "SELECT ?, 0, ?, ?, ? " +
-                    "WHERE NOT EXISTS (" +
-                    "    SELECT 1 FROM blob_locks " +
-                    "    WHERE blob_key = ? AND is_write_lock = 1 AND expires_at > ?" +
-                    ") AND EXISTS (" +
-                    "    SELECT 1 FROM blob_records WHERE blob_key = ?" +
-                    ");",
-                    resourceId, lockedBy, now, expiresAt, resourceId, now, resourceId
-                );
-                await _db.ExecuteAsync("COMMIT;");
-                return inserted > 0;
-            }
-            catch
-            {
-                await _db.ExecuteAsync("ROLLBACK;");
-                throw;
+                await conn.ExecuteNonQueryAsync("BEGIN IMMEDIATE;", cancellationToken: ct);
+                try
+                {
+                    await conn.ExecuteNonQueryAsync("DELETE FROM blob_locks WHERE expires_at <= @Now;", new { Now = now }, cancellationToken: ct);
+                    var inserted = await conn.ExecuteNonQueryAsync(
+                        "INSERT INTO blob_locks (blob_key, is_write_lock, locked_by, locked_at, expires_at) " +
+                        "SELECT @ResourceId, 0, @LockedBy, @Now, @ExpiresAt " +
+                        "WHERE NOT EXISTS (" +
+                        "    SELECT 1 FROM blob_locks " +
+                        "    WHERE blob_key = @ResourceId AND is_write_lock = 1 AND expires_at > @Now" +
+                        ") AND EXISTS (" +
+                        "    SELECT 1 FROM blob_records WHERE blob_key = @ResourceId" +
+                        ");",
+                        new { ResourceId = resourceId, LockedBy = lockedBy, Now = now, ExpiresAt = expiresAt }, cancellationToken: ct
+                    );
+                    await conn.ExecuteNonQueryAsync("COMMIT;", cancellationToken: ct);
+                    return inserted > 0;
+                }
+                catch
+                {
+                    await conn.ExecuteNonQueryAsync("ROLLBACK;", cancellationToken: ct);
+                    throw;
+                }
             }
             finally
             {
@@ -573,30 +602,34 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
+                await using var conn = await CreateOpenConnectionAsync(ct);
                 var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 var effectiveTimeout = timeout < TimeSpan.FromSeconds(1) ? TimeSpan.FromSeconds(1) : timeout;
                 var expiresAt = (long)Math.Ceiling((DateTimeOffset.UtcNow + effectiveTimeout).ToUnixTimeMilliseconds() / 1000.0);
 
-                await _db.ExecuteAsync("BEGIN IMMEDIATE;");
-                await _db.ExecuteAsync("DELETE FROM blob_locks WHERE expires_at <= ?;", now);
-                var inserted = await _db.ExecuteAsync(
-                    "INSERT INTO blob_locks (blob_key, is_write_lock, locked_by, locked_at, expires_at) " +
-                    "SELECT ?, 1, ?, ?, ? " +
-                    "WHERE NOT EXISTS (" +
-                    "    SELECT 1 FROM blob_locks " +
-                    "    WHERE blob_key = ? AND expires_at > ?" +
-                    ") AND EXISTS (" +
-                    "    SELECT 1 FROM blob_records WHERE blob_key = ?" +
-                    ");",
-                    resourceId, lockedBy, now, expiresAt, resourceId, now, resourceId
-                );
-                await _db.ExecuteAsync("COMMIT;");
-                return inserted > 0;
-            }
-            catch
-            {
-                await _db.ExecuteAsync("ROLLBACK;");
-                throw;
+                await conn.ExecuteNonQueryAsync("BEGIN IMMEDIATE;", cancellationToken: ct);
+                try
+                {
+                    await conn.ExecuteNonQueryAsync("DELETE FROM blob_locks WHERE expires_at <= @Now;", new { Now = now }, cancellationToken: ct);
+                    var inserted = await conn.ExecuteNonQueryAsync(
+                        "INSERT INTO blob_locks (blob_key, is_write_lock, locked_by, locked_at, expires_at) " +
+                        "SELECT @ResourceId, 1, @LockedBy, @Now, @ExpiresAt " +
+                        "WHERE NOT EXISTS (" +
+                        "    SELECT 1 FROM blob_locks " +
+                        "    WHERE blob_key = @ResourceId AND expires_at > @Now" +
+                        ") AND EXISTS (" +
+                        "    SELECT 1 FROM blob_records WHERE blob_key = @ResourceId" +
+                        ");",
+                        new { ResourceId = resourceId, LockedBy = lockedBy, Now = now, ExpiresAt = expiresAt }, cancellationToken: ct
+                    );
+                    await conn.ExecuteNonQueryAsync("COMMIT;", cancellationToken: ct);
+                    return inserted > 0;
+                }
+                catch
+                {
+                    await conn.ExecuteNonQueryAsync("ROLLBACK;", cancellationToken: ct);
+                    throw;
+                }
             }
             finally
             {
@@ -609,9 +642,10 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
-                await _db.ExecuteAsync(
-                    "DELETE FROM blob_locks WHERE blob_key = ? AND locked_by = ? AND is_write_lock = 0;",
-                    resourceId, lockedBy
+                await using var conn = await CreateOpenConnectionAsync(ct);
+                await conn.ExecuteNonQueryAsync(
+                    "DELETE FROM blob_locks WHERE blob_key = @ResourceId AND locked_by = @LockedBy AND is_write_lock = 0;",
+                    new { ResourceId = resourceId, LockedBy = lockedBy }, cancellationToken: ct
                 );
             }
             finally
@@ -625,9 +659,10 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync(ct);
             try
             {
-                await _db.ExecuteAsync(
-                    "DELETE FROM blob_locks WHERE blob_key = ? AND locked_by = ? AND is_write_lock = 1;",
-                    resourceId, lockedBy
+                await using var conn = await CreateOpenConnectionAsync(ct);
+                await conn.ExecuteNonQueryAsync(
+                    "DELETE FROM blob_locks WHERE blob_key = @ResourceId AND locked_by = @LockedBy AND is_write_lock = 1;",
+                    new { ResourceId = resourceId, LockedBy = lockedBy }, cancellationToken: ct
                 );
             }
             finally
@@ -641,10 +676,11 @@ namespace ActDim.BytePath
             await _dbSemaphore.WaitAsync();
             try
             {
-                await _db.ExecuteAsync("BEGIN IMMEDIATE;");
+                await using var conn = await CreateOpenConnectionAsync();
+                await conn.ExecuteNonQueryAsync("BEGIN IMMEDIATE;");
                 try
                 {
-                    await _db.ExecuteAsync(
+                    await conn.ExecuteNonQueryAsync(
                         "CREATE TABLE IF NOT EXISTS blob_records (" +
                         "    blob_key TEXT PRIMARY KEY, " +
                         "    metadata TEXT, " +
@@ -659,7 +695,7 @@ namespace ActDim.BytePath
                         ");"
                     );
 
-                    await _db.ExecuteAsync(
+                    await conn.ExecuteNonQueryAsync(
                         "CREATE TABLE IF NOT EXISTS blob_locks (" +
                         "    blob_key TEXT NOT NULL, " +
                         "    is_write_lock INTEGER NOT NULL DEFAULT 0, " +
@@ -670,13 +706,13 @@ namespace ActDim.BytePath
                         ");"
                     );
 
-                    await _db.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_blob_records_expires_at ON blob_records(expires_at);");
-                    await _db.ExecuteAsync("CREATE INDEX IF NOT EXISTS idx_blob_locks_blob_key ON blob_locks(blob_key);");
-                    await _db.ExecuteAsync("COMMIT;");
+                    await conn.ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_blob_records_expires_at ON blob_records(expires_at);");
+                    await conn.ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_blob_locks_blob_key ON blob_locks(blob_key);");
+                    await conn.ExecuteNonQueryAsync("COMMIT;");
                 }
                 catch
                 {
-                    await _db.ExecuteAsync("ROLLBACK;");
+                    await conn.ExecuteNonQueryAsync("ROLLBACK;");
                     throw;
                 }
             }
@@ -684,16 +720,6 @@ namespace ActDim.BytePath
             {
                 _dbSemaphore.Release();
             }
-        }
-
-        private static string NormalizePattern(string pattern)
-        {
-            if (string.IsNullOrWhiteSpace(pattern))
-            {
-                return "%";
-            }
-
-            return pattern.Replace('*', '%');
         }
     }
 }
