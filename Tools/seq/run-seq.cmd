@@ -10,7 +10,9 @@ cd /d "%~dp0"
 
 set "EXE_PATH="
 
-if exist "%~dp0seq.exe" set "EXE_PATH=%~dp0seq.exe"
+if exist "%~dp0seqcli.exe" set "EXE_PATH=%~dp0seqcli.exe"
+if not defined EXE_PATH if exist "%~dp0seq.exe" set "EXE_PATH=%~dp0seq.exe"
+if not defined EXE_PATH if exist "%~dp0seq-cli.exe" set "EXE_PATH=%~dp0seq-cli.exe"
 
 if not defined EXE_PATH (
     for /f "delims=" %%f in ('dir /b /s "%~dp0*seq*.exe" 2^>nul') do (
@@ -23,7 +25,9 @@ if not defined EXE_PATH (
     echo Downloading Seq CLI ...
     call "%~dp0download-seq.cmd"
     
-    if exist "%~dp0seq.exe" set "EXE_PATH=%~dp0seq.exe"
+    if exist "%~dp0seqcli.exe" set "EXE_PATH=%~dp0seqcli.exe"
+    if not defined EXE_PATH if exist "%~dp0seq.exe" set "EXE_PATH=%~dp0seq.exe"
+    if not defined EXE_PATH if exist "%~dp0seq-cli.exe" set "EXE_PATH=%~dp0seq-cli.exe"
     if not defined EXE_PATH (
         for /f "delims=" %%f in ('dir /b /s "%~dp0*seq*.exe" 2^>nul') do (
             set "EXE_PATH=%%f"
