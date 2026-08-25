@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$DownloadUrl = "https://github.com/datalust/seq-cli/releases/download/v2024.3.1118/seq-cli-2024.3.1118-win-x64.zip",
+    [string]$DownloadUrl = "https://github.com/datalust/seqcli/releases/download/v2026.1.02616/seqcli-2026.1.02616-win-x64.zip",
     [string]$TargetDir = $PSScriptRoot
 )
 

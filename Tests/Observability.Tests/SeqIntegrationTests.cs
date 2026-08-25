@@ -135,6 +135,7 @@ namespace ActDim.Observability.Tests
         {
             var candidateNames = new[]
             {
+                "seqcli.exe",
                 "seq.exe",
                 "seq-cli.exe"
             };
