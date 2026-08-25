@@ -154,6 +154,7 @@ builder.Services.AddOpenTelemetry()
             {
                 opts.SetDbStatementForText = true;
             })
+            .AddNpgsql() // Npgsql.OpenTelemetry for PostgreSQL diagnostics & connection pooling
             .AddOtlpExporter(opts =>
             {
                 opts.Endpoint = new Uri(builder.Configuration["Telemetry:OtlpEndpoint"] ?? "http://localhost:4317");
@@ -214,7 +215,52 @@ OpenTelemetry .NET leverages BCL `ActivitySource` and `Meter` events built into 
 
 ---
 
-### 3. Dynamic Ratio-Based Sampling via `appsettings.json`
+### 3. Recommended Database & Infrastructure Instrumentations (`Npgsql.OpenTelemetry`)
+
+In addition to standard BCL and ASP.NET Core instrumentations, production .NET applications interacting with databases, caches, and message brokers **MUST** configure driver-specific OpenTelemetry packages for full diagnostic visibility.
+
+#### 3.1 Npgsql OpenTelemetry (`Npgsql.OpenTelemetry`) — PostgreSQL Diagnostics
+
+[`Npgsql.OpenTelemetry`](https://www.nuget.org/packages/Npgsql.OpenTelemetry) is the official OpenTelemetry instrumentation package for Npgsql (the .NET data provider for PostgreSQL).
+
+* **Why it is recommended:** Standard EF Core instrumentation only captures high-level LINQ-to-SQL command executions. `Npgsql.OpenTelemetry` hooks directly into the low-level Npgsql driver, emitting fine-grained database spans, connection pool telemetry, and batch query diagnostics.
+* **Emitted Telemetry & Diagnostics:**
+  * **SQL Commands & Batching:** Full tracing of PostgreSQL statements (`db.system=postgresql`, `db.statement`), parameter types, and batch execution pipelines (`NpgsqlBatch`).
+  * **Connection Pool Metrics:** Live counters for active connections (`npgsql.connection.pool.size`), idle connections, and pending/queued requests (`npgsql.connection.pool.pending_requests`).
+  * **Multiplexing & Multi-Host Failover:** Diagnostics for socket connection timing, SSL handshakes, and failover latency across multi-node PostgreSQL clusters.
+
+```csharp
+using Npgsql.OpenTelemetry;
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddEntityFrameworkCoreInstrumentation()
+            .AddNpgsql(); // Enables Npgsql PostgreSQL command & connection tracing!
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddMeter("Npgsql"); // Enables Npgsql Connection Pool & socket metrics
+    });
+```
+
+#### 3.2 Recommended Driver & Middleware Instrumentation Matrix
+
+| Component / Driver | Package | Registration API | Diagnostic Benefits |
+| :--- | :--- | :--- | :--- |
+| **PostgreSQL (Npgsql)** | [`Npgsql.OpenTelemetry`](https://www.nuget.org/packages/Npgsql.OpenTelemetry) | `.AddNpgsql()` | Low-level SQL command spans, connection pool saturation, batch query pipeline tracing. |
+| **Entity Framework Core** | `OpenTelemetry.Instrumentation.EntityFrameworkCore` | `.AddEntityFrameworkCoreInstrumentation()` | LINQ query translation, DB context initialization, and unit-of-work transaction spans. |
+| **Microsoft SQL Server / SqlClient** | `OpenTelemetry.Instrumentation.SqlClient` | `.AddSqlClientInstrumentation()` | T-SQL statement tracing, procedure calls, and connection timeout diagnostics. |
+| **StackExchange.Redis** | `OpenTelemetry.Instrumentation.StackExchangeRedis` | `.AddRedisInstrumentation()` | Redis command latency (GET, SET, MGET), key space operations, and multiplexer connection state. |
+| **gRPC Client** | `OpenTelemetry.Instrumentation.GrpcNetClient` | `.AddGrpcClientInstrumentation()` | gRPC RPC method spans (`rpc.service`, `rpc.method`), status codes, and frame payload metrics. |
+
+---
+
+### 4. Dynamic Ratio-Based Sampling via `appsettings.json`
 
 High-throughput production services emitting 100% of traces create massive storage costs and network overhead. **Head Sampling** evaluates trace sampling at span creation.
 
@@ -249,7 +295,7 @@ Sampler sampler = configuration.GetValue<bool>("Telemetry:EnableSampling", true)
 
 ---
 
-### 4. Metrics & Exemplars
+### 5. Metrics & Exemplars
 
 An **Exemplar** links a metric measurement (such as a 99th percentile request duration histogram bucket) directly to the exact `trace_id` and `span_id` of the HTTP request that produced it.
 
