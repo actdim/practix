@@ -17,7 +17,7 @@ namespace ActDim.Emitron
     {
         // Per-Type reflection cache — avoids repeated GetProperties() calls at runtime.
         private static readonly ConcurrentDictionary<Type, PropertyInfo[]> _propertyCache =
-            new ConcurrentDictionary<Type, PropertyInfo[]>();
+            new();
 
         /// <summary>
         /// Default Roslyn script options with references, imports, and search paths common to all evaluators.
@@ -180,53 +180,53 @@ namespace ActDim.Emitron
                 {
                     // ── 1. Dictionary / ExpandoObject ─────────────────────────────────────
                     case IDictionary<string, object?> dict:
-                    {
-                        foreach (var pair in dict)
                         {
-                            bag[pair.Key] = pair.Value;
-                        }
+                            foreach (var pair in dict)
+                            {
+                                bag[pair.Key] = pair.Value;
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
 
                     // ── 2. DynamicObject subclass ──────────────────────────────────────────
                     case DynamicObject dynObj:
-                    {
-                        foreach (var name in dynObj.GetDynamicMemberNames())
                         {
-                            var binder = Microsoft.CSharp.RuntimeBinder.Binder.GetMember(
-                                Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags.None,
-                                name,
-                                dynObj.GetType(),
-                                [Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(
+                            foreach (var name in dynObj.GetDynamicMemberNames())
+                            {
+                                var binder = Microsoft.CSharp.RuntimeBinder.Binder.GetMember(
+                                    Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags.None,
+                                    name,
+                                    dynObj.GetType(),
+                                    [Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(
                                     Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.None, null)]);
 
-                            var site = System.Runtime.CompilerServices
-                                .CallSite<Func<System.Runtime.CompilerServices.CallSite, object, object>>
-                                .Create(binder);
+                                var site = System.Runtime.CompilerServices
+                                    .CallSite<Func<System.Runtime.CompilerServices.CallSite, object, object>>
+                                    .Create(binder);
 
-                            bag[name] = site.Target(site, dynObj);
+                                bag[name] = site.Target(site, dynObj);
+                            }
+
+                            break;
                         }
-
-                        break;
-                    }
 
                     // ── 3. Anonymous type / POCO / record — reflected, cached per Type ────
                     default:
-                    {
-                        var props = _propertyCache.GetOrAdd(
-                            parametersObj.GetType(),
-                            t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                   .Where(p => p.CanRead)
-                                   .ToArray());
-
-                        foreach (var prop in props)
                         {
-                            bag[prop.Name] = prop.GetValue(parametersObj);
-                        }
+                            var props = _propertyCache.GetOrAdd(
+                                parametersObj.GetType(),
+                                t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                       .Where(p => p.CanRead)
+                                       .ToArray());
 
-                        break;
-                    }
+                            foreach (var prop in props)
+                            {
+                                bag[prop.Name] = prop.GetValue(parametersObj);
+                            }
+
+                            break;
+                        }
                 }
             }
 

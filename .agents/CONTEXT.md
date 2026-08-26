@@ -6,6 +6,7 @@ Current state snapshot of `actdim/practix` (.NET).
 
 ### Autonomous Engine Libraries (`ActDim.*`)
 - **`ActDim.Emitron`**: Roslyn-based C# script engine (`ScriptEngine`), template interpolation compiler (`Interpolator`), string extension helper (`template.Interpolate(input)`), with `@params` property binding. [Packable NuGet Package w/ README]
+- **`ActDim.Emitron.Razor`**: Roslyn-powered Razor syntax template compiler (`EmitronRazor`, `RazorParser`), supporting multi-line HTML/text templates, `@if / @else` conditionals, `@foreach / @for` loops, code blocks `@{ ... }`, comments `@* ... *@`, `@Model` property binding, and fluent string extensions (`template.FormatRazor(model)`). [Packable NuGet Package w/ README]
 - **`ActDim.Reflectron`**: High-performance reflection engine (`Reflectron`, `IReflectron<T>`, `obj.Reflect()`, indexer access, compiled expression tree property/field getters/setters, weak-referenced instances, fast dynamic delegates). [Packable NuGet Package w/ README]
 - **`ActDim.Three`**: 3D graphics engine math, geometry, materials, lighting, scene graph, `Layers` bitmask, Instanced/Interleaved buffers, PBR/Shader materials, and native System.Text.Json scene serialization (`ThreeSerializer`, `TypedArray`). Cleanly decoupled from Newtonsoft.Json. [Packable NuGet Package w/ README]
 - **`ActDim.Three.NewtonsoftJson`**: Dedicated Newtonsoft.Json compatibility adapter and custom converters (`ThreeNewtonsoftSerializer`, `SceneDocumentConverter`, `BufferAttributeConverter`, `ElementConverter`, `CamelCaseCustomResolver`). [Packable NuGet Package w/ README]
@@ -22,11 +23,11 @@ Current state snapshot of `actdim/practix` (.NET).
 - **`ActDim.Practix.Service`**: Primary backend service host using standard Microsoft DI (`IServiceCollection`), including API response envelopes (`BaseApiResult`, `ApiResult` in `ActDim.Practix.Service.Api`). [Non-Packable Application Assembly]
 
 ## Packaging, Dependency & Architecture Standards
-- **Central Package Management (CPM) & Central Versioning**: Repository fully standardized on NuGet CPM via root `Directory.Packages.props` and central versioning in `Directory.Build.props` (**Version 1.0.9**).
+- **Central Package Management (CPM) & Central Versioning**: Repository fully standardized on NuGet CPM via root `Directory.Packages.props` and central versioning in `Directory.Build.props` (**Version 1.0.10**).
 - **Ambient Context Management**: `AmbientContext` acts as the direct holder of `AsyncLocal<ImmutableDictionary<string, object>>` and singleton implementation of `IAmbientContext`. Static facade delegates 1-to-1 to `Current` and `AmbientContextExtensions`.
 - **Nullable Annotations Standard**: Solution-wide adoption of `<Nullable>annotations</Nullable>` across all projects in `ActDim.Practix.sln` and `ActDim.Three.sln`.
 - **Zero External Legacy JSON Dependency in Core**: Core 3D engine `ActDim.Three` uses `System.Text.Json` natively with typed primitive array buffers (`TypedArray`). Newtonsoft.Json adapters live in `ActDim.Three.NewtonsoftJson`.
 
 ## Solution Health & Verification
 - **Solution Build & Pack**: All projects in `ActDim.Practix.sln` and `ActDim.Three.sln` build cleanly with 0 errors and 0 warnings.
-- **Total Test Suite**: 560 tests passing in `ActDim.Practix.sln` plus 39 in `ActDim.Three.sln` with zero failures (599 / 599 total tests passing).
+- **Total Test Suite**: 568 tests passing in `ActDim.Practix.sln` plus 39 in `ActDim.Three.sln` with zero failures (607 / 607 total tests passing).
