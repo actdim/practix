@@ -1,0 +1,12 @@
+# Code Review Graph Exclusions
+node_modules/
+dist/
+build/
+out/
+.git/
+.along/SESSIONS/
+.agents/SESSIONS/
+*.min.js
+*.bundle.js
+*.pyc
+__pycache__/

@@ -1,9 +1,9 @@
-<!-- BEGIN ACTDIM-AGENTS-PROTOCOL ref=../AGENTS.md (managed by init-agents: do not edit by hand) -->
-This folder belongs to a repository that uses the ACTDIM-AGENTS structure. The full working
+<!-- BEGIN ALONG-PROTOCOL ref=../AGENTS.md (managed by along-init - do not edit by hand) -->
+This folder belongs to a repository that uses the ALONG structure. The full working
 guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
-read it there. This folder keeps its OWN `.agents/` state; use the nearest one.
+read it there. This folder keeps its OWN `.along/` state; use the nearest one.
 Only this folder's specifics follow.
-<!-- END ACTDIM-AGENTS-PROTOCOL -->
+<!-- END ALONG-PROTOCOL -->
 
 ## Project specifics
 
@@ -41,7 +41,7 @@ Tests/BytePath.Tests/BlobManagerTests.cs   # 69 xUnit v3 tests
 unusual (why writes consume a stream, why the producer-delegate overload exists, why there is no
 `OpenWriteAsync`). Keep it in sync when the public surface changes.
 
-Read `.agents/DECISIONS.md` before changing any of the invariants below: #001–#006 explain why
+Read `.along/DECISIONS.md` before changing any of the invariants below: #001–#006 explain why
 they are the way they are, including alternatives already rejected.
 
 ---
