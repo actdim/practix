@@ -1,0 +1,13 @@
+# History
+
+_Index of sessions (newest last). One line per session:_
+_<YYYY-MM-DD>: <slug>: <agent>: <summary>: <relative link>_
+
+2026-08-16: Emitron-rename-and-interpolation-formatter: claude-sonnet-4-6-thinking: Renamed Emitron→Emitron, created Roslyn-based InterpolationFormatter with full test suite: [SESSIONS/2026/2026-08-16--stringfu-rename-and-interpolation-formatter.md](SESSIONS/2026/2026-08-16--stringfu-rename-and-interpolation-formatter.md)
+2026-08-17: add-interpolation-format-specifier-tests: antigravity: Added explicit custom context access and function invocation unit tests to InterpolatorTests in ActDim.Emitron.: [SESSIONS/2026/2026-08-17--add-interpolation-format-specifier-tests.md](SESSIONS/2026/2026-08-17--add-interpolation-format-specifier-tests.md)
+2026-08-17: add-string-interpolate-extension: antigravity: Added template.Interpolate(parameters) extension method in ActDim.Emitron.: [SESSIONS/2026/2026-08-17--add-string-interpolate-extension.md](SESSIONS/2026/2026-08-17--add-string-interpolate-extension.md)
+2026-08-17: refactor-script-evaluator-input-concept: antigravity: Renamed ScriptEvaluator to ScriptEngine and standardized on @params as the default collision-free parameter variable name.: [SESSIONS/2026/2026-08-17--refactor-script-evaluator-input-concept.md](SESSIONS/2026/2026-08-17--refactor-script-evaluator-input-concept.md)
+2026-08-17: refactor-script-evaluator-single-args-variable: antigravity: Refactored ScriptEvaluator and Interpolator to use a single canonical, customizable @Args variable without legacy internal aliases.: [SESSIONS/2026/2026-08-17--refactor-script-evaluator-single-args-variable.md](SESSIONS/2026/2026-08-17--refactor-script-evaluator-single-args-variable.md)
+2026-08-17: rename-interpolator: antigravity: Renamed InterpolationFormatter to Interpolator in ActDim.Emitron.: [SESSIONS/2026/2026-08-17--rename-interpolator.md](SESSIONS/2026/2026-08-17--rename-interpolator.md)
+2026-08-17: script-evaluator-this-context-support: antigravity: Replaced internal __emitron_p requirement in ScriptEvaluator with clean this.Property, Context.Property, and Model.Property access.: [SESSIONS/2026/2026-08-17--script-evaluator-this-context-support.md](SESSIONS/2026/2026-08-17--script-evaluator-this-context-support.md)
+2026-08-18: assemblies-and-usings-support: antigravity: Implemented Assemblies and Usings support with SearchPaths, inline #r and using directives, and EmitronOptions in ActDim.Emitron: [SESSIONS/2026/2026-08-18--assemblies-and-usings-support.md](SESSIONS/2026/2026-08-18--assemblies-and-usings-support.md)
