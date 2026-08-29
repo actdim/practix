@@ -58,7 +58,7 @@ namespace ActDim.BytePath
 
         /// <summary>
         /// Stores the content as a whole, letting <paramref name="produce"/> write it into a stream
-        /// supplied to it — for producers that can only write and have no readable form to hand over.
+        /// supplied to it - for producers that can only write and have no readable form to hand over.
         /// Returns the resulting size.
         /// </summary>
         /// <remarks>

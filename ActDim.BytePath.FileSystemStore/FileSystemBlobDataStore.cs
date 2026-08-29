@@ -16,19 +16,22 @@ namespace ActDim.BytePath
         private const char EscapeChar = '%';
 
         private readonly string _basePath;
+        private readonly char? _hierarchySeparator;
 
         /// <inheritdoc />
         public string KeyPrefix { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileSystemBlobDataStore"/> class with the specified base directory path and key prefix.
+        /// Initializes a new instance of the <see cref="FileSystemBlobDataStore"/> class with the specified base directory path, key prefix, and hierarchy separator.
         /// </summary>
         /// <param name="basePath">The root directory path where blobs are stored.</param>
         /// <param name="keyPrefix">The key prefix handled by this store (e.g. <c>"fs:"</c>). Defaults to empty string (catch-all).</param>
-        public FileSystemBlobDataStore(string basePath, string keyPrefix = null)
+        /// <param name="hierarchySeparator">The hierarchy separator character used to split keys into subdirectories. Defaults to <c>':'</c>. Set to <c>null</c> for uniform hash-sharding.</param>
+        public FileSystemBlobDataStore(string basePath, string keyPrefix = null, char? hierarchySeparator = ':')
         {
             _basePath = basePath ?? throw new ArgumentNullException(nameof(basePath));
             KeyPrefix = keyPrefix ?? string.Empty;
+            _hierarchySeparator = hierarchySeparator;
             Directory.CreateDirectory(_basePath);
         }
 
@@ -45,6 +48,7 @@ namespace ActDim.BytePath
 
             _basePath = options.BaseDirectory ?? throw new ArgumentNullException(nameof(options.BaseDirectory));
             KeyPrefix = options.KeyPrefix ?? string.Empty;
+            _hierarchySeparator = options.HierarchySeparator;
             Directory.CreateDirectory(_basePath);
         }
 
@@ -191,17 +195,27 @@ namespace ActDim.BytePath
         private string BuildPath(BlobRecord blobRecord)
         {
             var key = blobRecord.Key ?? string.Empty;
-            var segments = key.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
-            if (segments.Length > 1)
+            if (!string.IsNullOrEmpty(KeyPrefix) && key.StartsWith(KeyPrefix, StringComparison.OrdinalIgnoreCase))
             {
-                var parts = new string[segments.Length + 1];
-                parts[0] = _basePath;
-                for (var i = 0; i < segments.Length; i++)
+                key = key[KeyPrefix.Length..];
+            }
+
+            if (_hierarchySeparator.HasValue)
+            {
+                var segments = key.Split(_hierarchySeparator.Value, StringSplitOptions.RemoveEmptyEntries);
+
+                if (segments.Length > 1)
                 {
-                    parts[i + 1] = EscapeFileName(segments[i]);
+                    var parts = new string[segments.Length + 1];
+                    parts[0] = _basePath;
+                    for (var i = 0; i < segments.Length; i++)
+                    {
+                        parts[i + 1] = EscapeFileName(segments[i]);
+                    }
+
+                    return Path.Combine(parts);
                 }
-                return Path.Combine(parts);
             }
 
             var fileName = EscapeFileName(key);
@@ -252,6 +266,33 @@ namespace ActDim.BytePath
             }
         }
 
+        private static bool IsWindowsReservedName(ReadOnlySpan<char> name)
+        {
+            var dotIndex = name.IndexOf('.');
+            var stem = dotIndex >= 0 ? name[..dotIndex] : name;
+
+            if (stem.Length == 3)
+            {
+                if (stem.Equals("CON", StringComparison.OrdinalIgnoreCase)
+                    || stem.Equals("PRN", StringComparison.OrdinalIgnoreCase)
+                    || stem.Equals("AUX", StringComparison.OrdinalIgnoreCase)
+                    || stem.Equals("NUL", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            else if (stem.Length == 4)
+            {
+                if ((stem.StartsWith("COM", StringComparison.OrdinalIgnoreCase) || stem.StartsWith("LPT", StringComparison.OrdinalIgnoreCase))
+                    && stem[3] >= '1' && stem[3] <= '9')
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static string EscapeFileName(string input)
         {
             if (string.IsNullOrEmpty(input))
@@ -259,15 +300,17 @@ namespace ActDim.BytePath
                 return "blob";
             }
 
+            var isReservedDeviceName = IsWindowsReservedName(input.AsSpan());
             var invalid = Path.GetInvalidFileNameChars();
-            var sb = new StringBuilder(input.Length);
+            var sb = new StringBuilder(input.Length + 4);
 
             for (var i = 0; i < input.Length; i++)
             {
                 var ch = input[i];
                 var isTrimmedAway = i == input.Length - 1 && (ch == '.' || ch == ' ');
+                var isFirstCharOfReservedDevice = i == 0 && isReservedDeviceName;
 
-                if (ch == EscapeChar || isTrimmedAway || Array.IndexOf(invalid, ch) >= 0)
+                if (isFirstCharOfReservedDevice || ch == EscapeChar || isTrimmedAway || Array.IndexOf(invalid, ch) >= 0)
                 {
                     sb.Append(EscapeChar).Append(((int)ch).ToString("X2"));
                 }

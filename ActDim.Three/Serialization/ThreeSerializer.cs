@@ -10,14 +10,14 @@ using ActDim.Three.Serialization;
 namespace ActDim.Three
 {
     /// <summary>
-    /// Efficient System.Text.Json (de)serialization for any three.js object — a whole
+    /// Efficient System.Text.Json (de)serialization for any three.js object - a whole
     /// <see cref="SceneDocument"/> or an individual <c>Object3D</c>/geometry/material/texture/… String and
     /// UTF-8 byte overloads; prefer the byte overloads (STJ works on UTF-8 natively, no UTF-16 round-trip).
     /// <para>
     /// The options apply the three.js field names (<see cref="DataContractResolver"/>) and the typed-buffer
     /// converter (<see cref="BufferAttributeStjConverter"/>); a <see cref="SceneDocument"/> additionally
     /// routes through its own document converter. Note: serializing a whole node graph directly (instead of
-    /// via <see cref="SceneDocument"/>) does not carry child polymorphism — use <c>ToSceneDocument()</c> for scenes.
+    /// via <see cref="SceneDocument"/>) does not carry child polymorphism - use <c>ToSceneDocument()</c> for scenes.
     /// </para>
     /// </summary>
     public static class ThreeSerializer
@@ -65,7 +65,7 @@ namespace ActDim.Three
 
         /// <summary>
         /// Deserializes from UTF-8 bytes without decoding to a string. Takes a
-        /// <see cref="ReadOnlySpan{T}"/> — exactly what STJ consumes; a <c>byte[]</c>,
+        /// <see cref="ReadOnlySpan{T}"/> - exactly what STJ consumes; a <c>byte[]</c>,
         /// <c>ReadOnlyMemory&lt;byte&gt;.Span</c>, <c>ArraySegment</c> or <c>stackalloc</c> all fit.
         /// </summary>
         public static T FromBytes<T>(ReadOnlySpan<byte> utf8)
@@ -88,7 +88,7 @@ namespace ActDim.Three
             return JsonSerializer.Deserialize<T>(stream, Compact);
         }
 
-        /// <summary>Asynchronously serializes as UTF-8 to a stream (STJ streams in chunks — no full buffering).</summary>
+        /// <summary>Asynchronously serializes as UTF-8 to a stream (STJ streams in chunks - no full buffering).</summary>
         public static Task ToStreamAsync<T>(Stream stream, T value, bool indented = false, CancellationToken cancellationToken = default)
         {
             return JsonSerializer.SerializeAsync(stream, value, indented ? Indented : Compact, cancellationToken);

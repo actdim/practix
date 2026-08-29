@@ -6,7 +6,7 @@ namespace ActDim.Three.Core.Buffers
 {
     /// <summary>
     /// Registry mapping the three.js TypedArray discriminator string to a concrete <see cref="ITypedArray"/>.
-    /// Values are materialized straight into a backing array of the target type — no intermediate buffer.
+    /// Values are materialized straight into a backing array of the target type - no intermediate buffer.
     /// The JSON path (<see cref="FromDoubles"/>) narrows each already-<c>double</c> value with a plain cast;
     /// the arbitrary-<see cref="Array"/> path (<see cref="FromArray"/>) converts each boxed element straight
     /// to the target type via <see cref="Convert"/>, with a zero-copy fast path when the source already is
@@ -25,7 +25,7 @@ namespace ActDim.Three.Core.Buffers
         public const string Float32Array = "Float32Array";
         public const string Float64Array = "Float64Array";
 
-        /// <summary>Custom (non-three.js) discriminator for a <c>string[]</c> buffer — see <c>StringArray</c>.</summary>
+        /// <summary>Custom (non-three.js) discriminator for a <c>string[]</c> buffer - see <c>StringArray</c>.</summary>
         public const string StringArray = "StringArray";
 
         private static readonly HashSet<string> Known = new(StringComparer.Ordinal)

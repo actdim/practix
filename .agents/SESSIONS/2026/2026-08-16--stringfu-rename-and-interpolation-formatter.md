@@ -44,10 +44,10 @@ A Roslyn-scripting based formatter that compiles a C# interpolated string templa
 ## Test results
 - All 14 new `InterpolationFormatterTests` pass
 - All pre-existing 4 passing `StringFormatterTests` still pass
-- 1 pre-existing failure: `StringFormatterTests.IsFastest` (broken before this session — benchmark logic compares to an empty loop)
+- 1 pre-existing failure: `StringFormatterTests.IsFastest` (broken before this session: benchmark logic compares to an empty loop)
 
 ## Decisions
-- None new (ADR not required — this is a new standalone feature).
+- None new (ADR not required: this is a new standalone feature).
 
 ## Issues advanced
 - None on board; feature delivered inline.

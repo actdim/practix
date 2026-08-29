@@ -24,7 +24,7 @@ The failure mode is silence: no error, the switch simply has no effect.
 2. **No idempotence.** Calling `AddEventObservability` twice wraps providers and the factory twice, so tags are written twice and suppression decorators nest.
 
 ## Proposal
-Decorate at resolution time instead of registration time — for example by registering a decorating `ILoggerFactory`/provider resolver that wraps whatever is in the container when it is built, rather than rewriting descriptors eagerly. Guard the whole registration with a marker service so a second call is a no-op.
+Decorate at resolution time instead of registration time: for example by registering a decorating `ILoggerFactory`/provider resolver that wraps whatever is in the container when it is built, rather than rewriting descriptors eagerly. Guard the whole registration with a marker service so a second call is a no-op.
 
 ## Acceptance
 - [ ] A provider registered after `AddEventObservability` honours `SuppressProviders`.

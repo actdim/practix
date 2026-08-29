@@ -16,9 +16,9 @@ updated: 2026-08-15
 
 ## Proposal
 Replace the flag with an explicit mode:
-- `Never` — scopes only enrich the current span;
-- `WhenNoActivity` — current behaviour, the default;
-- `Always` — every scope is a child span, so a scope means the same thing everywhere.
+- `Never`: scopes only enrich the current span;
+- `WhenNoActivity`: current behaviour, the default;
+- `Always`: every scope is a child span, so a scope means the same thing everywhere.
 
 `Always` is what most users expect from "a scope is an operation", but it multiplies span count, so it must be an opt-in with that trade-off stated in the documentation.
 

@@ -20,7 +20,7 @@ updated: 2026-08-15
   tags:   ..., tenant.id=Tenant_EU_West, status=Importing
 ```
 
-Also affected: external scopes, the log event itself and `Activity.AddException` — a `LogDebug(ex, ...)` recorded no exception at all.
+Also affected: external scopes, the log event itself and `Activity.AddException`: a `LogDebug(ex, ...)` recorded no exception at all.
 
 ## Resolution
 See ADR-008. The two signals were separated instead of adding a second level threshold:

@@ -219,7 +219,7 @@ OpenTelemetry .NET leverages BCL `ActivitySource` and `Meter` events built into 
 
 In addition to standard BCL and ASP.NET Core instrumentations, production .NET applications interacting with databases, caches, and message brokers **MUST** configure driver-specific OpenTelemetry packages for full diagnostic visibility.
 
-#### 3.1 Npgsql OpenTelemetry (`Npgsql.OpenTelemetry`) — PostgreSQL Diagnostics
+#### 3.1 Npgsql OpenTelemetry (`Npgsql.OpenTelemetry`): PostgreSQL Diagnostics
 
 [`Npgsql.OpenTelemetry`](https://www.nuget.org/packages/Npgsql.OpenTelemetry) is the official OpenTelemetry instrumentation package for Npgsql (the .NET data provider for PostgreSQL).
 
@@ -461,7 +461,7 @@ using (logger.BeginScope(new Dictionary<string, object> { ["tenant.id"] = "acme"
 #### Zero-Ceremony & Framework Independence (Serilog vs. Native .NET Logging)
 
 - **Zero Third-Party Logging Dependencies:** `ActDim.Observability` eliminates the need for heavy external logging frameworks like Serilog or NLog. Standard `Microsoft.Extensions.Logging` combined with OpenTelemetry OTLP Exporters delivers zero-allocation, high-performance structured logging natively out of the box.
-- **Seamless Serilog Interop:** If an existing application already relies on **Serilog**, `ActDim.Observability` integrates transparently. Developers can retain `builder.Host.UseSerilog()` or Serilog sinks—`EventObservabilityBridge` decorates `ILoggerFactory` via standard BCL interfaces, capturing scopes and ambient state without conflicts.
+- **Seamless Serilog Interop:** If an existing application already relies on **Serilog**, `ActDim.Observability` integrates transparently. Developers can retain `builder.Host.UseSerilog()` or Serilog sinks-`EventObservabilityBridge` decorates `ILoggerFactory` via standard BCL interfaces, capturing scopes and ambient state without conflicts.
 
 #### Why Logger Categories Use Full Type Names (`type.FullName`) & Namespace Hierarchy
 
@@ -513,7 +513,7 @@ Setting a rule for `"Microsoft"` automatically applies to all child namespaces u
 | :--- | :--- | :--- |
 | `"Default"` | `Information` | Baseline verbosity for application business logic. |
 | `"Microsoft"` | `Warning` | **Global Framework Wildcard (`Microsoft.*`).** Mutes framework internal noise (routine parameter binding, DI resolution, pipeline dispatch). |
-| `"Microsoft.Hosting.Lifetime"` | `Information` | **Host Lifecycle.** Essential for infrastructure & K8s monitoring—logs application startup, listening URLs/ports, environment name, and graceful shutdown. |
+| `"Microsoft.Hosting.Lifetime"` | `Information` | **Host Lifecycle.** Essential for infrastructure & K8s monitoring-logs application startup, listening URLs/ports, environment name, and graceful shutdown. |
 | `"Microsoft.AspNetCore.Server.Kestrel"` | `Warning` | **Web Server Socket Layer.** Mutes routine TCP connection/disconnection logs per request while preserving TLS handshake and socket errors (`Warning`/`Error`). |
 | `"Microsoft.AspNetCore.Routing"` | `Warning` | **Route Matching Engine.** Mutes `DfaMatcher` diagnostic evaluations that execute on every single incoming HTTP request. |
 | `"Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware"` | `Information` | **HTTP Audit.** When HTTP Logging Middleware is enabled, setting `Information` captures incoming request/response headers and body payloads. |

@@ -21,7 +21,7 @@ tags: name=ImportBatch, activity.tags.priority=5, priority=5
 Half of the attributes are noise, and they double the exported payload for the most common scope state type in the package.
 
 ## Proposal
-Flatten only the domain-meaningful part of `LogEvent` — the `Name` — and let the explicit `ActivityTags` loop own the tag names, or exclude `ActivityTags` from the reflection walk. The `activity.tags.` prefix has no reason to exist in the exported data.
+Flatten only the domain-meaningful part of `LogEvent`: the `Name`: and let the explicit `ActivityTags` loop own the tag names, or exclude `ActivityTags` from the reflection walk. The `activity.tags.` prefix has no reason to exist in the exported data.
 
 ## Acceptance
 - [x] A `LogEvent` scope produces one attribute per entry of `ActivityTags`.

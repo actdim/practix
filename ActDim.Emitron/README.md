@@ -36,7 +36,7 @@ In standard C#, string interpolation (`$"Hello, {Name}!"`) is hardcoded at compi
 using ActDim.Emitron;
 
 // 1. Dynamic template loaded at runtime (from DB, config, or user input):
-// Properties are accessed directly by name — no '@params.' prefix required!
+// Properties are accessed directly by name: no '@params.' prefix required!
 string template = """$"Hello, {Name}! Today is {Date:yyyy-MM-dd} and your balance is ${Balance:N2}." """;
 
 // Execute directly via fluent extension method (compiles & caches on first call):

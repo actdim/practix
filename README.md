@@ -5,21 +5,21 @@ Modern, high-performance .NET libraries and application framework by Active Dime
 ## Solution Architecture
 
 ### Standalone Engine Libraries (`ActDim.*`)
-- **`ActDim.Emitron`** — Dynamic Roslyn script execution engine and C# interpolation template compiler (`Emitron`, `Interpolator`, `template.Interpolate(input)`).
-- **`ActDim.Reflectron`** — High-performance reflection engine, expression-tree delegate compilation, and fluent weak-referenced member accessors (`Reflectron`, `IReflectron<T>`, `obj.Reflect()`).
-- **`ActDim.BytePath`** — Concurrency-aware blob and binary payload storage engine with decoupled registries, sharded filesystem data stores, TTL expiration, and distributed locks (`IBlobManager`, `AddBlobManager`).
-- **`ActDim.BytePath.FileSystemStore`** — File-system blob data store implementation with sharded hash directories.
-- **`ActDim.BytePath.SqliteRegistry`** — SQLite-backed ACID metadata registry with distributed locking and TTL.
-- **`ActDim.Observability`** — OpenTelemetry-centric logging, activity tracing, and ambient context enrichment (`IObservabilityContext`, `AddEventObservability`). Includes integration test suites & developer tools for VictoriaLogs (LogsQL) and OpenObserve (SQL Search).
-- **`ActDim.Three`** — High-performance 3D scene graph, math, geometry, and native `System.Text.Json` serialization for Three.js compatibility (`ThreeSerializer`, `SceneDocument`).
-- **`ActDim.Three.NewtonsoftJson`** — Dedicated `Newtonsoft.Json` compatibility adapter and custom converters for `ActDim.Three` (`ThreeNewtonsoftSerializer`, `SceneDocumentConverter`).
+- **`ActDim.Emitron`**: Dynamic Roslyn script execution engine and C# interpolation template compiler (`Emitron`, `Interpolator`, `template.Interpolate(input)`).
+- **`ActDim.Reflectron`**: High-performance reflection engine, expression-tree delegate compilation, and fluent weak-referenced member accessors (`Reflectron`, `IReflectron<T>`, `obj.Reflect()`).
+- **`ActDim.BytePath`**: Concurrency-aware blob and binary payload storage engine with decoupled registries, sharded filesystem data stores, TTL expiration, and distributed locks (`IBlobManager`, `AddBlobManager`).
+- **`ActDim.BytePath.FileSystemStore`**: File-system blob data store implementation with sharded hash directories.
+- **`ActDim.BytePath.SqliteRegistry`**: SQLite-backed ACID metadata registry with distributed locking and TTL.
+- **`ActDim.Observability`**: OpenTelemetry-centric logging, activity tracing, and ambient context enrichment (`IObservabilityContext`, `AddEventObservability`). Includes integration test suites & developer tools for VictoriaLogs (LogsQL) and OpenObserve (SQL Search).
+- **`ActDim.Three`**: High-performance 3D scene graph, math, geometry, and native `System.Text.Json` serialization for Three.js compatibility (`ThreeSerializer`, `SceneDocument`).
+- **`ActDim.Three.NewtonsoftJson`**: Dedicated `Newtonsoft.Json` compatibility adapter and custom converters for `ActDim.Three` (`ThreeNewtonsoftSerializer`, `SceneDocumentConverter`).
 
 ### Framework & Application Modules (`ActDim.Practix.*`)
-- **`ActDim.Practix.Abstractions`** — Core domain abstractions, design patterns, and framework contracts.
-- **`ActDim.Practix.Common`** — Shared collection primitives, caching proxies, compression, and utilities.
-- **`ActDim.Practix.Json`** — Autonomous high-performance JSON serialization subsystem backed by System.Text.Json.
-- **`ActDim.Practix.DataAccess`** — Data access layer.
-- **`ActDim.Practix.Service`** — Main application service host with standard Microsoft Dependency Injection.
+- **`ActDim.Practix.Abstractions`**: Core domain abstractions, design patterns, and framework contracts.
+- **`ActDim.Practix.Common`**: Shared collection primitives, caching proxies, compression, and utilities.
+- **`ActDim.Practix.Json`**: Autonomous high-performance JSON serialization subsystem backed by System.Text.Json.
+- **`ActDim.Practix.DataAccess`**: Data access layer.
+- **`ActDim.Practix.Service`**: Main application service host with standard Microsoft Dependency Injection.
 
 ---
 

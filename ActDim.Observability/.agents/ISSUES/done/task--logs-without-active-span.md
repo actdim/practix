@@ -10,7 +10,7 @@ updated: 2026-08-14
 # Task: Decide What Happens to Log Calls Made Outside an Active Span
 
 ## Description
-When `Activity.Current` is null, `EventObservabilityBridge` writes no telemetry at all — neither the log call nor the ambient context reaches any trace. Everything logged during startup, background work or shutdown that runs outside a span is therefore invisible to the tracing pipeline.
+When `Activity.Current` is null, `EventObservabilityBridge` writes no telemetry at all: neither the log call nor the ambient context reaches any trace. Everything logged during startup, background work or shutdown that runs outside a span is therefore invisible to the tracing pipeline.
 
 ## Resolution
 Implemented automatic `Activity` span creation on `logger.BeginScope(...)` when `Activity.Current == null`.

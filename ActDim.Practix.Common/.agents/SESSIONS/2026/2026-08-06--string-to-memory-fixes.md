@@ -19,20 +19,20 @@ usings in `StringExtensions`, `StreamExtensions.BufferSize` private while used a
 ## `StringExtensions.ToMemory`
 
 It rented a buffer from `ArrayPool`, encoded into it, then passed it to
-`MemoryManager.Default.GetContextStream(buffer, 0, length)`. That is safe — `RecyclableMemoryStreamManager`
+`MemoryManager.Default.GetContextStream(buffer, 0, length)`. That is safe: `RecyclableMemoryStreamManager`
 copies the buffer into its own blocks rather than wrapping it, so returning the array to the pool in the
 `finally` is not a use-after-return. But it means the bytes are written **twice**: once into the staging
 buffer, once into the stream's blocks.
 
 Restored the approach that had been left commented out in the file: `WriteString` encodes directly into
 the pre-sized stream, so there is one pooled rent (inside `WriteString`) and one write. The commented
-block could not have compiled as written — it called `WriteString(value, encoding, bufferSize)` and no
-such overload exists — so it was stale rather than a working alternative, and has been deleted.
+block could not have compiled as written: it called `WriteString(value, encoding, bufferSize)` and no
+such overload exists: so it was stale rather than a working alternative, and has been deleted.
 
 ## Stream position was inconsistent between the two overloads
 
 `GetContextStream(buffer, offset, count)` hands back a stream positioned at 0, whereas the `WriteString`
-path leaves it at the end. So `ToMemory` and `ToMemoryAsync` — the same operation, sync and async —
+path leaves it at the end. So `ToMemory` and `ToMemoryAsync`: the same operation, sync and async -
 returned streams in different states. Both now rewind before returning, which is what a caller of
 something named `ToMemory` wants; the pre-existing `stream.Position = 0L` before the write was a no-op on
 a fresh stream and moved after it.
@@ -57,13 +57,13 @@ observe the token until it completes.
 
 ## Files touched
 
-- `Extensions/StringExtensions.cs` — `ToMemory`, `ToMemoryAsync`, unused `using System.Buffers` removed
-- `Extensions/StreamExtensions.cs` — rename, `BufferSize`, docs
-- `Tests/Common.Tests/Extensions/StreamExtensionsTests.cs` — renamed call sites (276 passing)
+- `Extensions/StringExtensions.cs`: `ToMemory`, `ToMemoryAsync`, unused `using System.Buffers` removed
+- `Extensions/StreamExtensions.cs`: rename, `BufferSize`, docs
+- `Tests/Common.Tests/Extensions/StreamExtensionsTests.cs`: renamed call sites (276 passing)
 
 ## Gaps / follow-ups
 
-- The string `ToMemory` / `ToMemoryAsync` have **no tests at all** — the existing `ToMemory` tests cover
+- The string `ToMemory` / `ToMemoryAsync` have **no tests at all**: the existing `ToMemory` tests cover
   the `Stream` overloads. The stream position is now a documented behaviour with nothing pinning it.
 - Two warnings unrelated to this work: `Introspection/TypeBaseIntrospectionInfo.cs:30` (redundant `new`)
   and `Memory/ArrayPoolBufferOwner.cs:33` (`?` outside a nullable context).

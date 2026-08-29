@@ -19,4 +19,4 @@ summary: Added template.Interpolate(parameters) extension method in ActDim.Emitr
 - `Tests/Emitron.Tests/InterpolatorTests.cs`
 
 ## Verification
-- Executed `dotnet test ActDim.Practix.sln` — all 485 tests passed across 6 test assemblies.
+- Executed `dotnet test ActDim.Practix.sln`: all 485 tests passed across 6 test assemblies.

@@ -14,7 +14,7 @@ OpenTelemetry attribute values may be primitives, strings, booleans or **arrays*
 
 Two paths still hand collections straight to `Activity.SetTag`:
 
-1. `IObservabilityContext.Push(name, value)` — the value is written verbatim in `ObservabilityContext.PushExported` and again from the exported-keys pass in `EnrichSpanFromScope`. `Push("Labels", new HashSet<string> { ... })` produces `System.Collections.Generic.HashSet\`1[System.String]`.
+1. `IObservabilityContext.Push(name, value)`: the value is written verbatim in `ObservabilityContext.PushExported` and again from the exported-keys pass in `EnrichSpanFromScope`. `Push("Labels", new HashSet<string> { ... })` produces `System.Collections.Generic.HashSet\`1[System.String]`.
 2. `LogEvent.ActivityTags` values, written verbatim in `EnrichSpanFromScope`.
 
 `EventObservabilityHelper.FlattenPairs` is not affected: it expands collections into indexed scalars.
@@ -22,7 +22,7 @@ Two paths still hand collections straight to `Activity.SetTag`:
 In-process consumers see the real object through `Activity.GetTagItem`, which is why tests pass and the defect stays invisible until export.
 
 ## Note on scope
-Narrowed after the `IObservabilityContext` refactor: `PushTags` and the `tags` well-known key no longer exist, so the previously reported `HashSet<string>` on every operation is gone. What remains is the generic path — any caller can still push a collection.
+Narrowed after the `IObservabilityContext` refactor: `PushTags` and the `tags` well-known key no longer exist, so the previously reported `HashSet<string>` on every operation is gone. What remains is the generic path: any caller can still push a collection.
 
 ## Verification needed
 The OTLP exporter package is not in the local NuGet cache, so this was reasoned from the transformer contract rather than measured. Confirm against `OpenTelemetry.Exporter.OpenTelemetryProtocol` before fixing, and keep the reproduction as a test.

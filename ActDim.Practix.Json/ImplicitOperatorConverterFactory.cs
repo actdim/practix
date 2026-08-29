@@ -27,7 +27,7 @@ namespace ActDim.Practix.Json
             // Date/time (DateTime has no timezone, DateTimeOffset is wider)
             typeof(DateTime),
             typeof(DateTimeOffset),
-            // String — widest, last
+            // String - widest, last
             typeof(string),
         ];
 

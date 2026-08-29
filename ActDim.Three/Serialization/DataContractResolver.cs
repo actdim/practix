@@ -8,14 +8,14 @@ namespace ActDim.Three.Serialization
 {
     /// <summary>
     /// A System.Text.Json type-info resolver that honors the WCF DataContract attributes the domain
-    /// types are annotated with — <see cref="DataContractAttribute"/> (opt-in),
-    /// <see cref="DataMemberAttribute"/> (<c>Name</c>) and <see cref="IgnoreDataMemberAttribute"/> — so
+    /// types are annotated with - <see cref="DataContractAttribute"/> (opt-in),
+    /// <see cref="DataMemberAttribute"/> (<c>Name</c>) and <see cref="IgnoreDataMemberAttribute"/> - so
     /// STJ produces the same property names and member set as Newtonsoft. STJ does not understand these
     /// attributes on its own.
     /// <para>
     /// Usage: <c>new JsonSerializerOptions { TypeInfoResolver = DataContractResolver.Instance }</c>.
     /// Note: only public members are considered (STJ's default), so <c>internal [DataMember]</c> members
-    /// are not emitted — a minor difference from Newtonsoft.
+    /// are not emitted - a minor difference from Newtonsoft.
     /// </para>
     /// </summary>
     public sealed class DataContractResolver : DefaultJsonTypeInfoResolver

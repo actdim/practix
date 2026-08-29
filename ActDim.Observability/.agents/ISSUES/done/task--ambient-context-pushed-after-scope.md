@@ -23,7 +23,7 @@ using (callContext.SetStatus("Downloading"))   // never exported
 See ADR-011. Exporting a property at push time makes the store a telemetry concept, so the store itself was separated: `IObservabilityContext` now owns telemetry ambient state, while `ICallContext` returns to being a neutral ambient variable bag and remains the backing storage.
 
 - Data properties are written to `Activity.Current` as they are set and restored on dispose.
-- The `BeginScope` snapshot stays, covering properties set before a span exists — both orderings now work.
+- The `BeginScope` snapshot stays, covering properties set before a span exists: both orderings now work.
 - Control switches are never exported; `SuppressAmbientProperties` suppresses both paths but cannot retract an already-sent attribute.
 - `CallContextPropertyNames` → `ObservabilityContextPropertyNames`; telemetry extensions left `ActDim.Practix.Common`; telemetry entries left the `CallContextProperty` enum in `Abstractions`.
 

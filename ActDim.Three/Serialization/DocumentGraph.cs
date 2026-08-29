@@ -16,8 +16,6 @@ namespace ActDim.Three.Serialization
     /// </summary>
     public static class DocumentGraph
     {
-        #region Flatten (свёртка)
-
         public sealed class Pools
         {
             public readonly List<IElement> Geometries = [];
@@ -145,10 +143,6 @@ namespace ActDim.Three.Serialization
             }
         }
 
-        #endregion
-
-        #region Reconstruct (развёртка)
-
         private static readonly Dictionary<string, Type> NodeTypes = BuildTypeMap(typeof(Object3D));
         private static readonly Dictionary<string, Type> ElementTypes = BuildTypeMap(typeof(IElement));
 
@@ -238,7 +232,5 @@ namespace ActDim.Three.Serialization
                 yield return (key, textureProperty);
             }
         }
-
-        #endregion
     }
 }

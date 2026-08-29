@@ -14,7 +14,7 @@ Individually minor, collectively the difference between an API that explains its
 
 1. **Two dead helpers.** `ObservabilityTagNames.IsReserved` and `ObservabilityContextPropertyNames.IsControlKey` are declared and never called anywhere. `IsControlKey` lost its only caller when the bridge switched from "export everything except control keys" to the explicit `ExportedKeys` set; `IsReserved` lost its purpose when the `log.*` namespace shrank to a single counter. Remove them, or state what they are for.
 
-2. **`IObservabilityContext.Properties` exposes control keys.** A consumer reading ambient values — the planned console spinner, for instance — sees `__Practix_SuppressConsole`, `__Practix_SuppressedProviders` and `__Practix_ExportedKeys` mixed in with the data. Expose a data-only view, or filter with the (currently unused) `IsControlKey`.
+2. **`IObservabilityContext.Properties` exposes control keys.** A consumer reading ambient values: the planned console spinner, for instance: sees `__Practix_SuppressConsole`, `__Practix_SuppressedProviders` and `__Practix_ExportedKeys` mixed in with the data. Expose a data-only view, or filter with the (currently unused) `IsControlKey`.
 
 3. **`Push` does not guard the control-key prefix.** `Push("__Practix_SuppressConsole", true)` writes a pipeline switch through the data path and marks it for export. Validate the name, or document that control keys are reserved.
 

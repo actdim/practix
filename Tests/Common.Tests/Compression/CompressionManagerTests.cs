@@ -942,7 +942,7 @@ namespace ActDim.Practix.Common.Tests.Compression
         [MemberData(nameof(SupportedArchiveFormats))]
         public async Task CompressToArchive_UnicodeEntryName_RoundTrips(ArchiveFormat archiveFormat)
         {
-            const string Name = "папка/файл — тест.txt";
+            const string Name = "папка/файл - тест.txt";
             var data = MakeCompressible(512);
 
             using (var archive = await Manager.CompressToArchiveAsync(new[] { Source(Name, data) }, archiveFormat))

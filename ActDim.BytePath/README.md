@@ -4,11 +4,11 @@ High-performance keyed blob and binary payload storage engine with metadata, exp
 
 Two layers that know nothing about each other:
 
-- **`IBlobRegistry`** — metadata and locks (e.g. `ActDim.BytePath.SqliteRegistry`).
-- **`IBlobDataStore`** — the bytes (e.g. `ActDim.BytePath.FileSystemStore`).
+- **`IBlobRegistry`**: metadata and locks (e.g. `ActDim.BytePath.SqliteRegistry`).
+- **`IBlobDataStore`**: the bytes (e.g. `ActDim.BytePath.FileSystemStore`).
 
-`BlobManager` is the only component that sees both, so everything spanning the two — verifying that a
-record still has content, deleting both halves in the right order — lives there and nowhere else.
+`BlobManager` is the only component that sees both, so everything spanning the two: verifying that a
+record still has content, deleting both halves in the right order: lives there and nowhere else.
 
 The split exists so either side can be swapped: PostgreSQL or Redis for the registry, S3 or Azure Blob
 for the content. Every decision in the API below was measured against that, which is the reason for
@@ -18,9 +18,9 @@ several shapes that look unusual at first. Where that is the case, this file say
 
 ## Packages in the Ecosystem
 
-- **`ActDim.BytePath`** — Core engine abstractions (`IBlobManager`, `IBlobDataStore`, `IBlobRegistry`), models (`BlobRecord`, `BlobResult`), and fluent DI builder.
-- **`ActDim.BytePath.FileSystemStore`** — High-performance file-system storage backend with hash-sharded directory structure.
-- **`ActDim.BytePath.SqliteRegistry`** — SQLite-backed ACID registry with distributed locking and TTL expiration.
+- **`ActDim.BytePath`**: Core engine abstractions (`IBlobManager`, `IBlobDataStore`, `IBlobRegistry`), models (`BlobRecord`, `BlobResult`), and fluent DI builder.
+- **`ActDim.BytePath.FileSystemStore`**: High-performance file-system storage backend with hash-sharded directory structure.
+- **`ActDim.BytePath.SqliteRegistry`**: SQLite-backed ACID registry with distributed locking and TTL expiration.
 
 ## Installation
 
@@ -64,12 +64,12 @@ Every acquiring call returns a `BlobResult`, which deconstructs into `(BlobError
 
 | `BlobErrorCode` | meaning |
 |---|---|
-| `None` | success — `Record` is non-null and holds a lock |
+| `None` | success: `Record` is non-null and holds a lock |
 | `KeyNotFound` | no record, or its content is gone and you asked for existing content |
 | `Timeout` | the lock could not be acquired in time |
 
 A successful result is a **handle**: it holds a read or write lock until disposed. Always
-`await using` it — the synchronous `Dispose()` only fires the sync callback.
+`await using` it: the synchronous `Dispose()` only fires the sync callback.
 
 ```csharp
 var (ec, record) = await manager.TryGetOrSetAsync("report/2026-08.pdf", ct);
@@ -83,7 +83,7 @@ if (ec == BlobErrorCode.None)
 ```
 
 Read locks admit concurrent readers and exclude writers. Write locks are exclusive. **Acquisition is
-not re-entrant** — asking for a lock you already hold will spin until it times out.
+not re-entrant**: asking for a lock you already hold will spin until it times out.
 
 ### `IsNew` means "there is no content yet"
 
@@ -91,7 +91,7 @@ Not "the record was just inserted". `TryGetOrSetAsync` sets it both for a key it
 a record whose content has gone missing. Either way it is telling you the same thing: you have to
 produce the content.
 
-`TryGetForReadingAsync` and `TryGetForWritingAsync` take the opposite stance — you asked for existing
+`TryGetForReadingAsync` and `TryGetForWritingAsync` take the opposite stance: you asked for existing
 content, so if there is none the orphaned record is deleted and you get `KeyNotFound`.
 
 ### Choosing an entry point
@@ -104,24 +104,24 @@ orphaned record.
 |---|---|---|---|
 | no record | creates it, `IsNew = true` | `KeyNotFound` | `KeyNotFound` |
 | record but no content | succeeds, `IsNew = true` | deletes the record → `KeyNotFound` | deletes the record → `KeyNotFound` |
-| lock you get | write — or read, if you ask for it *and* the record already existed | read | write |
+| lock you get | write: or read, if you ask for it *and* the record already existed | read | write |
 | codes it can return | `None`, `Timeout` | `None`, `KeyNotFound`, `Timeout` | `None`, `KeyNotFound`, `Timeout` |
 | `IsNew` | meaningful | always `false` | always `false` |
-| `BlobStoreOptions` | applied **and written** during the call | no overload — see below | applied, written when you dispose |
+| `BlobStoreOptions` | applied **and written** during the call | no overload: see below | applied, written when you dispose |
 | reach for it when | the blob may not exist yet | you only need to read | the blob exists and you will change it |
 
 Notes on the less obvious cells:
 
-- **`TryGetOrSetAsync` never returns `KeyNotFound`, but it is not "always success"** — it still returns
+- **`TryGetOrSetAsync` never returns `KeyNotFound`, but it is not "always success"**: it still returns
   `Timeout` when the lock cannot be acquired, and again if the read-lock downgrade times out.
 - **Options are persisted eagerly only by `TryGetOrSetAsync`**, because it may release the write lock to
   hand you a read lock instead; anything not written before that release would be lost in the gap.
   `TryGetForWritingAsync` holds its write lock until you dispose, and disposal persists the record, so
   nothing extra is written during the call.
-- **There is no reading overload taking options.** Applying them needs a write lock — a read lock admits
+- **There is no reading overload taking options.** Applying them needs a write lock: a read lock admits
   concurrent readers, so two of them could each mutate the same record and the last to dispose would
   win silently.
-- **`IsNew` from the strict two is not merely always `false`** — a result arriving with it set is an
+- **`IsNew` from the strict two is not merely always `false`**: a result arriving with it set is an
   impossible state and throws.
 
 ---
@@ -133,7 +133,7 @@ Task<long> PutAsync(BlobRecord record, Stream content, CancellationToken ct);   
 Task<long> AppendAsync(BlobRecord record, Stream content, CancellationToken ct);  // append at the end
 ```
 
-Both return the **resulting total size** — so `AppendAsync` reports the new total, not the number of
+Both return the **resulting total size**: so `AppendAsync` reports the new total, not the number of
 bytes you appended.
 
 ```csharp
@@ -142,7 +142,7 @@ var size = await manager.DataStore.PutAsync(record, source, ct);
 ```
 
 `PutAsync` is correct whether or not the key already existed, so you never inspect `IsNew` to decide
-which method to call. `AppendAsync` takes no offset — the store knows the current size.
+which method to call. `AppendAsync` takes no offset: the store knows the current size.
 
 ### Why not hand out a writable stream?
 
@@ -159,7 +159,7 @@ materialises only at `CompleteMultipartUpload`.
 
 **Disposing the record releases the distributed lock.** This is the serious one. Close the two in the
 wrong order and the lock is free while you are still writing. A reader that acquires it then sees a
-record whose content is missing — which the reconciliation logic correctly treats as an orphan and
+record whose content is missing: which the reconciliation logic correctly treats as an orphan and
 **deletes**. A mis-ordered `Dispose` costs you the record, not merely a wrong number.
 
 And that last one cannot be prevented by the compiler. `Stream` has no way to express "close me before
@@ -170,7 +170,7 @@ Consuming the stream removes all three at once: when the call returns, the bytes
 size is known. There is no stream left alive, so there is no order to get wrong.
 
 The store is *pulled* at whatever rate your source produces, so this costs nothing in memory or
-throughput — a slow store slows your producer down instead of buffering. It is also the shape every
+throughput: a slow store slows your producer down instead of buffering. It is also the shape every
 storage SDK already uses: `PutObject` and `BlobClient.UploadAsync` both accept a stream.
 
 ### Producing into a stream you are given
@@ -184,7 +184,7 @@ await manager.DataStore.PutAsync(record, (stream, token) =>
     JsonSerializer.SerializeAsync(stream, dto, cancellationToken: token), ct);
 ```
 
-`AppendAsync` has the same overload. Nothing is buffered either way — how the stream reaches you
+`AppendAsync` has the same overload. Nothing is buffered either way: how the stream reaches you
 depends on the store:
 
 - A store that owns a writable destination, like `FileSystemBlobDataStore`, hands that one over
@@ -195,10 +195,10 @@ depends on the store:
 
 Which means a new backend gets push-style writing for free and can specialise it if it has something
 better. Because the two differ, the supplied stream is write-only and you should **not assume it is
-seekable** — the file-system store's happens to be, the pipe's is not.
+seekable**: the file-system store's happens to be, the pipe's is not.
 
 This does **not** bring back the problem above, and the reason is worth being precise about. The
-guarantee is not type-level — no signature forbids anything. It is structural, the same way a `using`
+guarantee is not type-level: no signature forbids anything. It is structural, the same way a `using`
 block is: the extension owns both ends of the pipe, and **returning from your delegate is the
 completion signal**. There is no separate step you could forget, and the store's call still does not
 return until the write is finished.
@@ -206,28 +206,28 @@ return until the write is finished.
 Two things are still on you:
 
 - **Do not return before your writes finish.** Forgetting an `await`, or writing from a task you did
-  not wait for, completes the pipe early. This fails loudly — writing after completion throws.
+  not wait for, completes the pipe early. This fails loudly: writing after completion throws.
 - **Flush your own wrapper.** A `StreamWriter` or `GZipStream` you do not dispose keeps its buffer, and
   those bytes never reach the pipe. This fails *silently*, so dispose it inside the delegate:
 
 ```csharp
 await manager.DataStore.PutAsync(record, async (stream, token) =>
 {
-    // leaveOpen: the pipe is not yours to close. And note Encoding.UTF8 emits a BOM —
+    // leaveOpen: the pipe is not yours to close. And note Encoding.UTF8 emits a BOM -
     // use a BOM-less encoding unless you actually want those three bytes in the blob.
     await using var writer = new StreamWriter(stream, Utf8NoBom, 1024, leaveOpen: true);
     await writer.WriteAsync(text.AsMemory(), token);
 }, ct);
 ```
 
-A producer that genuinely requires seeking — some image encoders do — must buffer and call the
+A producer that genuinely requires seeking: some image encoders do: must buffer and call the
 `Stream` overload directly, since the pipe-backed default cannot offer it.
 
 ### Why not offer both?
 
 An `OpenWriteAsync` returning a writable stream would be more comfortable for long or awkward
 producing code, and Azure's SDK does ship both directions. It is not offered here because it hands
-completion back to the caller and so reinstates all three problems above — and because it would
+completion back to the caller and so reinstates all three problems above: and because it would
 reintroduce a fork this library already removed once.
 
 That earlier fork was `CreateAsync` versus `PutAsync`, which differed only in whether the file had to
@@ -243,7 +243,7 @@ time.
 Task<Stream> ReadAsync(BlobRecord record, CancellationToken ct);
 ```
 
-The returned stream is **seekable**, which is the contract, not an implementation detail — so reading a
+The returned stream is **seekable**, which is the contract, not an implementation detail: so reading a
 range and resuming a download need no extra method. A backend whose native stream is forward-only
 (S3's `GetObject`) has to wrap it; Azure's `OpenReadAsync` already behaves this way.
 
@@ -255,7 +255,7 @@ a consumer reads at its own pace, and nothing is left uncommitted if it stops ea
 ## Deleting
 
 `DeleteAsync`, `DeleteExpiredAsync`, `DeleteOlderThanAsync` and `CleanupAsync` all remove the content
-as well as the metadata, in that order — **content first**.
+as well as the metadata, in that order: **content first**.
 
 The order matters. A leftover metadata row is recoverable: it surfaces as `IsNew` and gets pruned on
 the next access. A leftover file is invisible to the library and lost for good.
@@ -273,13 +273,13 @@ than a `BlobErrorCode`, because it returns `Task` with nothing to put a code in.
 **`Size`** is owned by the library and read from the data store, never trusted from the metadata row.
 It is filled in on every hand-out, and because a handle holds its lock until disposed, that value stays
 accurate for the handle's lifetime. Its setter is not public: the library observes the size, callers do
-not declare it. `null` means there is no content — a size of `0` is a real, empty blob.
+not declare it. `null` means there is no content: a size of `0` is a real, empty blob.
 
 **`Hash`** is the opposite: you declare it through `BlobStoreOptions`, and it is never computed
 automatically, because computing it means reading the whole blob.
 
 **Expiration** priority is `AbsoluteExpiration` > `Ttl` > `SlidingExpiration`. A sliding expiration is
-persisted and re-applied on each access — reading refreshes `AccessedAt`, writing also `UpdatedAt`.
+persisted and re-applied on each access: reading refreshes `AccessedAt`, writing also `UpdatedAt`.
 
 ---
 
@@ -311,28 +311,47 @@ a key that must already exist:
 var (ec, record) = await manager.TryGetForWritingAsync(key, new BlobStoreOptions { Ttl = TimeSpan.FromHours(1) }, ct);
 ```
 
-It applies nothing when the acquisition fails, and — unlike `TryGetOrSetAsync`, which persists options
-immediately because it may downgrade to a read lock — it writes on dispose along with everything else
+It applies nothing when the acquisition fails, and: unlike `TryGetOrSetAsync`, which persists options
+immediately because it may downgrade to a read lock: it writes on dispose along with everything else
 you changed. So the handle still has to be disposed for the options to reach storage.
 
 ---
 
 ## Not supported, on purpose
 
-**Writing at an arbitrary position with the tail preserved.** No object store can do it — there is no
-partial overwrite and no `SetLength` — so supporting it on the file system alone would make the
+**Writing at an arbitrary position with the tail preserved.** No object store can do it: there is no
+partial overwrite and no `SetLength`: so supporting it on the file system alone would make the
 contract unimplementable elsewhere. Resumable upload does not need it: `record.Size` tells you how many
 bytes are already stored, and the rest is a plain append.
+
+---
+
+## Key Format and Storage Layout
+
+### Logical Separator (`:`)
+Keys use `:` (colon) as the standard logical hierarchy separator (e.g. `tenant:reports:2026:august.pdf`). Colon is unreserved in RFC 3986 `pchar`, making keys safe to pass directly inside URL path segments (`/api/blobs/{key}`) without percent-encoding issues or catch-all wildcard routing.
+
+### Storage Layout Rules
+- **Multi-Segment Keys:** When `HierarchySeparator` is configured on the filesystem store (default `':'`), multi-segment keys create physical nested subdirectories.
+- **Single-Segment / Flat Keys:** Keys without the hierarchy separator are uniformly distributed into 2-level directory buckets derived from `XxHash3` (`_basePath/hash[0..2]/hash[2..4]/filename`).
+- **Pure Hash-Sharding:** Setting `HierarchySeparator = null` disables folder splitting and routes all keys through hash-sharded buckets.
+
+### Escaping Mechanics
+1. **Reversible `%XX` Encoding:** Invalid filesystem characters and `%` itself are hex-encoded, guaranteeing zero collisions.
+2. **File Extension Preservation:** Standard filename characters and extensions (`.png`, `.pdf`) remain untouched for direct path resolution via `ResolveLocationAsync`.
+3. **DOS/Windows Device Names:** Reserved names (`CON`, `PRN`, `AUX`, `NUL`, `COM1`-`COM9`, `LPT1`-`LPT9` with or without extensions) have their first character escaped (e.g. `con.txt` -> `%63on.txt`) so Win32 never mistakes a file for a system device pipe.
+4. **Trailing Dots & Spaces:** Win32 silently trims trailing `.` and ` `; escaping them (`%2E`, `%20`) ensures `name.` and `name` never alias to the same file.
 
 ---
 
 ## Testing & Quality
 
 - **Test Suite:** `ActDim.BytePath.Tests`
-- **Total Tests:** 74 passed (100% success rate, 0 failed, 0 skipped)
+- **Total Tests:** 101 passed (100% success rate, 0 failed, 0 skipped)
 - **Target Framework:** .NET 10.0
 
 ```bash
 dotnet test Tests/BytePath.Tests/ActDim.BytePath.Tests.csproj
 ```
+
 

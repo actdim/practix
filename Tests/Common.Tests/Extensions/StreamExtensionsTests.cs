@@ -11,7 +11,7 @@ namespace ActDim.Practix.Common.Tests.Extensions
 {
     public class StreamExtensionsTests
     {
-        private const string SampleText = "Hello, 世界! 😀 — mixed ASCII + Japanese + emoji (surrogate pair).";
+        private const string SampleText = "Hello, 世界! 😀 - mixed ASCII + Japanese + emoji (surrogate pair).";
 
         private static byte[] MakeBytes(int count)
         {

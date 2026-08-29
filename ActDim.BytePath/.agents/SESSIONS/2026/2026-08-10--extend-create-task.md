@@ -10,7 +10,7 @@
 
 ### `.agents/TASKS/add-try-create-with-conflict-behavior.md`
 - Added "Convenience creation" section to Decisions:
-  - Extension methods on `IBlobManager` (not interface members) — keeps the interface stable for backends, lets DI registration (task `di-registration`) expose without interface churn.
+  - Extension methods on `IBlobManager` (not interface members): keeps the interface stable for backends, lets DI registration (task `di-registration`) expose without interface churn.
   - Overloads for `byte[]`, `Stream`, and producer delegate (`Func<Stream, CancellationToken, Task>`).
   - Each internally calls `TryCreateAsync` then writes content; returns `(errorCode, record)` with `IsNew = true`.
   - Non-options variants with defaults (`LockType.Write`, `ConflictBehavior.Fail`).
@@ -24,7 +24,7 @@
 
 ## Rationale
 
-The original task (`TryCreateAsync`) solves "what if the key already exists?" — conflict behavior.
-The user's request solves "don't make me write content manually" — one-shot creation.
+The original task (`TryCreateAsync`) solves "what if the key already exists?": conflict behavior.
+The user's request solves "don't make me write content manually": one-shot creation.
 Both share the same entry point (`TryCreateAsync`), so they belong in one task. The extension method
 form keeps the interface lean while delivering the ergonomics callers need.

@@ -10,8 +10,8 @@ namespace ActDim.BytePath
     /// Turns a write-only producer into a readable stream, so a store that can only consume content
     /// still supports push-style writing. This is the default behind
     /// <see cref="IBlobDataStore.PutAsync(BlobRecord, Func{Stream, CancellationToken, Task}, CancellationToken)"/>;
-    /// a store that can hand out its own destination stream — as
-    /// a file-system store does — overrides that and never comes here.
+    /// a store that can hand out its own destination stream - as
+    /// a file-system store does - overrides that and never comes here.
     /// </summary>
     internal static class ProducerStreamBridge
     {
@@ -55,7 +55,7 @@ namespace ActDim.BytePath
                     : await dataStore.PutAsync(blobRecord, source, ct);
 
                 // Reaching here means the store read to the end of the pipe, which only happens once
-                // the writer has completed — so the producer has finished. Awaiting it is a formality
+                // the writer has completed - so the producer has finished. Awaiting it is a formality
                 // that keeps the task from being abandoned.
                 await producing;
                 return size;
@@ -91,7 +91,7 @@ namespace ActDim.BytePath
 
             // A producer failure travels through the pipe: the reader rethrows it, the store's read
             // fails, and the caller sees the original exception from the write call. So this method
-            // never throws on its own — there is exactly one path out.
+            // never throws on its own - there is exactly one path out.
             await writer.CompleteAsync(failure);
         }
     }

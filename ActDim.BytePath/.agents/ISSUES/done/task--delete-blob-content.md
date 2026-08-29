@@ -9,8 +9,8 @@
 Every deletion path removes metadata only. `IBlobDataStore` has no delete operation at all, so
 the stored bytes are never touched:
 
-- `DeleteAsync(key)` — drops the `blob_records` row and the locks, leaves the file.
-- `DeleteExpiredAsync` / `DeleteOlderThanAsync` / `CleanupAsync` — same, in bulk.
+- `DeleteAsync(key)`: drops the `blob_records` row and the locks, leaves the file.
+- `DeleteExpiredAsync` / `DeleteOlderThanAsync` / `CleanupAsync`: same, in bulk.
 
 Consequences: storage grows without bound (worst for TTL/sliding-expiration cache usage, where
 records expire constantly), and recreating a deleted key reports `IsNew` while stale content sits
@@ -22,8 +22,8 @@ on disk.
 operation, and returns whether anything was removed. `BlobManager` orchestrates every deletion,
 since it is the only layer that sees both the registry and the data store.
 
-Ordering is **content first, then metadata**: a leftover registry row is recoverable — decision
-#001 reports it as `IsNew` and `TryGetFor*` prunes it — whereas a leftover file is invisible to
+Ordering is **content first, then metadata**: a leftover registry row is recoverable: decision
+#001 reports it as `IsNew` and `TryGetFor*` prunes it: whereas a leftover file is invisible to
 the library and lost for good.
 
 Single key: acquire the write lock through the registry, delete content, delete rows while still

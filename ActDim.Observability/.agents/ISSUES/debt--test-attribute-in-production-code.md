@@ -19,7 +19,7 @@ updated: 2026-08-15
 A test detail leaked into the library. `EventObservabilityOptions.RegisterProviderAlias` exists precisely so tests can declare aliases without the library knowing about them.
 
 ## Proposal
-Drop the `TestProviderAliasAttribute` branch and have the tests register their aliases through `RegisterProviderAlias`. Matching by type name rather than by type is itself a workaround for `ProviderAliasAttribute` living in a package the library does not reference — worth a comment stating that, so the remaining string comparison does not look accidental.
+Drop the `TestProviderAliasAttribute` branch and have the tests register their aliases through `RegisterProviderAlias`. Matching by type name rather than by type is itself a workaround for `ProviderAliasAttribute` living in a package the library does not reference: worth a comment stating that, so the remaining string comparison does not look accidental.
 
 ## Acceptance
 - [ ] No test type names appear in the library.

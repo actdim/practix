@@ -21,11 +21,11 @@ async Task<int> DeleteAsync(IEnumerable<BlobRecord> blobRecords, CancellationTok
 ```
 
 Default: loop over the single-key `DeleteAsync`, same as today. An object store overrides it and
-chunks by its own batch limit. Same shape as `ExistsAsync` deriving from `GetSizeAsync` (#002) — one
+chunks by its own batch limit. Same shape as `ExistsAsync` deriving from `GetSizeAsync` (#002): one
 primitive is mandatory, the batch form is an optimisation.
 
 The constraint from #004 stays: content is deleted only for keys whose write lock was actually
-acquired. So the lock acquisition stays per key and only the content deletion batches — collect the
+acquired. So the lock acquisition stays per key and only the content deletion batches: collect the
 successfully locked records, delete their content in one call, then delete the rows. Keys that failed
 to lock are skipped exactly as now.
 

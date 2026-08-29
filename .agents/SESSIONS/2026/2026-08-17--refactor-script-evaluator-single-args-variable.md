@@ -28,4 +28,4 @@ summary: Refactored ScriptEvaluator and Interpolator to use a single canonical, 
 
 ## Verification
 - Clean build of `ActDim.Emitron.csproj` with zero warnings.
-- Executed `dotnet test ActDim.Practix.sln` — 100% pass rate across all 490 tests in 6 test assemblies.
+- Executed `dotnet test ActDim.Practix.sln`: 100% pass rate across all 490 tests in 6 test assemblies.

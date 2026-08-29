@@ -10,7 +10,7 @@ summary: TryGetForWritingAsync now accepts BlobStoreOptions, applied to the hand
 ## What changed & why
 
 #007 made `BlobRecord.Apply` public so an existing blob's metadata could be changed under the write
-lock it was handed out with, but the acquiring call itself still took no options — only
+lock it was handed out with, but the acquiring call itself still took no options: only
 `TryGetOrSetAsync` did. Updating an existing blob therefore always read as acquire-then-apply while
 the create-or-update path read as one call, purely because of which overload existed.
 
@@ -32,22 +32,22 @@ handle's lifetime and dispose persists the record anyway, so writing earlier wou
 Not extended to `TryGetForReadingAsync`: `Apply` requires a write lock, and the read-dispose hole
 tracked by `read-lock-persists-mutations` is a reason not to widen that path.
 
-`IBlobRegistry` and `SQLiteBlobRegistry` are untouched — applying options is computation over a
+`IBlobRegistry` and `SQLiteBlobRegistry` are untouched: applying options is computation over a
 record (#007), so it belongs in `BlobManager`.
 
 ## Files touched
 
-- `IBlobManager.cs` — the two overloads + XML doc on the persist-on-dispose behaviour
-- `BlobManager.cs` — implementation and `ApplyOptions`
-- `Tests/BlobManager.Tests/BlobManagerTests.cs` — 3 tests: metadata/TTL persisted on dispose, missing
+- `IBlobManager.cs`: the two overloads + XML doc on the persist-on-dispose behaviour
+- `BlobManager.cs`: implementation and `ApplyOptions`
+- `Tests/BlobManager.Tests/BlobManagerTests.cs`: 3 tests: metadata/TTL persisted on dispose, missing
   key still `KeyNotFound`, timed-out acquisition applies nothing
-- `README.md` — the shorthand added to "Changing metadata"
-- `AGENTS.md` — invariant #7 note, test count 41 → 64 (it was stale)
+- `README.md`: the shorthand added to "Changing metadata"
+- `AGENTS.md`: invariant #7 note, test count 41 → 64 (it was stale)
 - `.agents/DECISIONS.md` (#008), `.agents/CONTEXT.md`
 
 ## Tasks advanced
 
-None — this closes the gap #007's context called out; no task file covered it.
+None: this closes the gap #007's context called out; no task file covered it.
 
 ## Gaps / follow-ups
 

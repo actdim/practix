@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace ActDim.Three.Core
 {
     /// <summary>
-    /// A font used by TextGeometry. NOTE: this is a ThreeLib extension — the standard three.js
+    /// A font used by TextGeometry. NOTE: this is a ThreeLib extension - the standard three.js
     /// Object/Scene format has no `fonts` pool (fonts are loaded separately via FontLoader).
     /// </summary>
     [DataContract]

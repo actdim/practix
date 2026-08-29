@@ -26,5 +26,5 @@ Nothing outside the assembly could use this library. `BlobManager` was internal,
 
 - [x] a consumer outside the assembly can obtain an `IBlobManager` without `InternalsVisibleTo`
 - [x] registry registered as a singleton, with the reason documented at the registration site
-- [x] `BlobManagerModule.cs` either implemented or deleted — not left commented out
+- [x] `BlobManagerModule.cs` either implemented or deleted: not left commented out
 - [x] `README.md`'s status note removed, and its quick-start example made real

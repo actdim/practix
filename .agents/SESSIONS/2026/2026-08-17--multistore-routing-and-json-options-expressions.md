@@ -53,7 +53,7 @@ summary: Implemented multi-backend KeyPrefix routing in ActDim.BytePath, refacto
 
 ## 3. Verification
 
-- Ran `dotnet test Tests/BytePath.Tests/ActDim.BytePath.Tests.csproj` — 74 passed.
-- Ran `dotnet test Tests/Json.Tests/ActDim.Practix.Json.Tests.csproj` — 102 passed.
-- Ran `dotnet test Tests/Common.Tests/ActDim.Practix.Common.Tests.csproj` — 213 passed.
-- Ran `dotnet test ActDim.Practix.sln -c Release` — all 500 tests across the solution passed with zero errors.
+- Ran `dotnet test Tests/BytePath.Tests/ActDim.BytePath.Tests.csproj`: 74 passed.
+- Ran `dotnet test Tests/Json.Tests/ActDim.Practix.Json.Tests.csproj`: 102 passed.
+- Ran `dotnet test Tests/Common.Tests/ActDim.Practix.Common.Tests.csproj`: 213 passed.
+- Ran `dotnet test ActDim.Practix.sln -c Release`: all 500 tests across the solution passed with zero errors.

@@ -82,7 +82,7 @@ namespace ActDim.Three.Tests
 		[Fact]
 		public void SerializesArbitraryThreeObject()
 		{
-			// Not a SceneDocument — an individual geometry round-trips via the shared STJ options.
+			// Not a SceneDocument - an individual geometry round-trips via the shared STJ options.
 			var geometry = new BufferGeometry { Uuid = Guid.NewGuid() };
 			geometry.Attributes.Add("position", BufferAttribute.Float32([0, 0, 0, 1, 1, 1], 3));
 
