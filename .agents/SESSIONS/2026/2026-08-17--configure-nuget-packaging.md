@@ -36,4 +36,4 @@ summary: Configured 6 ActDim library projects for NuGet package publishing with 
 ## Verification
 - Executed `dotnet pack ActDim.Practix.sln --configuration Release --output ./nupkgs`.
 - Successfully generated `.nupkg` and `.snupkg` symbol packages in `./nupkgs/` for target libraries.
-- Executed `dotnet test ActDim.Practix.sln` — all 484 tests passed across 6 test assemblies.
+- Executed `dotnet test ActDim.Practix.sln`: all 484 tests passed across 6 test assemblies.

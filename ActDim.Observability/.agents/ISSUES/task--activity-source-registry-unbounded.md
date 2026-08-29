@@ -19,7 +19,7 @@ observability.PushActivitySourceName($"Worker.{tenantId}");   // a new ActivityS
 Each entry also stays visible to every registered `ActivityListener`, so the cost is not only memory.
 
 ## Proposal
-State the constraint in the doc comment of `ActivitySourceRegistry` and of `PushActivitySourceName` — source names identify a component, not an instance of work. Optionally cap the registry size and fall back to the default source with a one-time warning when the cap is exceeded, so misuse surfaces instead of leaking quietly.
+State the constraint in the doc comment of `ActivitySourceRegistry` and of `PushActivitySourceName`: source names identify a component, not an instance of work. Optionally cap the registry size and fall back to the default source with a one-time warning when the cap is exceeded, so misuse surfaces instead of leaking quietly.
 
 ## Acceptance
 - [ ] The bounded-set requirement is documented where a caller will see it.

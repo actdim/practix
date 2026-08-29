@@ -462,7 +462,7 @@ namespace ActDim.BytePath.Tests
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
 
-            // Zero-byte content exists — absence is null, not a size of 0.
+            // Zero-byte content exists - absence is null, not a size of 0.
             await env.SeedAsync("exists-empty-key", ct);
 
             var (_, record) = await env.Manager.TryGetForReadingAsync("exists-empty-key", ct);
@@ -535,17 +535,23 @@ namespace ActDim.BytePath.Tests
         // ── Key → path mapping ───────────────────────────────────────────────────
 
         [Theory]
-        // Differ only in a character a file name cannot carry, so a lossy sanitiser would fold them
-        // together. The multi-segment branch has no hash in the path to save it.
-        [InlineData("dir/a:b", "dir/a_b")]
-        [InlineData("dir/a?b", "dir/a_b")]
+        // Differ only in a character a file name cannot carry, so a lossy sanitiser would fold them together.
+        [InlineData("dir:a/b", "dir:a_b")]
+        [InlineData("dir:a?b", "dir:a_b")]
+        [InlineData("dir:a*b", "dir:a_b")]
         // '\' is an ordinary character, not a separator, so this is a flat key rather than 'a' + 'b'.
-        [InlineData("coll\\b", "coll/b")]
+        [InlineData("coll\\b", "coll:b")]
         // Windows trims a trailing dot and space, which would alias these onto the bare name.
-        [InlineData("dir/trail.", "dir/trail")]
-        [InlineData("dir/space ", "dir/space")]
+        [InlineData("dir:trail.", "dir:trail")]
+        [InlineData("dir:space ", "dir:space")]
         // The escape character itself has to be escaped, or an escaped form could be forged.
-        [InlineData("dir/pct%3Ax", "dir/pct:x")]
+        [InlineData("dir:pct%3Ax", "dir:pct:x")]
+        // Windows reserved device names
+        [InlineData("dir:con", "dir:con_file")]
+        [InlineData("dir:aux.json", "dir:aux_json")]
+        [InlineData("dir:nul", "dir:nul_file")]
+        [InlineData("dir:com1", "dir:com1_file")]
+        [InlineData("dir:lpt9", "dir:lpt9_file")]
         public async Task DistinctKeys_NeverShareContent(string first, string second)
         {
             var ct = TestContext.Current.CancellationToken;
@@ -559,19 +565,139 @@ namespace ActDim.BytePath.Tests
         }
 
         [Fact]
-        public async Task Key_WithSeparators_KeepsItsFileExtension()
+        public async Task Key_WithColonSeparators_KeepsItsFileExtension()
         {
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
 
             // Escaping must not disturb an ordinary name: the extension still has to survive, since
             // ResolveLocationAsync is what callers hand to anything that inspects it.
-            await env.SeedAsync("reports/2026/august.png", ct, content: "payload");
+            await env.SeedAsync("reports:2026:august.png", ct, content: "payload");
 
-            var location = await env.LocateAsync("reports/2026/august.png", ct);
+            var location = await env.LocateAsync("reports:2026:august.png", ct);
 
             Assert.EndsWith(".png", location, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("reports", location);
+            Assert.Contains("2026", location);
+        }
+
+        [Theory]
+        [InlineData("CON")]
+        [InlineData("PRN")]
+        [InlineData("AUX")]
+        [InlineData("NUL")]
+        [InlineData("COM1")]
+        [InlineData("COM9")]
+        [InlineData("LPT1")]
+        [InlineData("LPT9")]
+        [InlineData("con.png")]
+        [InlineData("aux.json")]
+        [InlineData("nul.dat")]
+        [InlineData("com1.txt")]
+        [InlineData("folder:con.txt")]
+        public async Task WindowsReservedNames_RoundTripSuccessfully(string key)
+        {
+            var ct = TestContext.Current.CancellationToken;
+            await using var env = new TestEnvironment();
+
+            await env.SeedAsync(key, ct, content: "payload-" + key);
+
+            var read = await env.ReadTextAsync(key, ct);
+            Assert.Equal("payload-" + key, read);
+
+            var location = await env.LocateAsync(key, ct);
+            Assert.NotNull(location);
+            Assert.True(File.Exists(location));
+        }
+
+        [Fact]
+        public async Task CustomHierarchySeparator_Tilde_SplitsSegments()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_tilde_" + Guid.NewGuid().ToString("N"));
+            var storeDir = Path.Combine(tempBase, "store");
+            var dbPath = Path.Combine(tempBase, "registry.db");
+
+            try
+            {
+                var store = new FileSystemBlobDataStore(new FileSystemBlobDataStoreOptions
+                {
+                    BaseDirectory = storeDir,
+                    HierarchySeparator = '~'
+                });
+                var registry = new SQLiteBlobRegistry(dbPath);
+                var manager = new BlobManager(store, registry);
+
+                var (code, record) = await manager.TryGetOrSetAsync("reports~2026~august.png", ct);
+                Assert.Equal(BlobErrorCode.None, code);
+                await using (record)
+                {
+                    await store.PutAsync(record, Content("tilde payload"), ct);
+                }
+
+                var location = await store.ResolveLocationAsync(record, ct);
+                Assert.NotNull(location);
+                Assert.EndsWith(".png", location, StringComparison.OrdinalIgnoreCase);
+                Assert.Contains(Path.Combine("reports", "2026"), location);
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try
+                    {
+                        Directory.Delete(tempBase, true);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task HierarchySeparator_Disabled_UsesHashSharding()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_nohierarchy_" + Guid.NewGuid().ToString("N"));
+            var storeDir = Path.Combine(tempBase, "store");
+            var dbPath = Path.Combine(tempBase, "registry.db");
+
+            try
+            {
+                var store = new FileSystemBlobDataStore(new FileSystemBlobDataStoreOptions
+                {
+                    BaseDirectory = storeDir,
+                    HierarchySeparator = null
+                });
+                var registry = new SQLiteBlobRegistry(dbPath);
+                var manager = new BlobManager(store, registry);
+
+                var (code, record) = await manager.TryGetOrSetAsync("reports:2026:august.png", ct);
+                Assert.Equal(BlobErrorCode.None, code);
+                await using (record)
+                {
+                    await store.PutAsync(record, Content("nohierarchy payload"), ct);
+                }
+
+                var location = await store.ResolveLocationAsync(record, ct);
+                Assert.NotNull(location);
+                // When hierarchy is disabled, "reports:2026:august.png" is treated as a flat key with ":" escaped into "%3A"
+                Assert.Contains("%3A", Path.GetFileName(location));
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try
+                    {
+                        Directory.Delete(tempBase, true);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
         }
 
         // ── BlobRecord.Apply ─────────────────────────────────────────────────────
@@ -584,7 +710,7 @@ namespace ActDim.BytePath.Tests
 
             await env.SeedAsync("apply-key", ct, content: "payload");
 
-            // Updating an existing blob's metadata needs only the write lock it was handed out with —
+            // Updating an existing blob's metadata needs only the write lock it was handed out with -
             // no round trip through TryGetOrSetAsync.
             var (_, record) = await env.Manager.TryGetForWritingAsync("apply-key", ct);
             await using (record)
@@ -698,7 +824,7 @@ namespace ActDim.BytePath.Tests
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
 
-            // No record, so there is nothing to apply the options to — and no handle to dispose.
+            // No record, so there is nothing to apply the options to - and no handle to dispose.
             var (ec, record) = await env.Manager.TryGetForWritingAsync(
                 "nonexistent",
                 new BlobStoreOptions { ContentType = "image/png" },
@@ -836,7 +962,7 @@ namespace ActDim.BytePath.Tests
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
 
-            // Registers the record only — nothing writes the blob itself.
+            // Registers the record only - nothing writes the blob itself.
             var (_, reserved) = await env.Manager.TryGetOrSetAsync("no-content-key", ct);
             await using (reserved) { }
 
@@ -1511,6 +1637,64 @@ namespace ActDim.BytePath.Tests
                 if (Directory.Exists(tempBase))
                 {
                     try { Directory.Delete(tempBase, true); } catch { }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Store_WithKeyPrefix_StripsPrefixInStoragePath()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_strip_prefix_" + Guid.NewGuid().ToString("N"));
+            var storeDir = Path.Combine(tempBase, "store");
+            var dbPath = Path.Combine(tempBase, "registry.db");
+
+            try
+            {
+                var store = new FileSystemBlobDataStore(storeDir, "fs:");
+                var registry = new SQLiteBlobRegistry(dbPath);
+                var manager = new BlobManager(store, registry);
+
+                // Multi-segment key with prefix
+                var (code1, record1) = await manager.TryGetOrSetAsync("fs:reports:2026:file.png", ct);
+                Assert.Equal(BlobErrorCode.None, code1);
+                await using (record1)
+                {
+                    await store.PutAsync(record1, Content("data"), ct);
+                }
+
+                var loc1 = await store.ResolveLocationAsync(record1, ct);
+                Assert.NotNull(loc1);
+                // Should be storeDir/reports/2026/file.png, NOT storeDir/fs/reports/2026/file.png
+                var expectedSubpath = Path.Combine("reports", "2026", "file.png");
+                Assert.EndsWith(expectedSubpath, loc1, StringComparison.OrdinalIgnoreCase);
+                Assert.DoesNotContain(Path.Combine("store", "fs"), loc1, StringComparison.OrdinalIgnoreCase);
+
+                // Flat key with prefix
+                var (code2, record2) = await manager.TryGetOrSetAsync("fs:avatar.png", ct);
+                Assert.Equal(BlobErrorCode.None, code2);
+                await using (record2)
+                {
+                    await store.PutAsync(record2, Content("avatar"), ct);
+                }
+
+                var loc2 = await store.ResolveLocationAsync(record2, ct);
+                Assert.NotNull(loc2);
+                // Should be hash-sharded directly in storeDir without an "fs" folder
+                Assert.EndsWith("avatar.png", loc2, StringComparison.OrdinalIgnoreCase);
+                Assert.DoesNotContain(Path.Combine("store", "fs"), loc2, StringComparison.OrdinalIgnoreCase);
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try
+                    {
+                        Directory.Delete(tempBase, true);
+                    }
+                    catch
+                    {
+                    }
                 }
             }
         }

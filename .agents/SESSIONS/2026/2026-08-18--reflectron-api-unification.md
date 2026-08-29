@@ -21,13 +21,13 @@ summary: Unified ActDim.Reflectron into a modern, single-brand API with IReflect
    - Created `IReflectron<T>` with indexer `this[string name] { get; set; }`, `Get<TMember>`, `Set<TMember>`, and `GetMethod<TDelegate>` overloads.
    - Implemented `Reflectron<T>` in `Reflectron.Generic.cs` with weak-referenced target storage (`WeakReference<T>`) and static generic helpers.
    - Decomposed static `Reflectron` engine across modular partial classes:
-     - `Reflectron.cs` — static entry points and `Reflectron.For` instance factories.
-     - `Reflectron.Members.cs` — Expression-tree member info extraction and delegate type builders.
-     - `Reflectron.Properties.cs` — Property getter and setter compilation and caching.
-     - `Reflectron.Fields.cs` — Field getter and setter compilation and caching.
-     - `Reflectron.Methods.cs` — Fast method call compilation and dispatching.
-     - `Reflectron.Constructors.cs` — Constructor delegate generation and IL `DynamicMethod` builders.
-     - `Reflectron.Events.cs` — Event adder and remover compilation.
+     - `Reflectron.cs`: static entry points and `Reflectron.For` instance factories.
+     - `Reflectron.Members.cs`: Expression-tree member info extraction and delegate type builders.
+     - `Reflectron.Properties.cs`: Property getter and setter compilation and caching.
+     - `Reflectron.Fields.cs`: Field getter and setter compilation and caching.
+     - `Reflectron.Methods.cs`: Fast method call compilation and dispatching.
+     - `Reflectron.Constructors.cs`: Constructor delegate generation and IL `DynamicMethod` builders.
+     - `Reflectron.Events.cs`: Event adder and remover compilation.
 2. **Extensions Organization**:
    - Moved `ObjectExtensions.cs` and `TypeExtensions.cs` into `ActDim.Reflectron/Extensions/`.
    - Added `type.Reflect<T>()` and `type.Reflect()` factory extensions.

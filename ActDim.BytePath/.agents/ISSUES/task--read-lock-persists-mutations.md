@@ -15,7 +15,7 @@ await UpdateRecordAsync(record, CancellationToken.None);
 ```
 
 So anything a caller changed on a **read**-locked record reaches storage on dispose. A read lock admits
-concurrent readers, so two of them can mutate the same record and the last to dispose wins — silently,
+concurrent readers, so two of them can mutate the same record and the last to dispose wins: silently,
 with no error and no way for either to notice.
 
 Found while doing #007. The public `BlobRecord.Apply` guards against it (`LockType != Write` throws),
@@ -28,7 +28,7 @@ Two candidate shapes.
 
 **Persist only what a read is allowed to change.** `UpdateOnReadDisposeAsync` writes just
 `accessed_at` and `expires_at` instead of the whole row. Narrow, no API change, and it makes the
-read path do less work. A caller's stray mutation is then simply dropped rather than persisted —
+read path do less work. A caller's stray mutation is then simply dropped rather than persisted -
 silent, but harmless, which is the right trade for a read lock.
 
 **Or refuse the mutation outright.** Every settable property checks the lock, like `Apply` does. Loud,
@@ -38,7 +38,7 @@ reused as a plain DTO.
 
 Prefer the first: the read path should not be writing those columns at all, so fixing what it persists
 addresses the cause rather than policing the caller. Note the same argument does **not** apply to
-`UpdateOnWriteDisposeAsync` — under a write lock persisting the whole record is the intended behaviour
+`UpdateOnWriteDisposeAsync`: under a write lock persisting the whole record is the intended behaviour
 (#007).
 
 ## Done when

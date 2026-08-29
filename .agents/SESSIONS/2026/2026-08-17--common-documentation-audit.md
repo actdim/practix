@@ -7,7 +7,7 @@ commit: HEAD
 summary: Complete documentation and XML doc audit for ActDim.Practix.Common
 ---
 
-# Session Summary — 2026-08-17 — common-documentation-audit
+# Session Summary: 2026-08-17: common-documentation-audit
 
 ## Changes Made
 1. **XML Documentation Coverage:**

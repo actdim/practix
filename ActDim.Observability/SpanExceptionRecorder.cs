@@ -8,7 +8,7 @@ namespace ActDim.Observability
     /// <summary>
     /// Records an exception on a span at most once per span. The everyday catch / log / rethrow pattern reports the
     /// same exception instance on every layer it passes through, which would otherwise add several identical
-    /// <c>exception</c> events — with identical stack traces — to a single span.
+    /// <c>exception</c> events - with identical stack traces - to a single span.
     /// </summary>
     /// <remarks>
     /// Keys are held weakly, so an entry lives exactly as long as the exception it belongs to. Identity is preserved

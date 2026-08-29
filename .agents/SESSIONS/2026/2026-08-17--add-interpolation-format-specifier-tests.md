@@ -20,4 +20,4 @@ summary: Added explicit custom context access and function invocation unit tests
 - `Tests/Emitron.Tests/InterpolatorTests.cs`
 
 ## Verification
-- Executed `dotnet test ActDim.Practix.sln` — 100% pass rate across all 493 tests in 6 test assemblies.
+- Executed `dotnet test ActDim.Practix.sln`: 100% pass rate across all 493 tests in 6 test assemblies.

@@ -14,7 +14,7 @@ namespace ActDim.Observability
     /// data properties are written to the current <see cref="Activity"/> as tags (OpenTelemetry span attributes) as they
     /// are set, and restored when the returned handle is disposed. Properties set before an <see cref="Activity"/> exists
     /// are still picked up when <see cref="EventObservabilityBridge.BeginScope{TState}"/> starts one.
-    /// Control switches are never exported — they only configure the pipeline for the duration of the scope.
+    /// Control switches are never exported - they only configure the pipeline for the duration of the scope.
     /// </remarks>
     public interface IObservabilityContext
     {

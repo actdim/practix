@@ -30,4 +30,4 @@ summary: Renamed ScriptEvaluator to ScriptEngine and standardized on @params as 
 
 ## Verification
 - Clean build of `ActDim.Emitron.csproj` with zero warnings.
-- Executed `dotnet test ActDim.Practix.sln` — 100% pass rate across all 489 tests in 6 test assemblies.
+- Executed `dotnet test ActDim.Practix.sln`: 100% pass rate across all 489 tests in 6 test assemblies.

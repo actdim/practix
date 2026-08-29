@@ -21,4 +21,4 @@ summary: Renamed InterpolationFormatter to Interpolator in ActDim.Emitron.
 - `README.md`
 
 ## Verification
-- Executed `dotnet test ActDim.Practix.sln` — all 484 tests passed across 6 test assemblies.
+- Executed `dotnet test ActDim.Practix.sln`: all 484 tests passed across 6 test assemblies.

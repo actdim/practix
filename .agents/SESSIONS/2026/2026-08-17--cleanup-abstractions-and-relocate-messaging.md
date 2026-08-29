@@ -23,5 +23,5 @@ summary: Removed legacy IO/BlobStorage contracts from Abstractions, relocated Me
   - Set `<IsPackable>false</IsPackable>` on `ActDim.AppRegistry.Domain.csproj`.
 
 ## Verification
-- Executed `dotnet test ActDim.Practix.sln` — all 493 tests passed.
-- Executed `dotnet pack ActDim.Practix.sln -c Release` — all 8 packable NuGet packages created cleanly without missing README warnings.
+- Executed `dotnet test ActDim.Practix.sln`: all 493 tests passed.
+- Executed `dotnet pack ActDim.Practix.sln -c Release`: all 8 packable NuGet packages created cleanly without missing README warnings.

@@ -21,7 +21,7 @@ namespace ActDim.Observability
     /// <see cref="Log{TState}"/> owns the log side and produces a log record only; the trace context of that record is
     /// attached by the logging pipeline itself. The single exception is <see cref="Exception"/> recording, which is
     /// reported to the current span through <see cref="Activity.AddException"/> so that failures never stay invisible
-    /// in traces — see <see cref="EventObservabilityOptions.RecordExceptionsOnSpan"/>.
+    /// in traces - see <see cref="EventObservabilityOptions.RecordExceptionsOnSpan"/>.
     /// </remarks>
     public sealed class EventObservabilityBridge : ILogger, ISupportExternalScope
     {

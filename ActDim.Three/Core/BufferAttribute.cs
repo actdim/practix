@@ -6,7 +6,7 @@ namespace ActDim.Three.Core
     /// <summary>
     /// A named vertex buffer attribute. The numeric payload is a typed <see cref="ITypedArray"/>
     /// (primitive <c>T[]</c> backing, no per-element boxing). (De)serialization is handled entirely by
-    /// <c>BufferAttributeConverter</c> — this type carries no serialization attributes.
+    /// <c>BufferAttributeConverter</c> - this type carries no serialization attributes.
     /// </summary>
     public class BufferAttribute
     {
@@ -36,7 +36,7 @@ namespace ActDim.Three.Core
 
         /// <summary>
         /// Builds an attribute from an arbitrary <see cref="Array"/>, copying/converting into the typed
-        /// buffer selected by <paramref name="type"/>. Convenience path — see
+        /// buffer selected by <paramref name="type"/>. Convenience path - see
         /// <see cref="TypedArrays.FromArray"/>.
         /// </summary>
         public BufferAttribute(string type, Array source, int itemSize, bool normalized = false) : this()
@@ -46,7 +46,7 @@ namespace ActDim.Three.Core
             Values = TypedArrays.FromArray(type, source);
         }
 
-        // Typed factories — take ownership of the primitive array (no copy), zero boxing.
+        // Typed factories - take ownership of the primitive array (no copy), zero boxing.
         public static BufferAttribute Int8(sbyte[] data, int itemSize, bool normalized = false) => Make(new Int8Array { Data = data }, itemSize, normalized);
         public static BufferAttribute Uint8(byte[] data, int itemSize, bool normalized = false) => Make(new Uint8Array { Data = data }, itemSize, normalized);
         public static BufferAttribute Uint8Clamped(byte[] data, int itemSize, bool normalized = false) => Make(new Uint8ClampedArray { Data = data }, itemSize, normalized);
@@ -57,7 +57,7 @@ namespace ActDim.Three.Core
         public static BufferAttribute Float16(Half[] data, int itemSize, bool normalized = false) => Make(new Float16Array { Data = data }, itemSize, normalized);
         public static BufferAttribute Float32(float[] data, int itemSize, bool normalized = false) => Make(new Float32Array { Data = data }, itemSize, normalized);
         public static BufferAttribute Float64(double[] data, int itemSize, bool normalized = false) => Make(new Float64Array { Data = data }, itemSize, normalized);
-        /// <summary>Custom (non-three.js) string buffer — see <see cref="StringArray"/>.</summary>
+        /// <summary>Custom (non-three.js) string buffer - see <see cref="StringArray"/>.</summary>
         public static BufferAttribute String(string[] data, int itemSize = 1) => Make(new StringArray { Data = data }, itemSize, normalized: false);
 
         private static BufferAttribute Make(ITypedArray values, int itemSize, bool normalized)

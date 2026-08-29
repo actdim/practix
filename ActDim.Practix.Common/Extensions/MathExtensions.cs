@@ -6,7 +6,7 @@ namespace ActDim.Practix.Extensions
     /// <summary>
     /// Small numeric helpers that are NOT already provided by the BCL. Pure pass-throughs (Abs, Sqrt, Sign,
     /// Round, Ceiling, Floor, Truncate, trigonometry, Log/Pow/Exp, Min/Max, Clamp, bit-rotation, …) were
-    /// removed on purpose — call <see cref="Math"/>, <see cref="MathF"/> or
+    /// removed on purpose - call <see cref="Math"/>, <see cref="MathF"/> or
     /// <see cref="System.Numerics.BitOperations"/> directly instead.
     /// </summary>
     public static class MathExtensions

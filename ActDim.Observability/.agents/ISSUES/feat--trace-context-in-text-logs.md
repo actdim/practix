@@ -12,7 +12,7 @@ updated: 2026-08-14
 ## Description
 `AddEventObservability` never configures `LoggerFactoryOptions.ActivityTrackingOptions`, whose default is `None`. Text sinks (Console, File, Serilog) therefore emit no `TraceId` / `SpanId`, and a log line cannot be linked back to its span.
 
-Verified: the OpenTelemetry logs pipeline is unaffected — `OpenTelemetryLoggerProvider` fills `LogRecord.TraceId` / `SpanId` from `Activity.Current` natively, and ambient context and external scopes correctly stay out of the `LogRecord` while `IncludeScopes` remains false. Only text sinks lack the correlation.
+Verified: the OpenTelemetry logs pipeline is unaffected: `OpenTelemetryLoggerProvider` fills `LogRecord.TraceId` / `SpanId` from `Activity.Current` natively, and ambient context and external scopes correctly stay out of the `LogRecord` while `IncludeScopes` remains false. Only text sinks lack the correlation.
 
 ## Proposal
 ```csharp

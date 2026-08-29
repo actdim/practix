@@ -7,7 +7,7 @@ commit: pending
 summary: Direct AsyncLocal storage in AmbientContext, removal of AmbientContextProvider, scoped services/user/cancellation/blobs/logging/compression API, BytePath abstractions relocation, solution-wide Nullable annotations, and documentation updates.
 ---
 
-# 2026-08-19 — Ambient Context Enrichment & Architecture Streamlining
+# 2026-08-19: Ambient Context Enrichment & Architecture Streamlining
 
 ## Context & Motivation
 Following the removal of correlation IDs and obsolete control methods, the ambient execution context architecture was overhauled to eliminate unnecessary indirection (`AmbientContextProvider`), provide rich scoped access to `IServiceProvider`, `ClaimsPrincipal`, `CancellationToken`, `IBlobManager`, `ICompressionManager`, and fast zero-DI logging via `AmbientContext.Log<T>()`, relocate BytePath storage contracts to `ActDim.Practix.Abstractions`, and configure uniform `<Nullable>annotations</Nullable>` across all 24 projects in the solution.

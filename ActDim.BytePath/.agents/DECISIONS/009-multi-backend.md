@@ -1,4 +1,4 @@
-## #009 — Multiple `IBlobManager` instances with self-describing key prefixes
+## #009: Multiple `IBlobManager` instances with self-describing key prefixes
 - Date: 2026-08-06
 - Status: proposed
 - Context: `IBlobManager` holds exactly one `IBlobDataStore`. An app needs both FileSystem (for user uploads) and S3 (for cache). No way to express that.
@@ -6,10 +6,10 @@
   - Each `IBlobManager` registers normally in DI. Each knows its `KeyPrefix`.
   - `BlobManagerManifest` holds `Name`, `KeyPrefix`, `DataStore`, `Manager`, and `ResolveKey(key)`.
   - Client iterates all manifests, calls `ResolveKey`, picks the first match.
-  - No routing inside `BlobManager` — the client decides.
+  - No routing inside `BlobManager`: the client decides.
   - Keys carry a prefix: `fs:my-blob`, `s3:my-blob`.
 - Consequences:
-  - Zero coupling between backends — each is independent.
+  - Zero coupling between backends: each is independent.
   - Client code knows which backend it wants.
-  - Key format changes — every key carries a prefix.
+  - Key format changes: every key carries a prefix.
   - Catch-all (empty prefix) matches everything; document that it should be last.

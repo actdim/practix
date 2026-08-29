@@ -8,7 +8,7 @@ namespace ActDim.Practix.Json
     /// Global factory that serializes all enum values as integers,
     /// matching Newtonsoft.Json's default enum behavior.
     /// Property-level converters (e.g. CamelCaseJsonEnumConverter) take precedence over this factory.
-    /// Enums with their own [JsonConverter] attribute are skipped — type-level converters handle them.
+    /// Enums with their own [JsonConverter] attribute are skipped - type-level converters handle them.
     /// Note: in STJ, global Converters have higher priority than type-level [JsonConverter] attributes,
     /// so we must explicitly yield to types that declare their own converter.
     /// </summary>
@@ -22,7 +22,7 @@ namespace ActDim.Practix.Json
                 return false;
             }
 
-            // Yield to types with their own [JsonConverter] — global converters would otherwise
+            // Yield to types with their own [JsonConverter] - global converters would otherwise
             // shadow type-level attributes (STJ priority: property attr > global > type attr)
             return typeToConvert.GetCustomAttributes(typeof(JsonConverterAttribute), inherit: false).Length == 0;
         }

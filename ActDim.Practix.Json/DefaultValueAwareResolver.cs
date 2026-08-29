@@ -10,9 +10,9 @@ namespace ActDim.Practix.Json
     /// <summary>
     /// Honors <see cref="DefaultValueAttribute"/>, <see cref="JsonDefaultValueAttribute"/>, and <see cref="JsonIgnoreDefaultAttribute"/> attributes on properties:
     /// <list type="bullet">
-    ///   <item><see cref="DefaultValueAttribute"/> — used as a default for <see cref="JsonIgnoreDefaultAttribute"/> comparisons (no populate during deserialization).</item>
-    ///   <item><see cref="JsonDefaultValueAttribute"/> — used as the default for <see cref="JsonIgnoreDefaultAttribute"/>, and can populate during deserialization when Populate = true.</item>
-    ///   <item><see cref="JsonIgnoreDefaultAttribute"/> — omits the property from JSON output when its value equals the default
+    ///   <item><see cref="DefaultValueAttribute"/> - used as a default for <see cref="JsonIgnoreDefaultAttribute"/> comparisons (no populate during deserialization).</item>
+    ///   <item><see cref="JsonDefaultValueAttribute"/> - used as the default for <see cref="JsonIgnoreDefaultAttribute"/>, and can populate during deserialization when Populate = true.</item>
+    ///   <item><see cref="JsonIgnoreDefaultAttribute"/> - omits the property from JSON output when its value equals the default
     ///         (taken from <see cref="JsonDefaultValueAttribute"/> if present, otherwise <see cref="DefaultValueAttribute"/>, otherwise the CLR default for the type).</item>
     /// </list>
     /// </summary>

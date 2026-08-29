@@ -23,7 +23,7 @@ status   = "Shipped"            <- was ambient SetStatus("Downloading")
 Everyday calls such as `LogError(ex, "Failed: {Message}", ex.Message)` and `LogInformation("Order {OrderId} → {Status}", id, status)` hit this.
 
 Related defects fixed together:
-- Log level was never written to telemetry at all — an `ActivityEvent` from `LogError` was indistinguishable from `LogDebug`.
+- Log level was never written to telemetry at all: an `ActivityEvent` from `LogError` was indistinguishable from `LogDebug`.
 - Ambient context and external scopes were copied into every event of a span instead of being written once.
 - Exceptions were recorded as ad-hoc `exception.*` tags instead of the OpenTelemetry convention.
 - `ToOtelName` did not handle `{@value}` / `{$value}`, emitting attributes named `@value`.

@@ -19,7 +19,7 @@ namespace ActDim.Practix.Pooling
     /// <c>disposer</c> is invoked for every idle object drained on <see cref="DisposeAsync"/>
     /// (e.g. when the pool is evicted from a cache) and for any object returned after the
     /// pool has been disposed. If no <c>disposer</c> is provided the pool does not touch the
-    /// objects' lifecycle — ownership is an explicit, opt-in contract, never inferred.
+    /// objects' lifecycle - ownership is an explicit, opt-in contract, never inferred.
     /// </summary>
     /// <typeparam name="T">The type of pooled objects.</typeparam>
     public sealed class AsyncObjectPool<T> : IAsyncDisposable where T : class

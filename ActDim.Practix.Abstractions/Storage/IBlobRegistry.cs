@@ -23,7 +23,7 @@ namespace ActDim.BytePath
 
         /// <summary>
         /// Deletes the record and its locks. The caller must already hold the write lock on it,
-        /// which <see cref="BlobRecord.LockType"/> attests — so no lock is acquired here.
+        /// which <see cref="BlobRecord.LockType"/> attests - so no lock is acquired here.
         /// </summary>
         Task DeleteLockedAsync(BlobRecord record, CancellationToken ct);
 

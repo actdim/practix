@@ -120,8 +120,8 @@ namespace ActDim.BytePath
                 ct);
 
         /// <summary>
-        /// Deletes content before metadata. A leftover registry row is recoverable — it is
-        /// reported as new and pruned on the next access — whereas a leftover file is invisible
+        /// Deletes content before metadata. A leftover registry row is recoverable - it is
+        /// reported as new and pruned on the next access - whereas a leftover file is invisible
         /// to the library and lost for good.
         /// </summary>
         private async Task DeleteCoreAsync(string key, TimeSpan? timeout, CancellationToken ct)
@@ -180,7 +180,7 @@ namespace ActDim.BytePath
                 }
                 catch (TimeoutException)
                 {
-                    // Locked again between selection and deletion — leave it for the next sweep.
+                    // Locked again between selection and deletion - leave it for the next sweep.
                 }
                 catch (KeyNotFoundException)
                 {
@@ -188,7 +188,7 @@ namespace ActDim.BytePath
                 }
                 catch (NotSupportedException)
                 {
-                    // Store prefix no longer configured — skip.
+                    // Store prefix no longer configured - skip.
                 }
             }
 
@@ -333,7 +333,7 @@ namespace ActDim.BytePath
             // The size comes from the data store rather than from the registry, because the
             // registry only ever stores what a previous handle happened to persist. The record
             // is handed out under a lock, so this value stays valid for the lifetime of the
-            // handle unless the caller writes through it — see TrackSizeOnDispose.
+            // handle unless the caller writes through it - see TrackSizeOnDispose.
             blobResult.Record.Size = size;
 
             if (size.HasValue)
@@ -361,7 +361,7 @@ namespace ActDim.BytePath
             catch (TimeoutException)
             {
                 // Another participant holds the lock, so whether the record is really orphaned
-                // could not be established — reporting KeyNotFound here would be a guess.
+                // could not be established - reporting KeyNotFound here would be a guess.
                 // The record stays behind for CleanupAsync or a later retry.
                 return new BlobResult(BlobErrorCode.Timeout);
             }

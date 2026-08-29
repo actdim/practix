@@ -61,7 +61,7 @@ public class AppContext : IAppContext
             //     }
             // };
 
-            // JwtRegisteredClaimNames — RFC 7519 (JWT)
+            // JwtRegisteredClaimNames - RFC 7519 (JWT)
             var tokenId = Guid.NewGuid().ToString();
             var claims = new List<Claim> {
                 new(JwtRegisteredClaimNames.PreferredUsername, user.Username),

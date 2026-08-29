@@ -102,7 +102,7 @@ namespace ActDim.BytePath
 
         /// <summary>
         /// Acquires the write lock on an existing blob and applies <paramref name="options"/> to the
-        /// record it hands out — the same thing as calling <see cref="BlobRecord.Apply(BlobStoreOptions)"/> on the
+        /// record it hands out - the same thing as calling <see cref="BlobRecord.Apply(BlobStoreOptions)"/> on the
         /// result, spelled as one call. The values reach storage when the record is disposed, so a
         /// caller that never disposes the handle persists nothing, exactly as with any other
         /// mutation made through it.
@@ -115,7 +115,7 @@ namespace ActDim.BytePath
 
         /// <summary>
         /// Acquires the write lock on an existing blob and applies <paramref name="options"/> to the
-        /// record it hands out, waiting up to <paramref name="timeout"/> — the same thing as calling
+        /// record it hands out, waiting up to <paramref name="timeout"/> - the same thing as calling
         /// <see cref="BlobRecord.Apply(BlobStoreOptions)"/> on the result, spelled as one call.
         /// </summary>
         /// <param name="key">The unique blob key.</param>

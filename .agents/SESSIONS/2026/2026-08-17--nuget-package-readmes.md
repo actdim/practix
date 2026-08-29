@@ -50,5 +50,5 @@ summary: Created and configured required NuGet README.md documentation files acr
 - `.agents/ISSUES.md`
 
 ## Verification
-- Executed `dotnet pack ActDim.Practix.sln -o ./nupkgs_temp` — verified clean output with 0 `missing readme` warnings.
-- Executed `dotnet test ActDim.Practix.sln` — all 493 tests passed across all 6 test assemblies.
+- Executed `dotnet pack ActDim.Practix.sln -o ./nupkgs_temp`: verified clean output with 0 `missing readme` warnings.
+- Executed `dotnet test ActDim.Practix.sln`: all 493 tests passed across all 6 test assemblies.

@@ -23,4 +23,4 @@ summary: Replaced internal __emitron_p requirement in ScriptEvaluator with clean
 - `Tests/Emitron.Tests/ScriptEvaluatorTests.cs`
 
 ## Verification
-- Executed `dotnet test ActDim.Practix.sln` — all 488 tests passed across 6 test assemblies.
+- Executed `dotnet test ActDim.Practix.sln`: all 488 tests passed across 6 test assemblies.

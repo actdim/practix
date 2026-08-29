@@ -4,7 +4,7 @@ slug: common-review-fixes
 agent: Claude Code / claude-opus-4-8
 branch: main
 commit: 4995d1e
-summary: Broad critical review of ActDim.Practix.Common (dubious-value + implementation problems) plus four targeted fixes — ShortId, EnumerableExtensions.While, CallContext, DisposableAction.
+summary: Broad critical review of ActDim.Practix.Common (dubious-value + implementation problems) plus four targeted fixes: ShortId, EnumerableExtensions.While, CallContext, DisposableAction.
 ---
 # Common review + targeted fixes
 
@@ -21,7 +21,7 @@ etc.) remain open and were left untouched.
   `Ceiling`/`Floor`/`Truncate`/trig/`Log`/`Pow`/`Exp`/`BigMul`/`DivRem` → `Math`/`MathF`; `AtLeast`/`AtMost`
   → `Math.Max`/`Min`; `Clamp` → `Math.Clamp`; `RotateLeft`/`RotateRight` → `BitOperations`; `IsNaN` →
   `double.IsNaN`) plus the broken `Remap(byte)` (integer-division normal). Kept only the non-BCL value-adds,
-  fixed and re-styled (real braces, no `#region`): `HasDecimalPart` (was inverted — now
+  fixed and re-styled (real braces, no `#region`): `HasDecimalPart` (was inverted: now
   `value != Math.Truncate(value)`), `IsBetween`, `RoundUp`/`RoundDown(value, factor)` (round to nearest
   multiple), `To(start, bound, step)` typed ranges, `Remap(float)` (now via `Math.Clamp`), `GetValueOrDefault`
   (NaN-coalesce). Trimmed exotic integer-width overloads (kept int/long/float/double/decimal).
@@ -31,13 +31,13 @@ etc.) remain open and were left untouched.
   message saying 8), and a self-contradicting alphabet guard (`c.Length > 20`). Now two static
   `Generate(...)` overloads, cryptographically strong, unbiased, no instance/disposal. Removed the seed and
   custom-`Func` constructors (meaningless with a crypto source).
-- **`EnumerableExtensions.While<T>(source, Func<T,int,bool>)`** — the index `i` was never incremented, so the
+- **`EnumerableExtensions.While<T>(source, Func<T,int,bool>)`**: the index `i` was never incremented, so the
   callback always saw `0` (also broke `Until` / indexed overloads that delegate here). Added `i++`.
 - **`CallContext` / `CallContextProvider` rewritten** onto `AsyncLocal<ImmutableDictionary<string,object>>`.
-  This is the intended tool: a standalone, provider-agnostic ambient property bag with scoped push/pop —
+  This is the intended tool: a standalone, provider-agnostic ambient property bag with scoped push/pop -
   a `LogContext.PushProperty` equivalent with no Serilog (or Activity) dependency. Fixes two defects: the
   restore-on-dispose bug (`oldValue = value` restored the NEW value, so overwrites never rolled back) and the
-  broken isolation (a mutable `CallContext` stored in `AsyncLocal` leaked `Set` across parent/sibling flows —
+  broken isolation (a mutable `CallContext` stored in `AsyncLocal` leaked `Set` across parent/sibling flows -
   `AsyncLocal` copy-on-write only fires on `.Value` assignment). Now every `Set` assigns a new immutable dict
   to `.Value`, dispose restores from the *current* state (so unrelated keys added in between survive). Removed
   `MarshalByRefObject`. `ICallContext` contract unchanged; `CallContext` is now a stateless facade. Design
@@ -46,9 +46,9 @@ etc.) remain open and were left untouched.
   `Activity.Current?.TraceId.ToString() ?? ShortId.Generate(8)`.
 - **`Disposal/DisposableAction` reworked.** The `bool _disposed` guard was non-atomic (concurrent `Dispose`
   could run the action twice) and set after invocation. Switched to `Interlocked.Exchange(ref _disposeAction,
-  null)` — runs at most once, releases the captured closure, dropped the misleading `// finalizer` comments
+  null)`: runs at most once, releases the captured closure, dropped the misleading `// finalizer` comments
   and the commented-out ctor. Renamed `DisposableBlock<T>` → `DisposableAction<T>` (one concept, generic
-  arity instead of two different names); the carried state is now a **private** field (was public `Data`) —
+  arity instead of two different names); the carried state is now a **private** field (was public `Data`) -
   it is only needed to feed the dispose action, so exposing it added nothing and invited torn-read/locking
   questions; released to `default` on dispose (no retention). The `<T>` variant's sole remaining purpose is
   alloc-free state passing via a cached (non-capturing) delegate. Added async counterparts
@@ -77,4 +77,4 @@ etc.) remain open and were left untouched.
 - Dubious-value candidates for retirement/BCL replacement: `MathExtensions`, `TypeSwitch`, `NameHelper`,
   `Task*Extensions` wrappers, `Threading/ThreadSafe`, `InvalidDataException`, `WeakTable`,
   `StaticStringDictionary`.
-- Consider `<Nullable>enable</Nullable>` — would have surfaced half of the NRE findings at compile time.
+- Consider `<Nullable>enable</Nullable>`: would have surfaced half of the NRE findings at compile time.

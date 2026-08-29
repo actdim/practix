@@ -15,7 +15,7 @@ namespace ActDim.Emitron
     /// </summary>
     internal static class ScriptInternals
     {
-        // Per-Type reflection cache — avoids repeated GetProperties() calls at runtime.
+        // Per-Type reflection cache - avoids repeated GetProperties() calls at runtime.
         private static readonly ConcurrentDictionary<Type, PropertyInfo[]> _propertyCache =
             new();
 
@@ -211,7 +211,7 @@ namespace ActDim.Emitron
                             break;
                         }
 
-                    // ── 3. Anonymous type / POCO / record — reflected, cached per Type ────
+                    // ── 3. Anonymous type / POCO / record - reflected, cached per Type ────
                     default:
                         {
                             var props = _propertyCache.GetOrAdd(

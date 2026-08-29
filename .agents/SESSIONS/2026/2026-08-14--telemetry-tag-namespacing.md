@@ -4,7 +4,7 @@ slug: telemetry-tag-namespacing
 agent: claude-opus-5
 branch: main
 commit: pending
-summary: Fixed silent telemetry tag overwrites in EventObservabilityBridge — span/event split, reserved log.* namespace, collision policy and counter, Activity.AddException, destructuring hints in ToOtelName.
+summary: Fixed silent telemetry tag overwrites in EventObservabilityBridge: span/event split, reserved log.* namespace, collision policy and counter, Activity.AddException, destructuring hints in ToOtelName.
 ---
 
 # Session Log: Telemetry Tag Ownership in `EventObservabilityBridge`
@@ -21,7 +21,7 @@ The session started as a design discussion about a Roslyn analyzer for `ILogger`
 **Implemented (ADR-005, ADR-006):**
 - Ambient `ICallContext` data and external scopes now become **span** attributes; the log call becomes an `ActivityEvent`. This removes the cross-source collisions by construction and stops copying ambient data into every event of a span.
 - Bridge-owned tags moved into the reserved `log.*` namespace: `log.message`, `log.level`, `log.event.id`, `log.collisions`. Dotted form was chosen over `log.event_id` because `ToOtelName` emits dotted names exclusively.
-- `log.level` is new — the log level was previously absent from telemetry entirely.
+- `log.level` is new: the log level was previously absent from telemetry entirely.
 - `TelemetryTagCollector` is now the single write path, applying `TagCollisionBehavior` (`KeepFirst` default, `Overwrite`, `Throw`) and counting every collision; a non-zero count is exported as `log.collisions`.
 - Exceptions go through `Activity.AddException`, producing the standard `exception` event instead of ad-hoc tags.
 - `ToOtelName` strips leading `@` / `$` so `{@user}` no longer becomes an attribute named `@user`.
@@ -37,8 +37,8 @@ The session started as a design discussion about a Roslyn analyzer for `ILogger`
 - `.agents/DECISIONS.md`, `.agents/ISSUES.md`, `.agents/ISSUES/*`, `.agents/CONTEXT.md`, `.agents/GLOSSARY.md`, `.agents/HISTORY.md`
 
 ## Decisions
-- ADR-005 — telemetry tag ownership: span/event split and reserved `log.*` namespace.
-- ADR-006 — exceptions recorded via `Activity.AddException`.
+- ADR-005: telemetry tag ownership: span/event split and reserved `log.*` namespace.
+- ADR-006: exceptions recorded via `Activity.AddException`.
 
 ## Issues advanced
 - Closed: `debt--telemetry-tag-namespacing`.
@@ -49,5 +49,5 @@ Full solution builds. `Tests/Observability.Tests`: 13 passed, 0 failed (8 pre-ex
 
 ## Gaps / follow-ups
 - The breaking-change question (`LegacyFlatTags` compatibility flag) was raised three times and never answered; the clean layout was implemented without a compatibility branch. Consumers querying `message` / `event.id` / ambient tags on events must be updated.
-- Pre-existing `CS8604` warning at `EventObservabilityBridge.BeginScope` was left untouched — out of the requested scope.
+- Pre-existing `CS8604` warning at `EventObservabilityBridge.BeginScope` was left untouched: out of the requested scope.
 - Attribute names differ between pipelines for the same value (`OrderId` in `LogRecord` vs `order.id` in the span). Not a bug; needs a deliberate decision.

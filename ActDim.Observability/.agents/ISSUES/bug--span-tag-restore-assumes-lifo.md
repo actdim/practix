@@ -17,7 +17,7 @@ The same assumption now applies twice, because a single `Push` produces three st
 - the `ExportedKeys` set, re-pushed as a new `ImmutableHashSet` on every export,
 - the span attribute restore.
 
-Out-of-order disposal therefore desynchronizes the exported-key set from the property values as well, so `EnrichSpanFromScope` can iterate a key whose value has already been popped — it is skipped silently by the `TryGetValue` guard, which hides the inconsistency instead of surfacing it.
+Out-of-order disposal therefore desynchronizes the exported-key set from the property values as well, so `EnrichSpanFromScope` can iterate a key whose value has already been popped: it is skipped silently by the `TryGetValue` guard, which hides the inconsistency instead of surfacing it.
 
 ## Proposal
 Either detect the out-of-order case (compare the current attribute value with the one written at push; restore only when they still match) and skip the restore otherwise, or keep a per-activity stack of pushed values so the restore always yields the topmost surviving one. The first option is cheap and removes the destructive case; the second is exact.

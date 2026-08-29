@@ -7,7 +7,7 @@ created: 2026-08-17
 updated: 2026-08-17
 ---
 
-# multi-backend — multiple stores with KeyPrefix routing
+# multi-backend: multiple stores with KeyPrefix routing
 
 ## Summary
 `BlobManager` supports registering multiple `IBlobDataStore` implementations simultaneously. Each data store self-describes its handled key prefix (`KeyPrefix`). `BlobManager` routes blob operations (size reconciliation, read, delete, lifecycle) to the appropriate store based on key matching.

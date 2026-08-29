@@ -37,4 +37,4 @@ summary: Created DataFormatException in ActDim.Practix.Abstractions.Exceptions, 
 - `.agents/DECISIONS.md`
 
 ## Verification
-- Executed `dotnet test ActDim.Practix.sln` — all 493 tests passed across all 6 test assemblies.
+- Executed `dotnet test ActDim.Practix.sln`: all 493 tests passed across all 6 test assemblies.

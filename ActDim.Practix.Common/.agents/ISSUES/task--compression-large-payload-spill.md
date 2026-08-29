@@ -5,7 +5,7 @@ created: 2026-08-04
 updated: 2026-08-04
 ---
 > Depends on `adaptive-stream`, which owns the memory→file spilling engine and the threshold/temp-directory/
-> cleanup options. The two open questions below are answered there — but only if that task ships a writable
+> cleanup options. The two open questions below are answered there: but only if that task ships a writable
 > (not just read-only) surface; see its first open question.
 # Large-payload spill for CompressionManager
 
