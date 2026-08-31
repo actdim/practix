@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Concurrent;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace ActDim.Practix.Pooling
@@ -24,7 +24,8 @@ namespace ActDim.Practix.Pooling
     /// <typeparam name="T">The type of pooled objects.</typeparam>
     public sealed class AsyncObjectPool<T> : IAsyncDisposable where T : class
     {
-        private readonly Channel<T> _channel;
+        private readonly ConcurrentQueue<T> _items = new();
+        private readonly SemaphoreSlim _semaphore;
         private readonly Func<Task<T>> _factory;
         private readonly Func<T, ValueTask> _disposer;
         private readonly int _maxSize;
@@ -46,16 +47,18 @@ namespace ActDim.Practix.Pooling
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _disposer = disposer;
             _maxSize = maxSize;
-
-            var options = new BoundedChannelOptions(maxSize)
-            {
-                FullMode = BoundedChannelFullMode.Wait,
-                SingleReader = false,
-                SingleWriter = false,
-                AllowSynchronousContinuations = false
-            };
-            _channel = Channel.CreateBounded<T>(options);
+            _semaphore = new SemaphoreSlim(maxSize, maxSize);
         }
+
+        /// <summary>
+        /// Gets the maximum number of live instances the pool may hold.
+        /// </summary>
+        public int MaxSize => _maxSize;
+
+        /// <summary>
+        /// Gets the current number of created instances managed by the pool.
+        /// </summary>
+        public int CreatedCount => Volatile.Read(ref _createdCount);
 
         /// <summary>
         /// Asynchronously acquires a pooled object wrapper from the pool.
@@ -64,38 +67,68 @@ namespace ActDim.Practix.Pooling
         /// <returns>A <see cref="PooledObject"/> handle that returns the item to the pool upon disposal.</returns>
         public async Task<PooledObject> GetAsync(CancellationToken cancellationToken = default)
         {
-            if (!_channel.Reader.TryRead(out var item))
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, typeof(AsyncObjectPool<T>));
+
+            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+            if (Volatile.Read(ref _disposed) != 0)
             {
-                var count = Interlocked.Increment(ref _createdCount);
-                if (count <= _maxSize)
-                {
-                    try
-                    {
-                        item = await _factory() ?? throw new InvalidOperationException("Factory returned null");
-                    }
-                    catch
-                    {
-                        Interlocked.Decrement(ref _createdCount);
-                        throw;
-                    }
-                }
-                else
-                {
-                    Interlocked.Decrement(ref _createdCount);
-                    item = await _channel.Reader.ReadAsync(cancellationToken);
-                }
+                _semaphore.Release();
+                throw new ObjectDisposedException(nameof(AsyncObjectPool<T>));
             }
 
-            return new PooledObject(item, this);
+            if (_items.TryDequeue(out var item))
+            {
+                return new PooledObject(item, this);
+            }
+
+            try
+            {
+                item = await _factory().ConfigureAwait(false) ?? throw new InvalidOperationException("Factory returned null");
+                Interlocked.Increment(ref _createdCount);
+                return new PooledObject(item, this);
+            }
+            catch
+            {
+                _semaphore.Release();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Discards a corrupted or faulty object instead of returning it to the pool,
+        /// invoking the configured disposer and freeing a capacity slot for new instances.
+        /// </summary>
+        /// <param name="item">The item to discard.</param>
+        /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+        public async ValueTask DiscardAsync(T item)
+        {
+            if (item == null)
+            {
+                return;
+            }
+
+            Interlocked.Decrement(ref _createdCount);
+            _semaphore.Release();
+            await DisposeItemAsync(item).ConfigureAwait(false);
         }
 
         private ValueTask ReturnAsync(T item)
         {
-            if (Volatile.Read(ref _disposed) != 0 || !_channel.Writer.TryWrite(item))
+            if (item == null)
             {
+                return ValueTask.CompletedTask;
+            }
+
+            if (Volatile.Read(ref _disposed) != 0)
+            {
+                Interlocked.Decrement(ref _createdCount);
+                _semaphore.Release();
                 return DisposeItemAsync(item);
             }
 
+            _items.Enqueue(item);
+            _semaphore.Release();
             return ValueTask.CompletedTask;
         }
 
@@ -112,12 +145,13 @@ namespace ActDim.Practix.Pooling
                 return;
             }
 
-            _channel.Writer.TryComplete();
-
-            while (_channel.Reader.TryRead(out var item))
+            while (_items.TryDequeue(out var item))
             {
-                await DisposeItemAsync(item);
+                Interlocked.Decrement(ref _createdCount);
+                await DisposeItemAsync(item).ConfigureAwait(false);
             }
+
+            _semaphore.Dispose();
         }
 
         private ValueTask DisposeItemAsync(T item)
@@ -148,6 +182,23 @@ namespace ActDim.Practix.Pooling
             /// Gets the leased pooled object item.
             /// </summary>
             public T Item => _item ?? throw new ObjectDisposedException(nameof(PooledObject));
+
+            /// <summary>
+            /// Discards the leased object from the pool due to fault or corruption instead
+            /// of returning it for reuse, freeing its capacity slot in the pool.
+            /// </summary>
+            /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+            public ValueTask DiscardAsync()
+            {
+                var item = Interlocked.Exchange(ref _item, null);
+
+                if (item == null)
+                {
+                    return ValueTask.CompletedTask;
+                }
+
+                return _pool.DiscardAsync(item);
+            }
 
             /// <inheritdoc />
             public ValueTask DisposeAsync()
