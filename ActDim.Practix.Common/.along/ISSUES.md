@@ -15,6 +15,7 @@
 - [ ] feat--enumerable-estimation-extensions: Enumerable estimation and predicate extensions.
 
 ## Done (recent)
+- [x] bug--disposeasync-drain-fault-tolerance (2026-08-31): Fault-tolerant idle object draining with AggregateException in AsyncObjectPool.DisposeAsync.
 - [x] debt--remove-memory-stream-manager-extensions (2026-08-20): Removed dead MemoryStreamManagerExtensions class and GetContextStream methods.
 - [x] debt--ambient-context-direct-storage (2026-08-19): Direct AsyncLocal in AmbientContext, removed AmbientContextProvider, added scoped extensions and delegates.
 - [x] debt--enumerable-dead-code (2026-08-19): Removed dead/commented code from EnumerableExtensions.cs and modernized Chunk partitioning.
