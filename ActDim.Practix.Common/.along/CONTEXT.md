@@ -8,4 +8,4 @@ _Current-state snapshot. Keep SHORT; history goes to SESSIONS/._
 - `Extensions/StringExtensions.cs`: `ToMemory`/`ToMemoryAsync` encode straight into a pre-sized recyclable stream via `WriteString`.
 - `ShortId`: stateless static (`ShortId.Generate(len[, charSet])`) over `RandomNumberGenerator.GetString`.
 - `Disposal/DisposableAction`: atomic run-once via `Interlocked.Exchange`. `DisposableBlock<T>` renamed to `DisposableAction<T>`. Async siblings `DisposableAsyncAction` and `DisposableAsyncAction<T>`.
-- Tests: `Tests/Common.Tests` -> **246 passing** (`ActDim.Practix.sln` 576 total passing, 677 solution-wide with Three). `ActDim.Practix.Common` builds clean with 0 errors.
+- Tests: `Tests/Common.Tests` -> **248 passing** (`ActDim.Practix.sln` 578 total passing, 679 solution-wide with Three). `ActDim.Practix.Common` builds clean with 0 errors.

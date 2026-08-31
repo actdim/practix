@@ -61,6 +61,11 @@ namespace ActDim.Practix.Pooling
         /// </summary>
         public int CreatedCount => Volatile.Read(ref _createdCount);
 
+        private void ThrowIfDisposed()
+        {
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, typeof(AsyncObjectPool<T>));
+        }
+
         /// <summary>
         /// Asynchronously acquires a pooled object wrapper from the pool.
         /// </summary>
@@ -68,13 +73,12 @@ namespace ActDim.Practix.Pooling
         /// <returns>A <see cref="PooledObject"/> handle that returns the item to the pool upon disposal.</returns>
         public async Task<PooledObject> GetAsync(CancellationToken cancellationToken = default)
         {
-            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, typeof(AsyncObjectPool<T>));
+            ThrowIfDisposed();
 
             await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             if (Volatile.Read(ref _disposed) != 0)
             {
-                _semaphore.Release();
                 throw new ObjectDisposedException(nameof(AsyncObjectPool<T>));
             }
 
@@ -86,12 +90,23 @@ namespace ActDim.Practix.Pooling
             try
             {
                 item = await _factory().ConfigureAwait(false) ?? throw new InvalidOperationException("Factory returned null");
+
+                if (Volatile.Read(ref _disposed) != 0)
+                {
+                    await DisposeItemAsync(item).ConfigureAwait(false);
+                    throw new ObjectDisposedException(nameof(AsyncObjectPool<T>));
+                }
+
                 Interlocked.Increment(ref _createdCount);
                 return new PooledObject(item, this);
             }
             catch
             {
-                _semaphore.Release();
+                if (Volatile.Read(ref _disposed) == 0)
+                {
+                    _semaphore.Release();
+                }
+
                 throw;
             }
         }
@@ -110,7 +125,12 @@ namespace ActDim.Practix.Pooling
             }
 
             Interlocked.Decrement(ref _createdCount);
-            _semaphore.Release();
+
+            if (Volatile.Read(ref _disposed) == 0)
+            {
+                _semaphore.Release();
+            }
+
             await DisposeItemAsync(item).ConfigureAwait(false);
         }
 
@@ -124,7 +144,6 @@ namespace ActDim.Practix.Pooling
             if (Volatile.Read(ref _disposed) != 0)
             {
                 Interlocked.Decrement(ref _createdCount);
-                _semaphore.Release();
                 return DisposeItemAsync(item);
             }
 

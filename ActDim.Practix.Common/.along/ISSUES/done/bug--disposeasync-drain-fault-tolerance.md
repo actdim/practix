@@ -23,3 +23,4 @@ In `AsyncObjectPool<T>.DisposeAsync()`, when draining idle objects from `_items`
 4. Ensured `_semaphore.Dispose()` is called.
 5. Threw `AggregateException` containing all collected failures at the end of `DisposeAsync()`.
 6. Added unit test `DisposeAsync_DrainsAllIdleObjects_EvenWhenDisposerThrows_AndThrowsAggregateException` in `Tests/Common.Tests/Pooling/AsyncObjectPoolTests.cs`.
+

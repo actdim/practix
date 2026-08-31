@@ -290,5 +290,63 @@ namespace ActDim.Practix.Common.Tests.Pooling
             Assert.Equal(3, disposedIds.Count);
             Assert.Equal(0, pool.CreatedCount);
         }
+
+        [Fact]
+        public async Task GetAsync_ThrowsObjectDisposedException_WhenPoolIsDisposed()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var pool = new AsyncObjectPool<TestResource>(
+                () => Task.FromResult(new TestResource { Id = 1 }),
+                maxSize: 2);
+
+            await pool.DisposeAsync();
+
+            await Assert.ThrowsAsync<ObjectDisposedException>(async () => await pool.GetAsync(ct));
+        }
+
+        [Fact]
+        public async Task GetAsync_CleansUpFactoryCreatedItem_WhenPoolDisposedDuringFactoryExecution()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var factoryStartedTcs = new TaskCompletionSource<bool>();
+            var factoryContinueTcs = new TaskCompletionSource<bool>();
+            var disposedItems = new ConcurrentBag<TestResource>();
+
+            var pool = new AsyncObjectPool<TestResource>(
+                async () =>
+                {
+                    factoryStartedTcs.TrySetResult(true);
+                    await factoryContinueTcs.Task;
+                    return new TestResource { Id = 42 };
+                },
+                maxSize: 2,
+                disposer: item =>
+                {
+                    disposedItems.Add(item);
+                    return ValueTask.CompletedTask;
+                });
+
+            // Start GetAsync
+            var getTask = Task.Run(async () => await pool.GetAsync(ct), ct);
+
+            // Wait until factory has started
+            await factoryStartedTcs.Task;
+
+            // Dispose pool while factory is paused
+            var disposeTask = Task.Run(async () => await pool.DisposeAsync(), ct);
+
+            // Let factory finish creating the object
+            factoryContinueTcs.TrySetResult(true);
+
+            // GetAsync must throw ObjectDisposedException
+            await Assert.ThrowsAsync<ObjectDisposedException>(async () => await getTask);
+            await disposeTask;
+
+            // The created item must have been immediately cleaned up via disposer
+            Assert.Single(disposedItems);
+            Assert.Equal(42, disposedItems.ToArray()[0].Id);
+            Assert.Equal(0, pool.CreatedCount);
+        }
     }
 }
+
