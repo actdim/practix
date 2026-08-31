@@ -99,7 +99,15 @@ namespace ActDim.BytePath
                 return Task.FromResult(false);
             }
 
-            File.Delete(path);
+            try
+            {
+                File.Delete(path);
+            }
+            catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+            {
+                return Task.FromResult(false);
+            }
+
             PruneEmptyDirectories(Path.GetDirectoryName(path));
             return Task.FromResult(true);
         }
@@ -248,16 +256,16 @@ namespace ActDim.BytePath
                     return;
                 }
 
-                if (Directory.GetFileSystemEntries(full).Length > 0)
-                {
-                    return;
-                }
-
                 try
                 {
+                    if (Directory.GetFileSystemEntries(full).Length > 0)
+                    {
+                        return;
+                    }
+
                     Directory.Delete(full);
                 }
-                catch (IOException)
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                 {
                     return;
                 }
