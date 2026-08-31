@@ -1,11 +1,19 @@
 <!-- BEGIN ALONG-PROTOCOL root (managed by along-init - do not edit by hand) -->
-# ALONG-PROTOCOL v2.0.11
+<!-- BEGIN ALONG-PROTOCOL root (managed by along-init - do not edit by hand) -->
+# ALONG-PROTOCOL v2.1.3
 
 This repo carries its own agent context, provider-agnostically. Follow it every session, whatever tool you are.
 
-## Scope & precedence
-- Any folder may carry its own `AGENTS.md` + `.along/`; they apply to that folder and everything under it. Use the NEAREST ones for the area you're working in; higher-level ones add broader context. On conflict, the more specific wins.
-- Global/user config still applies as defaults (Claude auto-loads `~/.claude/CLAUDE.md`, Codex `~/.codex/AGENTS.md`, Antigravity `~/.gemini/config/GEMINI.md`). Precedence: nearest > higher-level > global.
+## Scope, Precedence & Subproject / Submodule Placement
+- **Nearest Context Boundary**: Any folder may carry its own `AGENTS.md` + `.along/`; they apply to that folder and everything under it. Use the NEAREST ones for the area you're working in; higher-level ones add broader context. On conflict, the more specific wins.
+- **Strict Subproject & Submodule Localization**:
+  - In modular repositories, monorepos, Git submodules, or symlinked folders (e.g. `packages/*`, `libs/*`, `modules/*`, `Common/*`):
+    - **Entity Anchoring**: All entity creation and lifecycle updates (`.along/ISSUES/`, `ISSUES.md`, `SESSIONS/`, `CONTEXT.md`, `DECISIONS.md`, `HISTORY.md`, `docs/`) MUST be created in the **NEAREST `.along/`** directory corresponding to the specific component/subproject being modified.
+    - **Submodule Isolation**: When fixing a bug, refactoring, or adding a feature to a Git submodule or symlinked utility library, the issue (`ISSUES/<type>--<slug>.md`), session log (`SESSIONS/`), ADR (`DECISIONS.md`), and history line (`HISTORY.md`) MUST be recorded directly in that submodule's `.along/`.
+    - **Parent Orchestration**: The root workspace `.along/` is strictly reserved for whole-solution orchestration, top-level integration tasks, and cross-package architectural ADRs. Parent issues may reference subproject issue canonical keys (e.g. `[pkg-auth:feat--token-refresh]`), but MUST NOT absorb subproject internal entity history.
+    - **Anti-Root Pollution Rule**: Agents are STRICTLY FORBIDDEN from blindly dumping subproject or submodule changes into the workspace root `.along/`.
+    - **Uninitialized Subprojects**: If an active subproject has its own package manifest (`package.json`, `Cargo.toml`, `pyproject.toml`, `*.csproj`) or `.git` repo but lacks `.along/`, initialize it with `/along-init` in that folder before recording entities.
+- **Precedence**: Nearest `.along/` > higher-level `.along/` > global config (`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.gemini/config/GEMINI.md`).
 
 ## At session start - read these yourself (they are NOT auto-loaded)
 Use the NEAREST `.along/` for the area you're working in (fall back to a higher-level one if the folder has none):
@@ -31,7 +39,7 @@ All entities are designed for zero-friction auto-parsing by dashboards and tools
   - `completed`: `YYYY-MM-DD` (mandatory when `status: done` / moved to `done/`).
   - `agent`: model or tool name (e.g. `antigravity`, `claude-code`).
   - `tags`: array of tags (e.g. `[mcp, protocol]`).
-  - `milestone`: optional milestone slug (e.g. `v2.0.0-along`).
+  - `milestone`: optional milestone slug (e.g. `v2.1.0-along`).
   - `blocked_by`: optional array of blocking entity keys/slugs (e.g. `[feat--core-parser]`).
   - `related`: optional array of associative entity keys/slugs (e.g. `[risk--api-limit]`).
   - `parent`: optional parent entity key/slug (e.g. `feat--epic-container`).
@@ -78,16 +86,19 @@ To keep `.along/` lean and avoid token bloat:
 2. **Micro-edits (1-line typo fix, comment change)**: Record directly in the session log; DO NOT create an issue file.
 3. **Non-trivial code changes (new logic, bug fixes, refactoring)**: ALWAYS ensure an `ISSUE` exists and tracks progress.
 
-## Knowledge Base (KB) Management
-- **Structured Knowledge Base**: Maintain project documentation in `.along/KB/` (or `docs/`) with standard articles:
-  - `INDEX.md`: Central cross-linked topic map (`[[link]]`).
-  - `01-architecture.md`: System components, boundaries, and data flows.
-  - `02-domain-model.md`: Domain concepts, business logic, and terms.
-  - `03-setup-and-workflow.md`: Build, run, test, and workflow instructions.
-- **Front-matter Schema**: Every `.along/KB/*.md` article MUST include YAML front-matter: `protocol: along`, `slug`, `title`, `type` (`topic` | `architecture` | `domain-model` | `setup-workflow` | `index`), `created`, `updated`, `tags: []`.
-- **Bootstrapping**: Use `/along-init-kb` to bootstrap or refresh `.along/KB/` from existing `README.md`, `AGENTS.md`, human `docs/`, and codebase analysis.
+## Knowledge Base (KB) Management & LLM-Wiki Integration
+- **Structured Knowledge Base**: Maintain active project documentation in `docs/` with standard articles:
+  - `docs/INDEX.md`: Central cross-linked topic catalog and entry point (`[Title](./topic--architecture.md)`).
+  - `docs/topic--architecture.md`: System components, boundaries, and data flows.
+  - `docs/topic--domain-model.md`: Domain concepts, business logic, and terms.
+  - `docs/topic--setup-and-workflow.md`: Build, run, test, and workflow instructions.
+  - `docs/topic--<slug>.md`: Specific domain topics and module specifications.
+- **Source Archival (`.archive/`)**: Processed raw sources, unmanaged notes, and drafts are archived into `.archive/` (excluded from active KB search and site generators).
+- **Front-matter Schema**: Every `docs/*.md` article MUST include YAML front-matter: `protocol: along`, `slug`, `title`, `type` (`topic` | `architecture` | `domain-model` | `setup-workflow` | `index`), `created`, `updated`, `tags: []`.
+- **Portable Markdown Links**: All internal cross-references MUST use standard relative Markdown links (`[Title](./target.md)`) for universal rendering across GitHub, GitHub Pages, IDEs, and npm.
+- **Idempotent Synchronization**: Use `/along-kb-sync` to bootstrap, compile, and validate links in `docs/` and archive raw sources.
 - **Strict Fact Grounding Requirement**: Agents MUST extract facts strictly from actual `README.md`, `docs/`, `package.json`, and codebase symbols. Generating generic LLM placeholders is strictly prohibited.
-- **Maintenance**: Update corresponding articles in `.along/KB/` and run `/along-sync-kb` when implementing non-trivial architectural changes.
+- **Targeted Fast Retrieval**: Agents MUST query `/along-kb-search` or `wiki_query` for concise snippets before reading whole documentation files into context.
 
 ## While working
 - Follow the conventions in `AGENTS.md`.
@@ -95,7 +106,7 @@ To keep `.along/` lean and avoid token bloat:
 - Add any new/clarified domain term to `.along/GLOSSARY.md`.
 - **Context & Token hygiene**: Keep tool output lean to prevent context bloat. Use quiet flags for builds/tests (`pytest -q`, `dotnet test -v q`), filter command outputs, and inspect targeted line ranges.
 - **Mandatory Agentic Code Review & Blast Radius Impact**: After completing non-trivial code modifications, agents MUST critically inspect their own diffs and evaluate systemic blast radius. Use `code-review-graph` MCP tools (`build_or_update_graph_tool`, `get_impact_radius_tool`, `get_affected_flows_tool`) to verify that downstream callers, interfaces, and dependent systems remain unbroken, edge cases and nulls are handled, and active ADRs in `.along/DECISIONS.md` are respected.
-- **Hybrid Knowledge Base Search (KB)**: Prioritize `along-search-kb` or `wiki-llm` MCP tools for targeted searches across `.along/`, `docs/`, `wiki/`, `README.md`.
+- **Targeted Knowledge Base Search**: Prioritize `along-kb-search` or `wiki_query` MCP tools for targeted searches across `docs/`, `README.md`, and `DECISIONS.md`.
 
 ## Mandatory Stage & Session Completion Checklist
 When a Stage or session completes, agents MUST execute this verification checklist in exact order:
@@ -109,7 +120,7 @@ When a Stage or session completes, agents MUST execute this verification checkli
    - Update related `.along/MILESTONES/` progress percentages.
    - Resolve mitigated `.along/RISKS/` (`status: resolved` / `mitigated`).
    - Conclude active `.along/SPIKES/` and log any resulting ADR in `.along/DECISIONS.md`.
-4. [ ] **Documentation Check**: Update `README.md`, `AGENTS.md` (project specifics), or `.along/KB/` if code interfaces or architecture changed.
+4. [ ] **Documentation Check**: Update `README.md`, `AGENTS.md` (project specifics), or `docs/` if code interfaces or architecture changed, and run `/along-kb-sync`.
 5. [ ] **Session Log**: Write `.along/SESSIONS/<YYYY>/<YYYY-MM-DD>--<short-slug>.md` with complete front-matter (`protocol: along`, `issues_advanced`, `issues_completed`, `decisions`, `risks_logged`, `spikes_conducted`) and a concise Code Review & Impact summary.
 6. [ ] **CONTEXT Snapshot**: Rewrite `.along/CONTEXT.md` to a short "you are here" snapshot (< 20 lines).
 7. [ ] **ISSUES Board**: Update `.along/ISSUES.md` (keep active list lean, reflect done items).
