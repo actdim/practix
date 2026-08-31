@@ -24,3 +24,4 @@ spikes_conducted: []
 2. **Tests**:
    - Added unit test `DisposeAsync_DrainsAllIdleObjects_EvenWhenDisposerThrows_AndThrowsAggregateException` in `Tests/Common.Tests/Pooling/AsyncObjectPoolTests.cs`.
    - All 246 tests in `Common.Tests` passing.
+
