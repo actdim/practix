@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -145,13 +146,28 @@ namespace ActDim.Practix.Pooling
                 return;
             }
 
+            List<Exception> exceptions = null;
+
             while (_items.TryDequeue(out var item))
             {
                 Interlocked.Decrement(ref _createdCount);
-                await DisposeItemAsync(item).ConfigureAwait(false);
+                try
+                {
+                    await DisposeItemAsync(item).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= new List<Exception>();
+                    exceptions.Add(ex);
+                }
             }
 
             _semaphore.Dispose();
+
+            if (exceptions is { Count: > 0 })
+            {
+                throw new AggregateException("One or more errors occurred while disposing pooled objects.", exceptions);
+            }
         }
 
         private ValueTask DisposeItemAsync(T item)
@@ -172,7 +188,7 @@ namespace ActDim.Practix.Pooling
             /// </summary>
             /// <param name="item">The pooled instance.</param>
             /// <param name="pool">The owning object pool.</param>
-            public PooledObject(T item, AsyncObjectPool<T> pool)
+            internal PooledObject(T item, AsyncObjectPool<T> pool)
             {
                 _item = item;
                 _pool = pool;
