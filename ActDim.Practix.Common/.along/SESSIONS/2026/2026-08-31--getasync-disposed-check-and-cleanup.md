@@ -23,3 +23,4 @@ spikes_conducted: []
 2. **Tests**:
    - Added `GetAsync_ThrowsObjectDisposedException_WhenPoolIsDisposed` and `GetAsync_CleansUpFactoryCreatedItem_WhenPoolDisposedDuringFactoryExecution` in `Tests/Common.Tests/Pooling/AsyncObjectPoolTests.cs`.
    - All 248 tests in `Common.Tests` passing cleanly.
+

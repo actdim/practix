@@ -25,3 +25,4 @@ When `AsyncObjectPool<T>` was disposed, background or concurrent `GetAsync()` re
 3. In `GetAsync()`, inspected `_disposed` immediately after `await _factory()`: if disposed, immediately disposed the created object via `DisposeItemAsync(item)` and threw `ObjectDisposedException`.
 4. Guarded `_semaphore.Release()` in `DiscardAsync` and `GetAsync` catch block to only release when `_disposed == 0`.
 5. Added unit tests verifying `ObjectDisposedException` is thrown when calling `GetAsync` on a disposed pool and that objects created during concurrent disposal are cleaned up without leaking.
+
