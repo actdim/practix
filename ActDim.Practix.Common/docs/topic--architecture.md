@@ -17,7 +17,7 @@ tags: [architecture, boundaries, subsystems, design-patterns]
 
 ## Subsystem Vector Decomposition
 
-The library is organized into 7 distinct, decoupled functional subsystems:
+The library is organized into 8 distinct, decoupled functional subsystems:
 
 ```
                       +----------------------------------+
@@ -37,9 +37,9 @@ The library is organized into 7 distinct, decoupled functional subsystems:
                          |                             |
                  +---------------+             +---------------+
                  | Memory & Disp |             | Extensions &  |
-                 | ArrayPool,    |             | Utilities     |
+                 | ArrayPool,    |             | Random ID     |
                  | Recyclable    |             | Zero-Alloc IO,|
-                 | StreamManager |             | Guards, Id    |
+                 | StreamManager |             | Guards, CSPRNG|
                  +---------------+             +---------------+
 ```
 
@@ -73,6 +73,9 @@ The library is organized into 7 distinct, decoupled functional subsystems:
    - `MemoryManager.Default`: Process-wide `RecyclableMemoryStreamManager` configured to prevent heap allocations.
    - `DisposableAction`: Atomic idempotent disposal wrapper; `ReachabilityObserver`: GC finalization observer.
 
-7. **Extensions & Common Utilities ([`topic--extensions-and-utilities.md`](./topic--extensions-and-utilities.md))**:
+7. **Cryptographic Random Identifiers ([`topic--random-id.md`](./topic--random-id.md))**:
+   - `RandomId`: Cryptographic, URL-safe random identifier generator (Base62, Base58, Crockford Base32) backed by CSPRNG.
+
+8. **Extensions & Common Utilities ([`topic--extensions-and-utilities.md`](./topic--extensions-and-utilities.md))**:
    - `StreamExtensions`: Zero-allocation stream conversions, UTF-8 without BOM decoding, and chunked writers.
-   - `RandomId`: Cryptographic, URL-safe random identifier generator (Base62, Base58, Crockford Base32).
+   - `StringExtensions`, `TaskExtensions`, `GuardExtensions`: General language combinators.

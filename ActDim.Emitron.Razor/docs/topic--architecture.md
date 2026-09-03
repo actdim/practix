@@ -1,16 +1,40 @@
 ---
 protocol: along
-protocol_version: "2.2.8"
+protocol_version: "2.2.18"
 slug: architecture
 title: System Architecture & Flow
 type: architecture
-created: 2026-08-31
-updated: 2026-09-02
-tags: [architecture]
+created: 2026-09-03
+updated: 2026-09-03
+tags: [architecture, razor, template-engine, transpilation, roslyn]
 ---
 
 # System Architecture & Flow
 
-High-level architectural components, module boundaries, and execution models.
+`ActDim.Emitron.Razor` provides dynamic Razor template parsing and execution by transpiling Razor syntax into C# statement scripts evaluated via `ActDim.Emitron`.
 
-Roslyn-powered Razor syntax template compiler (EmitronRazor, RazorParser). Supports multi-line templates with HTML/text, conditionals, loops, statement blocks, comments, and property binding (@Model.Property). Integrated with ActDim.Emitron's thread-safe delegate compilation and caching engine. Includes fluent string extensions template.FormatRazor(model) and template.CompileRazor().
+---
+
+## Architectural Pipeline
+
+```
+[Dynamic Razor Template]
+          |
+          +---> RazorParser (Syntax Tokenizer & Transpiler)
+                    |
+          +---> Emitted C# Script Body
+                    |
+          +---> Emitron Engine (Roslyn In-Memory Assembly Compilation)
+                    |
+          +---> Thread-Safe Cached Template Delegate
+                    |
+          +---> Fast HTML/Text String Generation
+```
+
+---
+
+## Subsystems
+
+1. **Razor Template Rendering ([`topic--razor-template-rendering.md`](./topic--razor-template-rendering.md))**:
+   - Transpiles `@if`, `@foreach`, `@Model`, and code blocks `@{ ... }` into C# scripts.
+   - Provides fluent string extensions (`FormatRazor`, `CompileRazor`).
