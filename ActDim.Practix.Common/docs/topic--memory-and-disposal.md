@@ -6,103 +6,130 @@ title: Memory Management & Disposal Lifecycle
 type: topic
 created: 2026-09-03
 updated: 2026-09-03
-tags: [memory, buffer, array-pool, disposal, reachability]
+tags: [memory, buffer, array-pool, buffer-owner, disposal, recyclable-stream, reachability]
 ---
 
 # Memory Management & Disposal Lifecycle
 
-`ActDim.Practix.Common` provides zero-allocation buffer pooling abstractions, recyclable stream management, atomic disposal actions, and GC reachability observers to prevent memory leaks and Large Object Heap (LOH) fragmentation.
+`ActDim.Practix.Common` provides high-performance memory pooling abstractions, deterministic buffer ownership models, recyclable stream managers, atomic disposal actions, and GC reachability observers.
 
 ---
 
-## Buffer Ownership (`IBufferOwner<T>` & `ArrayPoolBufferOwner<T>`)
+## Buffer Ownership Model (`IBufferOwner<T>` & `ArrayPoolBufferOwner<T>`)
 
-`IBufferOwner<T>` defines an owned memory buffer lease backed by an array pool or native memory:
+In high-throughput .NET applications, renting arrays directly from `ArrayPool<T>.Shared` often leads to bugs where developers forget to return arrays, return arrays multiple times, or accidentally read past the logical data length (since rented arrays have bucketing power-of-two lengths).
+
+`IBufferOwner<T>` solves these issues by encapsulating leased memory in a deterministic, disposable handle:
 
 ```csharp
-using IBufferOwner<byte> owner = ArrayPoolBufferOwner<byte>.Rent(4096);
-
-byte[] array = owner.Array;       // Underlying pooled array
-Memory<byte> memory = owner.Memory; // Valid memory slice (length 4096)
-int length = owner.Length;        // 4096
-
-// On dispose: underlying array is returned to ArrayPool<byte>.Shared
+public interface IBufferOwner<T> : IDisposable
+{
+    T[] Array { get; }
+    Memory<T> Memory { get; }
+    int Length { get; }
+}
 ```
 
-### Key Contract:
-- `Array`: Accessing `Array` after disposal throws `ObjectDisposedException`.
-- `Dispose()`: Interlocked exchange guarantees that the rented array is returned to the pool exactly once.
+### 1. `ArrayPoolBufferOwner<T>` (Pooled Array Wrapper)
+
+Rents an array of at least `size` from an `ArrayPool<T>` (defaulting to `ArrayPool<T>.Shared`):
+
+```csharp
+using (IBufferOwner<byte> buffer = ArrayPoolBufferOwner<byte>.Rent(1024))
+{
+    byte[] rawArray = buffer.Array;        // Rented bucket array (e.g. Length = 1024 or 2048)
+    int validLength = buffer.Length;        // Exactly 1024 (the requested length)
+    Memory<byte> slice = buffer.Memory;     // Slice: rawArray.AsMemory(0, 1024)
+
+    // Pass buffer.Memory to socket, serializer, or crypto routines
+    await socket.ReceiveAsync(buffer.Memory, SocketFlags.None);
+} // Dispose returns the rented array back to ArrayPool<T>.Shared via Interlocked.Exchange
+```
+
+### Key Guarantees:
+- **Exact Logical Slicing**: `buffer.Memory` is automatically sliced to `[0..Length]`, preventing callers from inspecting dirty uninitialized bytes in the remainder of the pool bucket.
+- **Double-Return & Use-After-Free Protection**: `Dispose()` uses `Interlocked.Exchange(ref _array, null)`. Calling `Dispose()` multiple times is an idempotent no-op. Attempting to access `.Array` or `.Memory` after disposal throws `ObjectDisposedException`.
+
+### 2. `ArrayBufferOwner<T>` (Unpooled / Managed Array Wrapper)
+
+Wraps an existing managed array in the `IBufferOwner<T>` contract when pooling is not required (e.g., small arrays or pre-allocated constants):
+
+```csharp
+byte[] preallocated = new byte[64];
+using IBufferOwner<byte> owner = new ArrayBufferOwner<byte>(preallocated);
+```
 
 ---
 
-## Shared Stream Pooling (`MemoryManager`)
+## Process-Wide Recyclable Stream Pooling (`MemoryManager.Default`)
 
-`MemoryManager.Default` exposes a pre-configured `RecyclableMemoryStreamManager` with parameters tuned for high throughput:
+`MemoryManager.Default` exposes a singleton `RecyclableMemoryStreamManager` configured for server workloads, eliminating Large Object Heap (LOH) fragmentation caused by `MemoryStream` expansions:
 
 ```csharp
-// Rent pooled seekable stream
-using MemoryStream stream = MemoryManager.Default.GetStream("MyOperation");
+using MemoryStream stream = MemoryManager.Default.GetStream("NetworkProcessor");
 
-await source.CopyToAsync(stream);
+await inputPayload.CopyToAsync(stream);
 stream.Position = 0;
 ```
 
-### Configuration Tuning:
-- **Block Size**: 8 KB blocks.
-- **Large Buffer Multiple**: 1 MB increments.
-- **Max Buffer Size**: 16 MB.
-- **Free Pools**: 64 MB small pool / 256 MB large pool.
-- **ThrowExceptionOnToArray**: `true` (prohibits calling `.ToArray()`, preventing accidental heap duplication).
+### High-Performance Configuration Matrix:
+
+```csharp
+var blockSize = 8 * 1024;               // 8 KB small blocks
+var largeBufferMultiple = 1024 * 1024;    // 1 MB increments for large blocks
+var maxBufferSize = 16 * 1024 * 1024;     // 16 MB maximum single buffer size
+var maximumFreeSmallPoolBytes = 64 * 1024 * 1024;   // 64 MB small pool capacity
+var maximumFreeLargePoolBytes = 256 * 1024 * 1024;  // 256 MB large pool capacity
+```
+
+### Critical Invariants:
+1. **`ThrowExceptionOnToArray = true`**:
+   - Calling `.ToArray()` on a `RecyclableMemoryStream` allocates a contiguous byte array on the heap, completely defeating the purpose of memory pooling.
+   - `MemoryManager.Default` enables `ThrowExceptionOnToArray`, forcing developers to use zero-copy APIs (`GetBuffer()`, `TryGetBuffer()`, `ZeroAllocCopyTo()`, `ReadBytes()`).
+2. **`AggressiveBufferReturn = true`**:
+   - Stream segments and large buffers are immediately returned to pool buckets upon `stream.Dispose()`.
 
 ---
 
 ## Atomic Disposal Primitives (`DisposableAction` & `DisposableAsyncAction`)
 
-Encapsulates cleanup logic in an `IDisposable` or `IAsyncDisposable` handle that executes **at most once**:
+Encapsulates cleanup logic in thread-safe `IDisposable` and `IAsyncDisposable` wrappers that guarantee single execution:
 
 ```csharp
-// Synchronous atomic action
-IDisposable scope = new DisposableAction(() => ReleaseLock());
-scope.Dispose(); // Executes ReleaseLock()
-scope.Dispose(); // Idempotent no-op
+// 1. Synchronous atomic action
+IDisposable releaseLock = new DisposableAction(() => Mutex.ReleaseMutex());
+releaseLock.Dispose(); // Executes callback
+releaseLock.Dispose(); // Safe no-op
 
-// State-carrying non-allocating action (avoids delegate closure allocation)
-IDisposable tokenScope = new DisposableAction<string>(
-    key => ReleaseKey(key),
-    "lock_resource_1"
+// 2. Non-allocating parameterized action (no closure allocation)
+IDisposable scopedToken = new DisposableAction<string>(
+    state => RemoveLock(state), 
+    "resource_key_42"
 );
 
-// Asynchronous atomic action
-IAsyncDisposable asyncScope = new DisposableAsyncAction(async () =>
+// 3. Asynchronous atomic action
+IAsyncDisposable asyncCleanup = new DisposableAsyncAction(async () =>
 {
-    await client.DisconnectAsync();
+    await connection.CloseAsync();
 });
+await asyncCleanup.DisposeAsync();
 ```
 
 ---
 
-## Disposer Utility (`Disposer`)
+## Object Reachability Observer (`ReachabilityObserver<T>`)
 
-Safe, null-tolerant disposal helper that cleans up objects, collections, and tuples without throwing null reference exceptions:
-
-```csharp
-Disposer.Dispose(stream);
-Disposer.Dispose(listOfDisposables);
-```
-
----
-
-## GC Reachability Observer (`ReachabilityObserver<T>`)
-
-Tracks when an unmanaged or weak object becomes unreachable by the Garbage Collector:
+Monitors when an unmanaged or weak reference target becomes unreachable by the Garbage Collector without modifying the target class:
 
 ```csharp
-ReachabilityObserver<MyResource>.Subscribe(resource, () =>
+var tracker = new LargeResource();
+
+ReachabilityObserver<LargeResource>.Subscribe(tracker, () =>
 {
-    Console.WriteLine("Resource has been collected by GC");
+    Console.WriteLine("LargeResource was garbage collected");
 });
 ```
 
-- **Mechanism**: Attaches a lightweight finalizer node via `ConditionalWeakTable<T, Observer>`.
-- **Constraint**: The subscription callback must **not** capture or reference the target instance (doing so would keep the object reachable and prevent GC collection).
-
+### Rules & Internal Operation:
+- Attaches a lightweight finalizer node via `ConditionalWeakTable<T, Observer>`.
+- **Constraint**: The subscription callback delegate must **never capture or reference** the observed object instance (such a reference would form a strong root and prevent the object from ever being collected).

@@ -22,17 +22,21 @@ flowchart TD
     INDEX --> T_ARCHITECTURE
     T_DOMAIN_MODEL["Domain Model & Entities"]
     INDEX --> T_DOMAIN_MODEL
+    T_RAZOR_TEMPLATE_RENDERING["Dynamic Razor Template Parsing & Rendering"]
+    INDEX --> T_RAZOR_TEMPLATE_RENDERING
     T_SETUP_AND_WORKFLOW["Setup & Developer Workflow"]
     INDEX --> T_SETUP_AND_WORKFLOW
+    T_ARCHITECTURE -.->|references| T_RAZOR_TEMPLATE_RENDERING
 ```
 
 ---
 
 ## Articles
 
-- **[System Architecture & Flow](./topic--architecture.md)** (architecture) `architecture`
-- **[Domain Model & Entities](./topic--domain-model.md)** (domain-model) `domain-model`
-- **[Setup & Developer Workflow](./topic--setup-and-workflow.md)** (setup-workflow) `setup-workflow`
+- **[System Architecture & Flow](./topic--architecture.md)** (architecture) `architecture`, `razor`, `template-engine`, `transpilation`, `roslyn`
+- **[Domain Model & Entities](./topic--domain-model.md)** (domain-model) `domain-model`, `razor`, `parsing`, `templates`
+- **[Dynamic Razor Template Parsing & Rendering](./topic--razor-template-rendering.md)** (topic) `razor`, `templates`, `html`, `foreach`, `conditionals`, `emitron`, `rendering`
+- **[Setup & Developer Workflow](./topic--setup-and-workflow.md)** (setup-workflow) `setup`, `workflow`, `testing`, `nuget`, `razor`
 
 ---
 

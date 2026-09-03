@@ -36,6 +36,8 @@ flowchart TD
     INDEX --> T_EXTENSIONS_AND_UTILITIES
     T_MEMORY_AND_DISPOSAL["Memory Management & Disposal Lifecycle"]
     INDEX --> T_MEMORY_AND_DISPOSAL
+    T_RANDOM_ID["Cryptographic Random Identifier Generator"]
+    INDEX --> T_RANDOM_ID
     T_SETUP_AND_WORKFLOW["Setup, Installation & Developer Workflows"]
     INDEX --> T_SETUP_AND_WORKFLOW
     T_ARCHITECTURE -.->|references| T_AMBIENT_CONTEXT
@@ -44,6 +46,7 @@ flowchart TD
     T_ARCHITECTURE -.->|references| T_COMPRESSION_AND_ARCHIVES
     T_ARCHITECTURE -.->|references| T_CONCURRENT_COLLECTIONS
     T_ARCHITECTURE -.->|references| T_MEMORY_AND_DISPOSAL
+    T_ARCHITECTURE -.->|references| T_RANDOM_ID
     T_ARCHITECTURE -.->|references| T_EXTENSIONS_AND_UTILITIES
 ```
 
@@ -53,13 +56,14 @@ flowchart TD
 
 - **[Ambient Execution Context](./topic--ambient-context.md)** (topic) `context`, `ambient`, `async-local`, `logging`, `dependency-injection`
 - **[System Architecture & Flow](./topic--architecture.md)** (architecture) `architecture`, `boundaries`, `subsystems`, `design-patterns`
-- **[Asynchronous Bounded Object Pool](./topic--async-object-pool.md)** (topic) `pooling`, `async`, `concurrency`, `object-pool`, `fault-tolerance`
+- **[Asynchronous Bounded Object Pool](./topic--async-object-pool.md)** (topic) `pooling`, `async`, `concurrency`, `object-pool`, `fault-tolerance`, `resource-management`
 - **[Resilient Caching Proxies](./topic--caching-proxies.md)** (topic) `caching`, `memory-cache`, `distributed-cache`, `proxy`, `serialization`
-- **[Stream & Payload Compression and Archiving](./topic--compression-and-archives.md)** (topic) `compression`, `archiving`, `gzip`, `brotli`, `tar`, `zip`, `zero-allocation`
+- **[Stream & Payload Compression and Archiving](./topic--compression-and-archives.md)** (topic) `compression`, `archiving`, `gzip`, `brotli`, `tar`, `zip`, `zero-allocation`, `buffer-pool`
 - **[Specialized Concurrent Collections](./topic--concurrent-collections.md)** (topic) `collections`, `concurrent`, `weak-table`, `composite-key`, `lock-free`
 - **[Domain Model & Vocabulary](./topic--domain-model.md)** (domain-model) `domain-model`, `entities`, `contracts`, `error-handling`, `vocabulary`
 - **[Extensions & Common Utilities](./topic--extensions-and-utilities.md)** (topic) `extensions`, `streams`, `strings`, `guards`, `random-id`, `utilities`
-- **[Memory Management & Disposal Lifecycle](./topic--memory-and-disposal.md)** (topic) `memory`, `buffer`, `array-pool`, `disposal`, `reachability`
+- **[Memory Management & Disposal Lifecycle](./topic--memory-and-disposal.md)** (topic) `memory`, `buffer`, `array-pool`, `buffer-owner`, `disposal`, `recyclable-stream`, `reachability`
+- **[Cryptographic Random Identifier Generator](./topic--random-id.md)** (topic) `random-id`, `identifiers`, `cryptography`, `base62`, `base58`, `crockford-base32`, `collision-resistance`
 - **[Setup, Installation & Developer Workflows](./topic--setup-and-workflow.md)** (setup-workflow) `setup`, `workflow`, `testing`, `dependency-injection`, `installation`
 
 ---
