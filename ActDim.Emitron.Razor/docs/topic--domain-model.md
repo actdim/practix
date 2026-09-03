@@ -1,10 +1,11 @@
 ---
 protocol: along
-slug: topic--domain-model
+protocol_version: "2.2.8"
+slug: domain-model
 title: Domain Model & Entities
 type: domain-model
 created: 2026-08-31
-updated: 2026-08-31
+updated: 2026-09-02
 tags: [domain-model]
 ---
 

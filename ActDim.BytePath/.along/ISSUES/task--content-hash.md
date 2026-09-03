@@ -53,7 +53,7 @@ partially-correct blob that reconciliation (#001) will happily report as valid w
 A session would provide that point:
 
 ```
-BeginWriteAsync(record)  →  Append… Append…  →  CompleteAsync(expectedHash)
+BeginWriteAsync(record)  →  Append... Append...  →  CompleteAsync(expectedHash)
 ```
 
 `CompleteAsync` computes the full hash, compares it with what the caller declared, stores it, and

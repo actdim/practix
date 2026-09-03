@@ -3,9 +3,12 @@ This folder belongs to a repository that uses the ALONG structure. The full work
 guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
 read it there. This folder keeps its OWN `.along/` state; use the nearest one.
 Only this folder's specifics follow.
-<!-- END ALONG-PROTOCOL -->
+<!-- END ALONG-PROTOCOL -->## Project specifics
 
-## Project specifics
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/csharp.md](file://.along/rules/languages/csharp.md)`
+<!-- END ALONG-RULES -->
 
 # ActDim.Practix.Three
 
@@ -31,7 +34,7 @@ without manual transformation.
 | `Scenes/` | `Scene` (graph root + `ToJSON`), `Metadata` (version/type/generator). |
 | `Objects/` | `Mesh`, `Line`, `LineSegments`, `Points`, `Group`. |
 | `Geometries/` | `SphereGeometry`/`SphereBufferGeometry`, `TextGeometry`. |
-| `Materials/` | `Material` and subclasses (`MeshStandardMaterial`, `MeshBasicMaterial`, `LineBasicMaterial`, `PointsMaterial`, …), `MaterialEnums`. |
+| `Materials/` | `Material` and subclasses (`MeshStandardMaterial`, `MeshBasicMaterial`, `LineBasicMaterial`, `PointsMaterial`, ...), `MaterialEnums`. |
 | `Lights/` | `AmbientLight`, `DirectionalLight`, `PointLight`, `SpotLight`, `HemisphereLight`, `RectAreaLight` and their `*Shadow` types. |
 | `Cameras/` | `PerspectiveCamera`, `OrthographicCamera`. |
 | `Textures/` | `Texture`, `Image`. |
@@ -114,9 +117,9 @@ becomes a `ActDim.Three.BufferAttribute` on the client, built from:
 - `itemSize`: values per vertex (3 = position/normal, 2 = uv, 4 = rgba, 1 = index/scalar).
 - `count`: vertex count; on the client it is `array.length / itemSize` (informational in JSON).
 - `normalized`: for **integer** arrays only: `true` means the client remaps values at shader time -
-  unsigned → `[0,1]`, signed → `[-1,1]` (e.g. color stored as `Uint8Array` normalized). Ignored for floats.
+  unsigned -> `[0,1]`, signed -> `[-1,1]` (e.g. color stored as `Uint8Array` normalized). Ignored for floats.
 - `name` / `uuid`: carried through; three.js keys the attribute by its dictionary name (`position`,
-  `normal`, `uv`, `color`, `index`, …), so the **dictionary key is what the renderer binds**, not `name`.
+  `normal`, `uv`, `color`, `index`, ...), so the **dictionary key is what the renderer binds**, not `name`.
 
 **`type` MUST be a valid JS TypedArray name**: the client picks both the TypedArray and the
 `*BufferAttribute` subclass from it. Emitting a wrong/empty `type` (see the `// TODO: Type = ...`

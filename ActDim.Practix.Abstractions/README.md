@@ -81,4 +81,4 @@ Implementations of these interfaces are available in concrete packages such as [
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](../LICENSE).

@@ -5,7 +5,7 @@ _Domain terms. Add a term when you introduce or clarify it._
 <!-- - **Term**: definition. -->
 
 - **Compression format** (`CompressionFormat`): a codec applied to a single byte stream, with no file
-  metadata or structure: GZip, Brotli, Deflate, … Contrast with *archive format*.
+  metadata or structure: GZip, Brotli, Deflate, ... Contrast with *archive format*.
 - **Archive format** (`ArchiveFormat`): a container holding multiple named entries: ZIP, TAR, 7z, RAR. The
   container and the codec are independent concerns (a `.tar.gz` is a TAR archive inside a GZip stream).
 - **Archive entry** (`IArchiveEntry` / `ArchiveEntry`): one named item inside an archive: uncompressed size,

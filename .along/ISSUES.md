@@ -5,12 +5,12 @@ _Solution-level issues board. Project-specific issues live exclusively in their 
 ## Active
 
 ## Subproject Issue Boards
-- **ActDim.BytePath**: [`.agents/ISSUES.md`](file:///d:/Src/my/actdim/public/dotnet/ActDim.BytePath/.agents/ISSUES.md)
-- **ActDim.Emitron**: [`.agents/ISSUES.md`](file:///d:/Src/my/actdim/public/dotnet/ActDim.Emitron/.agents/ISSUES.md)
-- **ActDim.Reflectron**: [`.agents/ISSUES.md`](file:///d:/Src/my/actdim/public/dotnet/ActDim.Reflectron/.agents/ISSUES.md)
-- **ActDim.Observability**: [`.agents/ISSUES.md`](file:///d:/Src/my/actdim/public/dotnet/ActDim.Observability/.agents/ISSUES.md)
-- **ActDim.Practix.Common**: [`.agents/ISSUES.md`](file:///d:/Src/my/actdim/public/dotnet/ActDim.Practix.Common/.agents/ISSUES.md)
-- **ActDim.Three**: [`.agents/ISSUES.md`](file:///d:/Src/my/actdim/public/dotnet/ActDim.Three/.agents/ISSUES.md)
+- **ActDim.BytePath**: [`ActDim.BytePath/.along/ISSUES.md`](../ActDim.BytePath/.along/ISSUES.md)
+- **ActDim.Emitron**: [`ActDim.Emitron/.along/ISSUES.md`](../ActDim.Emitron/.along/ISSUES.md)
+- **ActDim.Reflectron**: [`ActDim.Reflectron/.along/ISSUES.md`](../ActDim.Reflectron/.along/ISSUES.md)
+- **ActDim.Observability**: [`ActDim.Observability/.along/ISSUES.md`](../ActDim.Observability/.along/ISSUES.md)
+- **ActDim.Practix.Common**: [`ActDim.Practix.Common/.along/ISSUES.md`](../ActDim.Practix.Common/.along/ISSUES.md)
+- **ActDim.Three**: [`ActDim.Three/.along/ISSUES.md`](../ActDim.Three/.along/ISSUES.md)
 
 ## Done (recent solution-wide)
 - `feat--emitron-razor-engine`: Create ActDim.Emitron.Razor project and Razor template compiler engine

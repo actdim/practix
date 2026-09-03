@@ -11,6 +11,7 @@ issues_completed: [bug--getasync-disposed-check-and-cleanup]
 decisions: []
 risks_logged: []
 spikes_conducted: []
+milestone: v2.0.0-along-transition
 ---
 
 # Session Log: AsyncObjectPool GetAsync Disposed Checks and Cleanup

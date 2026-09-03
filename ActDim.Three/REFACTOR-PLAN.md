@@ -21,15 +21,15 @@
   serializer + camelCase resolver). Adapters (`SerializationAdapter`, `Object3D/SceneSerializationAdapter`)
   and `Object3D.ProcessChildren` + all `ToJSON` overrides **deleted**. `Guid.NewGuid()` removed from
   `Element`/`BufferAttribute` ctors (§11): the converter assigns uuids during свёртка. `Object3D.UserData`
-  → `Dictionary<string, object>` (§9). Tests migrated to `ThreeJson`/`ToSceneDocument`; added
+  -> `Dictionary<string, object>` (§9). Tests migrated to `ThreeJson`/`ToSceneDocument`; added
   `Document.ToSceneDocument_FlattensGraphIntoPools_AndAssignsUuids`. 3 tests green.
 - ✅ **Milestone 2 (slice B): §8 full read + byte round-trip**: `SceneDocumentConverter` read now
-  rebuilds **concrete** node types (`Scene`/`Group`/`Mesh`/… via a reflected `type→Type` map),
+  rebuilds **concrete** node types (`Scene`/`Group`/`Mesh`/... via a reflected `type->Type` map),
   resolves `geometry`/`material` uuid references back to the pooled instances (`Assert.Same`), reads the
   `matrix`, and wires `Parent`. Type-specific scalars via `Populate`; structure by hand. Unresolvable
   references throw (§12); unmodeled node types fall back to base `Object3D` (subset policy). New tests:
   concrete-type + reference-resolution asserts, and `Document_IsByteStable_AcrossRoundTrip`
-  (`json → doc → json` identical). 4 tests green.
+  (`json -> doc -> json` identical). 4 tests green.
 - ✅ **No wrapper class: plain `JsonConvert`**: `ThreeJson` deleted. The format settings (converters,
   camelCase resolver, null/default omission) now live **inside** `SceneDocumentConverter` as a private
   `JsonSerializer`. Public API is `JsonConvert.SerializeObject(scene.ToSceneDocument())` /
@@ -62,8 +62,8 @@
   are opt-in). The private `CamelCaseCustomResolver` inside `SceneDocumentConverter` is **kept as a
   safety net** for those few attribute-less opt-out props; drop it only if they get annotated.
 - ✅ **B: full read-side reference resolution**: `SceneDocumentConverter` read keeps each pool element's
-  source `JObject` and wires cross-references: **texture → image** (`Texture.Image`) and
-  **material → texture** (`map`/`bumpMap`/… via reflection over the `<Name>Uuid` ↔ internal `<Name>`
+  source `JObject` and wires cross-references: **texture -> image** (`Texture.Image`) and
+  **material -> texture** (`map`/`bumpMap`/... via reflection over the `<Name>Uuid` ↔ internal `<Name>`
   Texture properties). Also fixed a latent bug: `textures`/`images`/`fonts` pools have no `type`
   discriminator (they don't derive `Element`), so they're now read as concrete `Texture`/`Image`/`FontData`
   instead of via `ElementConverter`. Legacy `Geometry.GeometryData.Vertices`/`Normals` made settable so
@@ -84,10 +84,10 @@
   no settings. `DataContractResolver` now also honors `ShouldSerialize<Name>()` (STJ omits empty
   `groups`/`morphAttributes` like Newtonsoft). `BufferGeometryData.Attributes`/`MorphAttributes` setters
   made public (STJ doesn't populate private-set collections). Tests: `StjDocument.*` (STJ round-trip +
-  **Newtonsoft→STJ interop**). 13 tests green.
+  **Newtonsoft->STJ interop**). 13 tests green.
 - ⏳ Remaining:
   - **§12**: streaming (avoid `JObject`/`JsonNode` buffering on read; exact-presize typed buffer read).
-  - geometry → font resolution: **dropped** (fonts are not part of the three.js format; ThreeLib extension).
+  - geometry -> font resolution: **dropped** (fonts are not part of the three.js format; ThreeLib extension).
 
 ## Goals
 
@@ -101,8 +101,8 @@
 ## 1. Typed buffers instead of `System.Array` (anti-boxing)
 
 Root cause: `BufferAttribute.Array` is `System.Array`; Newtonsoft materializes `object[]` with every
-number boxed (~32 B/elem vs 4 B for `float[]`), plus millions of tiny objects → GC pressure. The C#
-side also pre-boxes today (`Cast<object>().ToArray()`, `OptimizeFloats` → `IEnumerable<object>`).
+number boxed (~32 B/elem vs 4 B for `float[]`), plus millions of tiny objects -> GC pressure. The C#
+side also pre-boxes today (`Cast<object>().ToArray()`, `OptimizeFloats` -> `IEnumerable<object>`).
 
 - Introduce a **typed representation** (chosen: separate typed types, not raw `System.Array`):
   ```
@@ -115,7 +115,7 @@ side also pre-boxes today (`Cast<object>().ToArray()`, `OptimizeFloats` → `IEn
       Uint8ClampedArray : TypedArray<byte> (see §1a)
       Int16Array/Uint16Array/Int32Array/Uint32Array
   ```
-- `BufferAttribute.Array` (`System.Array`) → `ITypedArray Values` (JSON name stays `array`).
+- `BufferAttribute.Array` (`System.Array`) -> `ITypedArray Values` (JSON name stays `array`).
 - Do **not** support `BigInt64Array`/`BigUint64Array` (three.js loader won't build them).
 
 ### 1a. Storage (DECIDED): exact-sized `T[]`, `Span<T>` out, no `List`/`object[]`
@@ -133,17 +133,17 @@ side also pre-boxes today (`Cast<object>().ToArray()`, `OptimizeFloats` → `IEn
 ### 1b. Constructor also accepts a raw `Array`: copy as efficiently as possible
 Keep an ergonomic ctor/overloads that accept an incoming `System.Array` (or `ReadOnlySpan<T>`) plus the
 target `type`, and copy into the typed `T[]` backing via the fastest applicable path:
-1. incoming is already the exact `T[]` → `Array.Copy` (or an explicit *take-ownership* factory to skip the copy when the caller yields the array);
-2. incoming is a blittable primitive array of the same element width → `Buffer.BlockCopy` (memcpy-speed);
-3. incoming is a convertible primitive array (e.g. `double[]` → `float[]`) → typed element loop, **no boxing**;
-4. incoming is `object[]` (already boxed) → element-wise unbox loop (fallback; caller-induced cost, but we never re-box).
+1. incoming is already the exact `T[]` -> `Array.Copy` (or an explicit *take-ownership* factory to skip the copy when the caller yields the array);
+2. incoming is a blittable primitive array of the same element width -> `Buffer.BlockCopy` (memcpy-speed);
+3. incoming is a convertible primitive array (e.g. `double[]` -> `float[]`) -> typed element loop, **no boxing**;
+4. incoming is `object[]` (already boxed) -> element-wise unbox loop (fallback; caller-induced cost, but we never re-box).
 
-Also provide typed factories (`BufferAttribute.Float32(float[], itemSize)`, `.Uint32(uint[], …)`, …) so
+Also provide typed factories (`BufferAttribute.Float32(float[], itemSize)`, `.Uint32(uint[], ...)`, ...) so
 normal callers never touch `System.Array`/`object[]` at all.
 
 ### 1c. Uint8 vs Uint8Clamped: DO NOT collapse
 `byte[]` backs both `Uint8Array` and `Uint8ClampedArray`, and `sbyte[]` backs `Int8Array`: so
-`T → type` is **not 1:1**. Therefore:
+`T -> type` is **not 1:1**. Therefore:
 
 - The three.js `type` is an **explicit discriminator** (field/enum or distinct subclass overriding
   `Type`), **never inferred from the CLR element type**.
@@ -153,12 +153,12 @@ normal callers never touch `System.Array`/`object[]` at all.
 
 ## 2. `BufferAttribute` JsonConverter (the actual anti-boxing mechanism)
 
-- **Read**: read `type` first → instantiate the right `TypedArray<T>` → pre-size `T[]` from
-  `count * itemSize` → stream numbers straight into the primitive array (`ReadAsDouble/ReadAsInt32` →
+- **Read**: read `type` first -> instantiate the right `TypedArray<T>` -> pre-size `T[]` from
+  `count * itemSize` -> stream numbers straight into the primitive array (`ReadAsDouble/ReadAsInt32` ->
   cast to `T`). Never build `object[]` / `JArray`.
 - **Write**: dispatch on the concrete `TypedArray<T>`, write with typed `writer.WriteValue(T)` in a loop.
 - **Single-pass requirement**: `type` must precede `array` in the output (enforce via property order).
-  Otherwise the reader must buffer (`JObject.Load`) → transient boxing on large arrays. Stream by
+  Otherwise the reader must buffer (`JObject.Load`) -> transient boxing on large arrays. Stream by
   default; keep a buffered fallback for foreign inputs where `array` precedes `type`.
 - Optional: `ArrayPool<T>` for temp buffers when `count` is unknown.
 
@@ -194,7 +194,7 @@ SceneDocument   // three.js "Object" document (a Scene OR any Object3D root)
   List<...> geometries / materials / textures / images / [fonts]   // flat pools, by uuid
   object    // nested node tree; children reference resources by uuid string
 ```
-- `SceneDocument` is a **format type**, not a core object → it MAY carry
+- `SceneDocument` is a **format type**, not a core object -> it MAY carry
   `[JsonConverter(typeof(SceneDocumentConverter))]`. That converter (plus the helper converters it calls
   for nodes / `BufferAttribute` / materials / geometry `data`) **owns every three.js rule**: it walks the
   attribute-free core graph and **explicitly writes** the exact field names (lowercase/camelCase), builds
@@ -208,7 +208,7 @@ SceneDocument   // three.js "Object" document (a Scene OR any Object3D root)
 - The old adapter class hierarchy and `Utilities` are deleted.
 
 ### 3c. Public API (DECIDED)
-- Serialize a scene: **extension method `scene.ToSceneDocument()`** → returns a `SceneDocument`; then
+- Serialize a scene: **extension method `scene.ToSceneDocument()`** -> returns a `SceneDocument`; then
   standard `JsonConvert.SerializeObject(doc)`.
 - Also provide a way to build a document from a **bare set of objects**: `ToSceneDocument(this
   IEnumerable<Object3D>)` / `SceneDocument.From(params Object3D[])`: pools + `object` tree assembled
@@ -219,27 +219,27 @@ SceneDocument   // three.js "Object" document (a Scene OR any Object3D root)
 ### 3d. Fidelity policy (DECIDED): strict subset, NO lossless round-trip
 We do **not** preserve unknown/unmodeled JSON fields (no `[JsonExtensionData]`). The C# model emits its
 own subset of the three.js format; extra fields (`layers`, `renderOrder`, the long material tail,
-`boundingBox`, `boundingSphere`, …) are **client-owned** and the client's responsibility, not ours.
+`boundingBox`, `boundingSphere`, ...) are **client-owned** and the client's responsibility, not ours.
 Round-trip is lossless only for what the model covers: by design. (The modeled geometry `data` fields
 are enumerated in §10.)
 
 ## 4. Delete `Utilities`
 
-- `Serialize`/`Deserialize` wrappers → gone. Format rules do **NOT** move onto the types as attributes
+- `Serialize`/`Deserialize` wrappers -> gone. Format rules do **NOT** move onto the types as attributes
   (see §3a): they move into the `SceneDocument` converter set (§3b). Field names, pooling, ignore
   behavior are all written explicitly by the converters. `CamelCaseCustomResolver` is not needed for the
   document path (names are emitted by hand); a standalone consumer picks their own resolver/settings.
-- `Flatten` → gone; superseded by typed buffer factories (callers pass real primitive arrays).
-- `OptimizeFloats` → **remove**. Lossy, breaks TypedArray homogeneity (mixes int/float), and precision
+- `Flatten` -> gone; superseded by typed buffer factories (callers pass real primitive arrays).
+- `OptimizeFloats` -> **remove**. Lossy, breaks TypedArray homogeneity (mixes int/float), and precision
   is the client's concern, not ours.
-- `CombineHashCodes` → **remove** (see §5).
+- `CombineHashCodes` -> **remove** (see §5).
 
 ## 5. Equality / hashing / dedup rework
 
 - `CombineHashCodes` is broken and wasteful:
-  - `CombineHashCodes(params int[])` calls itself for an `int[]` arg → infinite recursion / stack overflow (dead).
+  - `CombineHashCodes(params int[])` calls itself for an `int[]` arg -> infinite recursion / stack overflow (dead).
   - Drives `Geometry/BufferGeometry.GetHashCode` + `Equals`, which power `ElementCollection.AddIfNew`
-    → content dedup does `O(N)` value-equality over megabyte vertex arrays on every add, with LINQ allocs.
+    -> content dedup does `O(N)` value-equality over megabyte vertex arrays on every add, with LINQ allocs.
 - Plan:
   - Remove custom hashing; use `System.HashCode` where a hash is genuinely needed.
   - Dedup resources in the flattening converter by **identity / uuid** (cheap, correct), not deep
@@ -248,10 +248,10 @@ are enumerated in §10.)
 
 ## 6. Fallout to handle (not surprises)
 
-- `CommonTests.cs` builds attributes via `object[]` / `Cast<object>()` / `OptimizeFloats` → rewrite to
+- `CommonTests.cs` builds attributes via `object[]` / `Cast<object>()` / `OptimizeFloats` -> rewrite to
   typed factories (`BufferAttribute.Float32(float[], itemSize)` etc.).
 - `CanDeserializeObject3D` (currently failing) starts passing **unchanged** once the `type`-discriminator
-  converter exists: `position` → `Float32Array`, custom `colorCompact`/`id` → `Uint32Array`.
+  converter exists: `position` -> `Float32Array`, custom `colorCompact`/`id` -> `Uint32Array`.
 - Out of scope: `InterleavedBufferAttribute`, base64-packed buffers.
 
 ## 7. Tests to add on implementation
@@ -259,7 +259,7 @@ are enumerated in §10.)
 - Round-trip `Float32`: after deserialize, `Values` is a `Float32Array` backed by `float[]`: assert it
   is **not** `object[]` (boxing regression guard).
 - Sample payload: attribute CLR/`type` mapping + values match.
-- **Document round-trip (key fidelity guarantee)**: `json → SceneDocument → json` yields an equivalent
+- **Document round-trip (key fidelity guarantee)**: `json -> SceneDocument -> json` yields an equivalent
   document within the modeled subset: including **byte-stable uuids** (deserialized uuids are preserved,
   never regenerated on write; see §11). Assert pools, references, and node `type`s survive intact.
 - **Standalone object (unconstrained)**: a lone core object round-trips with **default Newtonsoft +
@@ -274,14 +274,14 @@ are enumerated in §10.)
 - **Polymorphic node tree**: `object.children` is `List<Object3D>`; without a `type` discriminator it all
   deserializes to base `Object3D`, losing `Mesh`/`Group`/`Light`/`Camera`. The same `type`-discriminator
   converter used for the pools must also resolve **node types** in the tree.
-- **Reference resolution (two-phase)**: load pools into uuid→object maps → build the node tree → wire
-  refs: `mesh.geometry`/`mesh.material` uuid strings → live objects; `texture→image`, `material→texture`
+- **Reference resolution (two-phase)**: load pools into uuid->object maps -> build the node tree -> wire
+  refs: `mesh.geometry`/`mesh.material` uuid strings -> live objects; `texture->image`, `material->texture`
   chains; restore `Parent` links. This is the inverse of the flattening converter and lives in the same
   `SceneDocument` layer.
 
 ## 9. Domain-model fixes required for §3a ("normally serializable")
 
-- **`Object3D.Position` is self-recursive** (`get { return Position; }` → stack overflow on any read,
+- **`Object3D.Position` is self-recursive** (`get { return Position; }` -> stack overflow on any read,
   [Object3D.cs:65](Core/Object3D.cs#L65)). Fix: make it a **plain auto-property**.
 - **Transform props are INDEPENDENT of `Matrix` (DECIDED).** `Position`/`Rotation`/`Quaternion`/`Scale`
   and `Matrix` are plain, unsynced auto-properties: do **not** derive `Position` from `Matrix` or keep
@@ -295,9 +295,9 @@ are enumerated in §10.)
         * Matrix4.CreateTranslation(position);
   ```
   Math delegates to `System.Numerics.Matrix4x4`; conversion copies `M11..M44` into the column-major
-  `Elements[0..15]`, which transposes into three.js layout implicitly (translation → `te[12..14]`).
+  `Elements[0..15]`, which transposes into three.js layout implicitly (translation -> `te[12..14]`).
 - **`UserData` shape**: today `Dictionary<string, Dictionary<string, object>>`: wrong; three.js
-  `userData` is an **arbitrary JSON object** (key → scalar/array/nested object). Change to
+  `userData` is an **arbitrary JSON object** (key -> scalar/array/nested object). Change to
   `Dictionary<string, object>` (nested values round-trip as `JObject`/`JArray`; pure pass-through, we
   don't interpret it: consistent with §3d). Apply consistently to both `Object3D.UserData` and
   `Material.UserData`. (`JObject` is an even more explicit "opaque blob" alternative, but the plain
@@ -315,15 +315,15 @@ Everything below lives under `data` (except the attribute keys which live under 
   `type` = `Uint16Array` (≤65535 verts) or `Uint32Array`. Triangle connectivity (every 3 indices = a
   triangle). Read/write at the `data` level, same typed-array / no-boxing treatment.
 - ✅ **`groups`**: `[{ start, count, materialIndex }]`. Splits the index buffer into triangle ranges,
-  each drawn with a different material → pairs with **multi-material meshes** (`Mesh.material` becomes a
+  each drawn with a different material -> pairs with **multi-material meshes** (`Mesh.material` becomes a
   `Material[]`, `materialIndex` selects into it). Usually empty or a single group. Plain POCO list, no
   buffers. NOTE: implies the domain `Mesh.Material` must also allow an array form when groups are used.
-- ✅ **`morphAttributes`**: dict `{ position: [BufferAttribute, …], normal: [BufferAttribute, …], … }`;
+- ✅ **`morphAttributes`**: dict `{ position: [BufferAttribute, ...], normal: [BufferAttribute, ...], ... }`;
   morph targets / blend shapes (base + weighted deltas, e.g. face smile/sad). Each entry is a **full
   `BufferAttribute`**, so every morph target gets the same typed-buffer / no-boxing path. Only present on
   animated/imported models.
 - ✅ **`drawRange`**: `{ start, count }`. Render only a slice of the index buffer (progressive load,
-  build-in animation, partial display). Default is `{ start:0, count:Infinity }` → three.js omits it when
+  build-in animation, partial display). Default is `{ start:0, count:Infinity }` -> three.js omits it when
   default; we serialize only when non-default.
 
 **NOT serialized (client-owned, see §3d):**
@@ -347,14 +347,14 @@ document layer, not the domain ctor.
 - The `SceneDocument` converter, while flattening, **assigns a fresh uuid to any element still
   `Guid.Empty`**, and dedups shared resources by **reference identity** (§5). Consumer-set uuids are
   honored, not overwritten.
-- On read, uuid comes from JSON; on write, existing uuids are **preserved, never regenerated** → this is
+- On read, uuid comes from JSON; on write, existing uuids are **preserved, never regenerated** -> this is
   what makes the §7 document round-trip byte-stable.
 - Optional `EnsureUuid()` helper for callers who want to pre-assign explicitly.
 
 ## 12. Read robustness & document I/O policy
 
 - **Malformed references / unknown types**: an unresolvable uuid reference (`mesh.geometry` points at no
-  pool entry) or an unknown node/resource `type` → **throw with a clear message** by default (the format
+  pool entry) or an unknown node/resource `type` -> **throw with a clear message** by default (the format
   is machine-generated; silent-skip hides producer bugs). Revisit a lenient mode only if a real need appears.
 - **Streaming, not buffering**: the `SceneDocument` converter reads/writes through `JsonReader`/
   `JsonWriter`, **not** `JObject.Load`, so large scenes don't spike memory: consistent with the no-boxing

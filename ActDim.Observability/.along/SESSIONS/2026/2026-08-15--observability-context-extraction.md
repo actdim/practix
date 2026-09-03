@@ -5,7 +5,7 @@ slug: observability-context-extraction
 agent: claude-opus-5
 branch: main
 commit: pending
-summary: Extracted IObservabilityContext from ICallContext: telemetry ambient state now exports to the span at push time, while ICallContext returns to being a neutral variable store.
+summary: "Extracted IObservabilityContext from ICallContext: telemetry ambient state now exports to the span at push time, while ICallContext returns to being a neutral variable store."
 milestone: v2.0.0-along-transition
 issues_advanced: []
 issues_completed: []

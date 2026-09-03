@@ -16,7 +16,7 @@ related: []
 # Debt: Production Code Matches a Test-Only Attribute by Name
 
 ## Description
-`EventObservabilityLoggerFactory.ResolveProviderAlias` resolves provider aliases by comparing the attribute type name against a hard-coded list that includes a test type ([EventObservabilityLoggerFactory.cs:93](../../ActDim.Observability/EventObservabilityLoggerFactory.cs#L93)):
+`EventObservabilityLoggerFactory.ResolveProviderAlias` resolves provider aliases by comparing the attribute type name against a hard-coded list that includes a test type ([EventObservabilityLoggerFactory.cs:93](../../EventObservabilityLoggerFactory.cs#L93)):
 
 ```csharp
 .FirstOrDefault(a => a.GetType().Name == "ProviderAliasAttribute" || a.GetType().Name == "TestProviderAliasAttribute");

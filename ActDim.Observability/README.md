@@ -27,7 +27,7 @@ Storing high-throughput logs and distributed traces in traditional relational da
 
 ### Core Advantages of Dedicated Observability Engines
 
-* **Columnar & Append-Only Storage:** Uses efficient storage engines (e.g., Apache Parquet, LSM-trees) tailored for time-series and log data, achieving 10–15x higher compression ratios.
+* **Columnar & Append-Only Storage:** Uses efficient storage engines (e.g., Apache Parquet, LSM-trees) tailored for time-series and log data, achieving 10-15x higher compression ratios.
 * **Telemetry-First Query Languages:** Purpose-built query languages (like LogsQL or telemetry-aware SQL dialects) parse, extract, and filter arbitrary JSON fields on the fly without heavy index maintenance.
 * **Built-in APM Visualizations:** Native support for end-to-end trace waterfalls, span trees, and real-time log streaming right out of the box.
 
@@ -36,7 +36,7 @@ Storing high-throughput logs and distributed traces in traditional relational da
 ### Recommended Lightweight Open-Source Solutions
 
 * **.NET Aspire Dashboard:** Microsoft's official, open-source telemetry visualization dashboard (`mcr.microsoft.com/dotnet/aspire-dashboard`). It natively ingests logs, traces, and metrics directly via standard OpenTelemetry OTLP (`http://localhost:4317` / `http://localhost:4318`) with **zero third-party logger providers or custom adapters required**. Aspire offers real-time trace waterfalls, structured log exploration, resource graphs, and metric charts out of the box.
-* **VictoriaLogs:** A high-performance, resource-efficient log engine requiring minimal CPU and RAM (~50–100 MB). It eliminates high-cardinality bottlenecks, indexes all fields automatically, and features the expressive `LogsQL` language for structured JSON analysis.
+* **VictoriaLogs:** A high-performance, resource-efficient log engine requiring minimal CPU and RAM (~50-100 MB). It eliminates high-cardinality bottlenecks, indexes all fields automatically, and features the expressive `LogsQL` language for structured JSON analysis.
 * **OpenObserve:** A single Rust binary that covers logs, traces, and metrics out of the box. It uses Apache Parquet for storage, natively accepts OpenTelemetry (OTLP) data, and provides a full-featured web UI with trace waterfalls, log exploration, and dashboards without requiring Docker, Java, or external databases.
 * **Seq (Datalust):** A developer-friendly, .NET-native observability server designed specifically for structured logs, distributed traces, and metrics. Seq offers a free single-user license for local development (`docker run -d -p 5341:80 -e ACCEPT_EULA=Y datalust/seq`), zero-setup OTLP ingestion out of the box (`http://localhost:5341/ingest/otlp`), and features an intuitive real-time Web UI with instant signals, log tailing, and trace waterfall views.
 * **ClickHouse:** An industry-standard, ultra-high-performance columnar analytical database engine for high-volume logs, metrics, and trace telemetry. While we do not maintain a dedicated integration test suite for ClickHouse in this repository, modern distributions and telemetry stacks bundle or integrate with **HyperDX** (an open-source APM & log exploration Web UI), providing a comprehensive out-of-the-box user experience for analyzing traces and logs.
@@ -681,4 +681,4 @@ dotnet test Tests/Observability.Tests/ActDim.Observability.Tests.csproj
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](../LICENSE).

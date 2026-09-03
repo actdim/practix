@@ -137,7 +137,7 @@ not thread-safe, concurrent reads need external synchronization.
 - File mode: `FileOptions.Asynchronous` for the async path; `SequentialScan` is a *hint that can hurt* here
   because consumers seek: leave it off or justify it. Consider `bufferSize: 0/1` to avoid double buffering
   since we copy in large chunks ourselves. After filling, rewind to 0 and serve reads from the same handle.
-- Override the modern surface, not just the legacy one: `Read(Span<byte>)`, `ReadAsync(Memory<byte>, …)`,
+- Override the modern surface, not just the legacy one: `Read(Span<byte>)`, `ReadAsync(Memory<byte>, ...)`,
   `ReadByte`, and `CopyToAsync` (delegate to the inner stream so pooled/file fast paths survive). Implement
   `DisposeAsync`, and make dispose idempotent.
 - Failure/cancellation at any point during creation: dispose the inner stream, delete the temp file, do not

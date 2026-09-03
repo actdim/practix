@@ -14,7 +14,7 @@ risks_logged: []
 spikes_conducted: []
 ---
 
-﻿---
+---
 date: 2026-08-29
 slug: url-safe-key-separator
 agent: Antigravity / Gemini 3.7 Flash

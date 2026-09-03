@@ -19,7 +19,7 @@ related: []
 ## Description
 `EventObservabilityHelper.FlattenPairs` walks public properties by reflection with no guard rails, so an arbitrary object handed to `BeginScope` can take the process down. Observability must never be able to break the application it observes.
 
-1. **Cycles cause `StackOverflowException`.** There is no visited set and no depth limit ([EventObservabilityHelper.cs](../../ActDim.Observability/EventObservabilityHelper.cs)). Any parent/child navigation: EF entities, trees, doubly linked structures: recurses forever. A `StackOverflowException` cannot be caught: the process dies.
+1. **Cycles cause `StackOverflowException`.** There is no visited set and no depth limit ([EventObservabilityHelper.cs](../../../EventObservabilityHelper.cs)). Any parent/child navigation: EF entities, trees, doubly linked structures: recurses forever. A `StackOverflowException` cannot be caught: the process dies.
 2. **A throwing property getter propagates into business code.** `prop.GetValue(obj)` is not guarded. A lazy navigation property on a disposed `DbContext`, or a getter doing I/O, throws out of `BeginScope`.
 3. **No limit on the number of attributes.** `byte[]`, a thousand-element list or a configuration dictionary are all `IEnumerable` and are expanded element by element. One unlucky DTO sends megabytes to the trace backend.
 4. **Collections at the root produce nameless keys.** With an empty prefix the key becomes `[0]`, `[1]`: not a usable attribute name.

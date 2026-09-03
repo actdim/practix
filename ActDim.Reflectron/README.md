@@ -163,4 +163,4 @@ dotnet test Tests/Reflectron.Tests/ActDim.Reflectron.Tests.csproj
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](../LICENSE).

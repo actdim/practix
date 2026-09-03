@@ -156,7 +156,7 @@ string status = parseJson(new { Json = """{"status":"active"}""" });
 
 // 2. Or pre-configured via EmitronOptions / Emitron.DefaultOptions:
 var options = new EmitronOptions()
-    .AddSearchPaths(@"C:\MyPlugins\Assemblies")
+    .AddSearchPaths(@"C:`MyPlugins`Assemblies")
     .AddAssemblies(typeof(System.Text.Json.JsonDocument).Assembly)
     .AddUsings("System.Text.Json");
 
@@ -191,6 +191,6 @@ dotnet test Tests/Emitron.Tests/ActDim.Emitron.Tests.csproj
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](../LICENSE).
 
 

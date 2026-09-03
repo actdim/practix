@@ -21,12 +21,12 @@ spikes_conducted: []
   - Deleted obsolete `IBlobStorage`, `IBlobStorageProvider`, `IBlob`, `IBlobEntry`, and `IStorageOptions`.
   - Autonomous blob operations and storage engine contracts are fully managed in the `ActDim.BlobManager` library.
 - **Relocated API Result Envelopes to `ActDim.Practix.Service.Api`**:
-  - Created [`ActDim.Practix.Service/Api/ApiResult.Generic.cs`](ActDim.Practix.Service/Api/ApiResult.Generic.cs) and [`ActDim.Practix.Service/Api/ApiResult.cs`](ActDim.Practix.Service/Api/ApiResult.cs) under `ActDim.Practix.Service.Api`.
+  - Created [`ActDim.Practix.Service/Api/ApiResult.Generic.cs`](../../../ActDim.Practix.Service/Api/ApiResult.Generic.cs) and [`ActDim.Practix.Service/Api/ApiResult.cs`](../../../ActDim.Practix.Service/Api/ApiResult.cs) under `ActDim.Practix.Service.Api`.
   - Deleted legacy `Messaging/` from `ActDim.Practix.Abstractions`.
 - **Removed Legacy `Mapping/` from `Abstractions`**:
   - Deleted obsolete skeletal `IMapper` interface. Object cloning is handled by `IJsonSerializer.Clone<T>()`.
 - **Refreshed Documentation & Project Settings**:
-  - Updated [`ActDim.Practix.Abstractions/README.md`](ActDim.Practix.Abstractions/README.md) feature list.
+  - Updated [`ActDim.Practix.Abstractions/README.md`](../../../ActDim.Practix.Abstractions/README.md) feature list.
   - Set `<IsPackable>false</IsPackable>` on `ActDim.AppRegistry.Domain.csproj`.
 
 ## Verification

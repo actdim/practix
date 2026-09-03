@@ -9,6 +9,9 @@ updated: 2026-08-31
 completed: 2026-08-31
 agent: antigravity
 tags: [pooling, async, disposal, lifecycle, resilience]
+milestone: v1.3.0-knowledge-base-and-graph
+blocked_by: []
+related: []
 ---
 
 # Bug: Guard GetAsync Against Disposed Pool and Clean Up Factory Objects

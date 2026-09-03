@@ -234,4 +234,4 @@ dotnet test Tests/Common.Tests/ActDim.Practix.Common.Tests.csproj
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](../LICENSE).

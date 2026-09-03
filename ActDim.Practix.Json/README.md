@@ -132,4 +132,4 @@ dotnet test Tests/Json.Tests/ActDim.Practix.Json.Tests.csproj
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](../LICENSE).

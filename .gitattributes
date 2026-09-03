@@ -1,0 +1,3 @@
+﻿*.md text eol=lf
+.along/HISTORY.md merge=union
+.along/DECISIONS.md merge=union

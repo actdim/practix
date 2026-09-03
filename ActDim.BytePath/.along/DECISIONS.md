@@ -125,7 +125,7 @@ _One dated entry per architectural decision. Never edit past entries; mark a rep
 ## #009: Whole-object writes are puts; resumable uploads are sessions
 - Date: 2026-08-11
 - Status: accepted
-- Context: `WriteAsync` meant a whole-blob create-or-replace even though “write” naturally suggests an in-place or positioned change. A proposed `WriteAsync(record, content, offset)` would let a file-system backend assemble chunks out of order, but file length cannot prove that every range was received: writing a late chunk first creates holes. Exposing temporary content under the final key would also let readers observe an incomplete upload.
+- Context: `WriteAsync` meant a whole-blob create-or-replace even though "write" naturally suggests an in-place or positioned change. A proposed `WriteAsync(record, content, offset)` would let a file-system backend assemble chunks out of order, but file length cannot prove that every range was received: writing a late chunk first creates holes. Exposing temporary content under the final key would also let readers observe an incomplete upload.
 - Decision:
   - Rename both whole-object `WriteAsync` overloads to `PutAsync`; they retain `FileMode.Create` semantics and consume a source stream or producer delegate.
   - Do not add public positioned-write overloads to `IBlobDataStore`.
@@ -154,4 +154,20 @@ _One dated entry per architectural decision. Never edit past entries; mark a rep
   - `/` is no longer a magic directory character in `FileSystemBlobDataStore`; it is escaped as `%2F` unless configured otherwise.
   - Keys with `:` round-trip through REST endpoints cleanly without route wildcard workarounds.
   - Windows reserved names are safely handled across all file operations.
+
+## #012: Multiple `IBlobManager` instances with self-describing key prefixes
+- Date: 2026-08-06
+- Status: proposed
+- Context: `IBlobManager` holds exactly one `IBlobDataStore`. An app needs both FileSystem (for user uploads) and S3 (for cache). No way to express that.
+- Decision:
+  - Each `IBlobManager` registers normally in DI. Each knows its `KeyPrefix`.
+  - `BlobManagerManifest` holds `Name`, `KeyPrefix`, `DataStore`, `Manager`, and `ResolveKey(key)`.
+  - Client iterates all manifests, calls `ResolveKey`, picks the first match.
+  - No routing inside `BlobManager`: the client decides.
+  - Keys carry a prefix: `fs:my-blob`, `s3:my-blob` (aligned with `#011`).
+- Consequences:
+  - Zero coupling between backends: each is independent.
+  - Client code knows which backend it wants.
+  - Key format changes: every key carries a prefix.
+  - Catch-all (empty prefix) matches everything; document that it should be last.
 

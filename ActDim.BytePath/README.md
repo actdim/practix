@@ -103,7 +103,7 @@ orphaned record.
 | | `TryGetOrSetAsync` | `TryGetForReadingAsync` | `TryGetForWritingAsync` |
 |---|---|---|---|
 | no record | creates it, `IsNew = true` | `KeyNotFound` | `KeyNotFound` |
-| record but no content | succeeds, `IsNew = true` | deletes the record → `KeyNotFound` | deletes the record → `KeyNotFound` |
+| record but no content | succeeds, `IsNew = true` | deletes the record -> `KeyNotFound` | deletes the record -> `KeyNotFound` |
 | lock you get | write: or read, if you ask for it *and* the record already existed | read | write |
 | codes it can return | `None`, `Timeout` | `None`, `KeyNotFound`, `Timeout` | `None`, `KeyNotFound`, `Timeout` |
 | `IsNew` | meaningful | always `false` | always `false` |
@@ -303,8 +303,8 @@ convenience: `Ttl` is relative and has nowhere to live on the record, only the v
 applied, and expiration follows the priority above. So `Apply` exists for anything that has to be
 translated into state, and plain assignment for the rest.
 
-`Apply` needs the write lock, which is also why `TryGetOrSetAsync(key, options, …)` amounts to
-get-or-create followed by `Apply`. `TryGetForWritingAsync(key, options, …)` is the same shorthand for
+`Apply` needs the write lock, which is also why `TryGetOrSetAsync(key, options, ...)` amounts to
+get-or-create followed by `Apply`. `TryGetForWritingAsync(key, options, ...)` is the same shorthand for
 a key that must already exist:
 
 ```csharp

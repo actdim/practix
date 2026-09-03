@@ -5,7 +5,7 @@ slug: log-record-span-separation
 agent: claude-opus-5
 branch: main
 commit: pending
-summary: Separated the two signals: Log produces a log record only, BeginScope owns the span; fixed low-cardinality span naming and made DTO flattening collisions observable.
+summary: "Separated the two signals: Log produces a log record only, BeginScope owns the span; fixed low-cardinality span naming and made DTO flattening collisions observable."
 milestone: v2.0.0-along-transition
 issues_advanced: []
 issues_completed: []

@@ -16,7 +16,7 @@ related: []
 # Bug: DI Registration Depends on Call Order and Is Not Idempotent
 
 ## Description
-Two defects in `AddEventObservability` ([EventObservabilityExtensions.cs](../../ActDim.Observability/EventObservabilityExtensions.cs)):
+Two defects in `AddEventObservability` ([EventObservabilityExtensions.cs](../../Extensions/EventObservabilityExtensions.cs)):
 
 1. **Order dependency.** `WrapRegisteredLoggerProviders` takes a snapshot of the `ILoggerProvider` descriptors present at the moment of the call. Providers registered afterwards are never decorated, so per-provider suppression silently does nothing for them:
 

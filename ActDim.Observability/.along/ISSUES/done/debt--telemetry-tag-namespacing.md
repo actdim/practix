@@ -51,7 +51,7 @@ See ADR-005 and ADR-006.
 - [x] 13 tests in `Tests/Observability.Tests` pass.
 
 ## Follow-ups
-- [bug--span-enrichment-gated-by-log-level](../bug--span-enrichment-gated-by-log-level.md)
-- [task--logs-without-active-span](../task--logs-without-active-span.md)
+- [bug--span-enrichment-gated-by-log-level](bug--span-enrichment-gated-by-log-level.md)
+- [task--logs-without-active-span](task--logs-without-active-span.md)
 - [feat--trace-context-in-text-logs](../feat--trace-context-in-text-logs.md)
 - [feat--message-template-analyzer](../feat--message-template-analyzer.md)

@@ -38,7 +38,7 @@ ADR-008 narrowed this issue considerably: message-template placeholders of a log
 - Separate `netstandard2.0` project with `EnforceExtendedAnalyzerRules`; the rest of the repository is net10.0.
 - `RegisterOperationAction(OperationKind.Invocation)`: overload resolution over `LoggerExtensions` and expansion of the `params object?[]` array are needed.
 - Template parser must handle `{{` / `}}`, `{Name,alignment:format}`, numeric names, `@` / `$`.
-- Consumed in-repo via `ProjectReference … OutputItemType="Analyzer" ReferenceOutputAssembly="false"`, packed under `analyzers/dotnet/cs`.
+- Consumed in-repo via `ProjectReference ... OutputItemType="Analyzer" ReferenceOutputAssembly="false"`, packed under `analyzers/dotnet/cs`.
 - Tests on `Microsoft.CodeAnalysis.CSharp.Analyzer.Testing`.
 
 ## Acceptance
