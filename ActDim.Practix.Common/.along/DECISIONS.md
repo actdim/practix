@@ -34,7 +34,7 @@ _One dated entry per architectural decision. Never edit past entries; mark a rep
   which silently breaks append/compose scenarios, and it was unclear who disposes what.
 - Decision: (a) a stream `CompressionManager` CREATES is returned rewound to 0 and is owned by the caller
   (dispose returns the pooled blocks); (b) a destination the CALLER supplies is written from its current
-  position and is never rewound and never closed: except in `CompressToArchiveAsync(Stream outputStream, …)`,
+  position and is never rewound and never closed: except in `CompressToArchiveAsync(Stream outputStream, ...)`,
   whose declared contract is to hand that stream back, so it is rewound; (c) an input stream is always
   consumed as a whole (rewound first when seekable) and left open; (d) entry streams handed to a
   reader/writer callback are owned by the manager and disposed as soon as the callback returns, and may be
@@ -47,12 +47,12 @@ _One dated entry per architectural decision. Never edit past entries; mark a rep
 ## #003: `using` declarations, not `using` statements, for resource scoping
 - Date: 2026-08-04
 - Status: accepted
-- Context: `CompressionManager` had up to four nested `using (…) { }` blocks (archive → entry stream → source
+- Context: `CompressionManager` had up to four nested `using (...) { }` blocks (archive → entry stream → source
   stream), pushing real logic 5-6 levels deep for no benefit. The root `AGENTS.md` rule "always brace
   `if`/`else`/`for`/`foreach`/`while`/`do`/`using`: never single-line or same-line bodies" is about statement
-  BODIES; a `using` *declaration* (`using var x = …;`) has no body at all, so it is not what that rule targets.
+  BODIES; a `using` *declaration* (`using var x = ...;`) has no body at all, so it is not what that rule targets.
   `Extensions/StreamExtensions.cs` already used the declaration form.
-- Decision: prefer the declaration form `using var x = …;` / `await using var x = …;` for resource scoping.
+- Decision: prefer the declaration form `using var x = ...;` / `await using var x = ...;` for resource scoping.
   Keep the block form only where the resource must be released before code that follows it in the same scope
   (i.e. where disposal order genuinely differs from "end of enclosing block").
 - Consequences: the whole of `CompressionManager` is now at most two levels deep. Two things to keep in mind:

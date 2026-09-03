@@ -30,7 +30,7 @@ Legend: **P** = problem, ordered by value, not by size. "Workaround" = what `Com
 
 ---
 
-## P1: `Task<byte[]> DecompressAsync(Stream, …)` is the odd one out
+## P1: `Task<byte[]> DecompressAsync(Stream, ...)` is the odd one out
 
 ```csharp
 Task<Stream> DecompressAsync(ReadOnlyMemory<byte> data, CompressionFormat? = default, CancellationToken = default);
@@ -51,8 +51,8 @@ zeroing pass is skipped), plus `DecompressToBytesAsync` was added *outside* the 
 `IBufferOwner<byte>`.
 
 **Options.**
-- (a) Interface gets `Task<Stream> DecompressAsync(Stream, …)` for symmetry, and the byte-oriented shape moves
-  to `Task<IBufferOwner<byte>> DecompressToBytesAsync(…)`: both already exist on the implementation.
+- (a) Interface gets `Task<Stream> DecompressAsync(Stream, ...)` for symmetry, and the byte-oriented shape moves
+  to `Task<IBufferOwner<byte>> DecompressToBytesAsync(...)`: both already exist on the implementation.
   **Recommended.**
 - (b) Keep a `byte[]` convenience but rename it `DecompressToArrayAsync`, so it reads as an explicit
   "materialize it for me" choice rather than the default way to decompress a stream.
@@ -69,13 +69,13 @@ interface therefore requires moving `IBufferOwner<T>` into Abstractions first. D
 Decompression has both forms; compression has neither:
 
 ```csharp
-Task DecompressAsync(ReadOnlyMemory<byte> data,   Stream outputStream, …);   // exists
-Task DecompressAsync(Stream stream,               Stream outputStream, …);   // exists
+Task DecompressAsync(ReadOnlyMemory<byte> data,   Stream outputStream, ...);   // exists
+Task DecompressAsync(Stream stream,               Stream outputStream, ...);   // exists
 // nothing equivalent for CompressAsync
 ```
 
 **Problem.** Compressing into an already-open destination is the common real case: an HTTP response body, a
-file, a blob upload, an entry inside an outer container. With only `Task<Stream> CompressAsync(…)` the caller
+file, a blob upload, an entry inside an outer container. With only `Task<Stream> CompressAsync(...)` the caller
 must accept a scratch stream and then copy it into the real destination: one extra full copy plus a pooled
 stream round-trip per operation, exactly the cost the design is trying to avoid. Note the contract is
 inconsistent with *itself*: `CompressToArchiveAsync` **does** have `outputStream` overloads.
@@ -192,7 +192,7 @@ public class ArchiveEntrySource
 ```
 
 **Problems.**
-1. `OpenReadAsync` is named `…Async` but is a **synchronous** `Func<Stream>`. Opening a real source (file,
+1. `OpenReadAsync` is named `...Async` but is a **synchronous** `Func<Stream>`. Opening a real source (file,
    blob, HTTP) is I/O; the type forces it to block.
 2. No `CancellationToken` reaches the opener.
 3. **No way to declare a known length.** TAR must write the entry size into the header *before* the data, so a
@@ -267,8 +267,8 @@ directory tree could not be recreated, empty directories were lost, timestamps c
 - `string LinkTarget`: `TarEntry.LinkName` for link entries, null otherwise (ZIP has no portable link form).
   Without it the two link entry types would be unactionable.
 
-Entry construction was also de-duplicated into two mappers (`CreateEntry(ZipArchiveEntry…)` /
-`CreateEntry(TarEntry…)`), replacing four copies of the same object initializer.
+Entry construction was also de-duplicated into two mappers (`CreateEntry(ZipArchiveEntry...)` /
+`CreateEntry(TarEntry...)`), replacing four copies of the same object initializer.
 
 **Format asymmetry found while testing, now documented on the interface:** a ZIP timestamp is a timezone-less
 DOS wall clock with 2-second resolution: only the wall-clock value is meaningful, and the offset that comes
@@ -307,7 +307,7 @@ early: "what is the first entry?" costs a full pass. For ZIP the list is cheap, 
 wildly different costs. There is also no streaming form, so a 100k-entry archive must be materialized as a
 list before the caller sees anything.
 
-**Option.** `IAsyncEnumerable<IArchiveEntry> GetArchiveEntriesAsync(…)` as the primary shape (keep a
+**Option.** `IAsyncEnumerable<IArchiveEntry> GetArchiveEntriesAsync(...)` as the primary shape (keep a
 `ToListAsync`-style convenience). This also dissolves P8.4: with a pull-based enumeration nobody expects a
 complete `ArchiveInfo.Entries` collection.
 
@@ -322,7 +322,7 @@ members (`DefaultCompressionLevel`, `DefaultArchiveFormat`, `BufferSize`). Conse
 2. `ZipArchive`'s `entryNameEncoding` is unreachable, so legacy ZIPs with CP866 / CP1251 entry names can
    neither be read nor produced. This is a real interop scenario, not a hypothetical.
 
-**Option.** An optional options parameter (`CompressionOptions { CompressionLevel Level, Encoding EntryNameEncoding, … }`,
+**Option.** An optional options parameter (`CompressionOptions { CompressionLevel Level, Encoding EntryNameEncoding, ... }`,
 `null` = instance defaults). Keep the `protected virtual` members as the source of those defaults.
 
 ---

@@ -1,10 +1,11 @@
 ---
 protocol: along
+protocol_version: "2.2.18"
 slug: INDEX
 title: Knowledge Base Topic Index
 type: index
-created: 2026-08-31
-updated: 2026-08-31
+created: 2026-09-03
+updated: 2026-09-03
 tags: [index, kb, topics, map]
 ---
 
@@ -37,7 +38,7 @@ flowchart TD
 
 ## Related Context
 
-- [AGENTS.md](file://AGENTS.md): Active protocol conventions and rules.
-- [.along/DECISIONS.md](file://.along/DECISIONS.md): Architectural Decision Records.
-- [.along/ISSUES.md](file://.along/ISSUES.md): Active issue tracking board.
-- [.along/CONTEXT.md](file://.along/CONTEXT.md): Current session snapshot.
+- [AGENTS.md](../AGENTS.md): Active protocol conventions and rules.
+- [.along/DECISIONS.md](../.along/DECISIONS.md): Architectural Decision Records.
+- [.along/ISSUES.md](../.along/ISSUES.md): Active issue tracking board.
+- [.along/HISTORY.md](../.along/HISTORY.md): Append-only project history log.

@@ -17,25 +17,25 @@ The table below outlines current component support in `ActDim.Three` and planned
 
 | Category | Component / Feature | Current Status | Roadmap Notes |
 | :--- | :--- | :---: | :--- |
-| **Math Primitives** | `Vector3`, `Vector2`, `Vector4`, `Matrix4`, `Euler`, `Quaternion`, `Color` | ✅ Supported | Core 3D math & matrix transformations |
-| **Scene Graph Nodes** | `Scene`, `Group`, `Mesh`, `Points`, `Line`, `LineSegments` | ✅ Supported | Core scene graph node hierarchy |
-| | `InstancedMesh`, `Sprite`, `LOD`, `LineLoop` | ✅ Supported | Node extensions for instancing, sprites, and LOD |
-| | `SkinnedMesh`, `Bone`, `Skeleton` | ✅ Supported | Skeletal animation node DTOs |
-| | `Layers` (32-bit visibility mask) | ✅ Supported | Bitmask filtering property on `Object3D` |
-| **Cameras** | `PerspectiveCamera`, `OrthographicCamera` | ✅ Supported | Camera projection matrices |
-| **Lights & Shadows** | `AmbientLight`, `DirectionalLight`, `PointLight`, `SpotLight`, `HemisphereLight`, `RectAreaLight` | ✅ Supported | Complete Three.js light set |
-| | `LightShadow`, `DirectionalLightShadow`, `SpotLightShadow` | ✅ Supported | Shadow map parameters |
-| **Materials** | `MeshStandardMaterial`, `MeshBasicMaterial`, `MeshPhongMaterial`, `MeshLambertMaterial`, `LineBasicMaterial`, `PointsMaterial` | ✅ Supported | Standard materials |
-| | `MeshPhysicalMaterial`, `LineDashedMaterial`, `MeshToonMaterial`, `ShadowMaterial`, `SpriteMaterial` | ✅ Supported | Advanced PBR, dashed line & sprite materials |
-| | `ShaderMaterial`, `RawShaderMaterial`, `MeshDepthMaterial`, `MeshNormalMaterial` | ✅ Supported | GLSL shader code & depth/normal materials |
-| **Buffers & Geometry** | `BufferGeometry`, `BufferAttribute`, `TypedArray` (`Float32Array`, `Uint32Array`, etc.) | ✅ Supported | Zero-allocation buffer attributes |
-| | `InstancedBufferAttribute`, `InstancedBufferGeometry` | ✅ Supported | Instanced rendering attributes & geometry |
-| | `InterleavedBuffer`, `InterleavedBufferAttribute`, `InstancedInterleavedBuffer` | ✅ Supported | Interleaved memory buffers |
-| | Parametric Shape DTOs (`BoxGeometry`, `SphereGeometry`, `CylinderGeometry`, `PlaneGeometry`) | ✅ Supported | Parametric geometry descriptors |
-| **Textures & Media** | `Texture`, `Image` | ✅ Supported | Standard 2D texture maps & images |
-| | `DataTexture`, `CompressedTexture` | ✅ Supported | Raw pixel buffers & compressed textures |
-| **Serialization** | `System.Text.Json` (Native Engine) | ✅ Supported | High-speed zero-allocation STJ engine |
-| | `Newtonsoft.Json` (Adapter) | ✅ Supported | Via [`ActDim.Three.NewtonsoftJson`](file:///d:/Src/my/actdim/public/dotnet/ActDim.Three.NewtonsoftJson/README.md) |
+| **Math Primitives** | `Vector3`, `Vector2`, `Vector4`, `Matrix4`, `Euler`, `Quaternion`, `Color` | вњ... Supported | Core 3D math & matrix transformations |
+| **Scene Graph Nodes** | `Scene`, `Group`, `Mesh`, `Points`, `Line`, `LineSegments` | вњ... Supported | Core scene graph node hierarchy |
+| | `InstancedMesh`, `Sprite`, `LOD`, `LineLoop` | вњ... Supported | Node extensions for instancing, sprites, and LOD |
+| | `SkinnedMesh`, `Bone`, `Skeleton` | вњ... Supported | Skeletal animation node DTOs |
+| | `Layers` (32-bit visibility mask) | вњ... Supported | Bitmask filtering property on `Object3D` |
+| **Cameras** | `PerspectiveCamera`, `OrthographicCamera` | вњ... Supported | Camera projection matrices |
+| **Lights & Shadows** | `AmbientLight`, `DirectionalLight`, `PointLight`, `SpotLight`, `HemisphereLight`, `RectAreaLight` | вњ... Supported | Complete Three.js light set |
+| | `LightShadow`, `DirectionalLightShadow`, `SpotLightShadow` | вњ... Supported | Shadow map parameters |
+| **Materials** | `MeshStandardMaterial`, `MeshBasicMaterial`, `MeshPhongMaterial`, `MeshLambertMaterial`, `LineBasicMaterial`, `PointsMaterial` | вњ... Supported | Standard materials |
+| | `MeshPhysicalMaterial`, `LineDashedMaterial`, `MeshToonMaterial`, `ShadowMaterial`, `SpriteMaterial` | вњ... Supported | Advanced PBR, dashed line & sprite materials |
+| | `ShaderMaterial`, `RawShaderMaterial`, `MeshDepthMaterial`, `MeshNormalMaterial` | вњ... Supported | GLSL shader code & depth/normal materials |
+| **Buffers & Geometry** | `BufferGeometry`, `BufferAttribute`, `TypedArray` (`Float32Array`, `Uint32Array`, etc.) | вњ... Supported | Zero-allocation buffer attributes |
+| | `InstancedBufferAttribute`, `InstancedBufferGeometry` | вњ... Supported | Instanced rendering attributes & geometry |
+| | `InterleavedBuffer`, `InterleavedBufferAttribute`, `InstancedInterleavedBuffer` | вњ... Supported | Interleaved memory buffers |
+| | Parametric Shape DTOs (`BoxGeometry`, `SphereGeometry`, `CylinderGeometry`, `PlaneGeometry`) | вњ... Supported | Parametric geometry descriptors |
+| **Textures & Media** | `Texture`, `Image` | вњ... Supported | Standard 2D texture maps & images |
+| | `DataTexture`, `CompressedTexture` | вњ... Supported | Raw pixel buffers & compressed textures |
+| **Serialization** | `System.Text.Json` (Native Engine) | вњ... Supported | High-speed zero-allocation STJ engine |
+| | `Newtonsoft.Json` (Adapter) | вњ... Supported | Via [`ActDim.Three.NewtonsoftJson`](../ActDim.Three.NewtonsoftJson/README.md) |
 
 ## Performance & System.Text.Json
 
@@ -44,7 +44,7 @@ The table below outlines current component support in `ActDim.Three` and planned
 - **High Throughput:** `System.Text.Json` provides significantly higher serialization and deserialization speeds compared to traditional reflections-heavy wrappers.
 
 > [!NOTE]
-> If your application requires **Newtonsoft.Json** compatibility, use the dedicated extension package [`ActDim.Three.NewtonsoftJson`](file:///d:/Src/my/actdim/public/dotnet/ActDim.Three.NewtonsoftJson/README.md).
+> If your application requires **Newtonsoft.Json** compatibility, use the dedicated extension package [`ActDim.Three.NewtonsoftJson`](../ActDim.Three.NewtonsoftJson/README.md).
 
 ## Installation
 
@@ -117,4 +117,4 @@ dotnet test Tests/Three.Tests/ActDim.Three.Tests.csproj
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](../LICENSE).

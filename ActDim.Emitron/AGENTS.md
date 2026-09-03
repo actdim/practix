@@ -3,8 +3,11 @@ This folder belongs to a repository that uses the ALONG structure. The full work
 guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
 read it there. This folder keeps its OWN `.along/` state; use the nearest one.
 Only this folder's specifics follow.
-<!-- END ALONG-PROTOCOL -->
+<!-- END ALONG-PROTOCOL -->## Project specifics
 
-## Project specifics
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/csharp.md](file://.along/rules/languages/csharp.md)`
+<!-- END ALONG-RULES -->
 
 Roslyn C# script engine (`Emitron`), template string compiler (`Interpolator`), and string interpolation extensions for `ActDim`.

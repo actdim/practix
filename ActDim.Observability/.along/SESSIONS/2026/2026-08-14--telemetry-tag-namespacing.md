@@ -5,7 +5,7 @@ slug: telemetry-tag-namespacing
 agent: claude-opus-5
 branch: main
 commit: pending
-summary: Fixed silent telemetry tag overwrites in EventObservabilityBridge: span/event split, reserved log.* namespace, collision policy and counter, Activity.AddException, destructuring hints in ToOtelName.
+summary: "Fixed silent telemetry tag overwrites in EventObservabilityBridge: span/event split, reserved log.* namespace, collision policy and counter, Activity.AddException, destructuring hints in ToOtelName."
 milestone: v2.0.0-along-transition
 issues_advanced: []
 issues_completed: []

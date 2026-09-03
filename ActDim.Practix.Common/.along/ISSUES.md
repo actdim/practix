@@ -15,6 +15,7 @@
 - [ ] feat--enumerable-estimation-extensions: Enumerable estimation and predicate extensions.
 
 ## Done (recent)
+- [x] docs--comprehensive-knowledge-base (2026-09-03): Comprehensive Knowledge Base expansion for all Practix.Common subsystems.
 - [x] bug--getasync-disposed-check-and-cleanup (2026-08-31): Guard GetAsync with ThrowIfDisposed and clean up objects created during disposal.
 - [x] bug--disposeasync-drain-fault-tolerance (2026-08-31): Fault-tolerant idle object draining with AggregateException in AsyncObjectPool.DisposeAsync.
 - [x] debt--remove-memory-stream-manager-extensions (2026-08-20): Removed dead MemoryStreamManagerExtensions class and GetContextStream methods.

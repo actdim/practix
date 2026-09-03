@@ -11,6 +11,7 @@ issues_completed: [bug--disposeasync-drain-fault-tolerance]
 decisions: []
 risks_logged: []
 spikes_conducted: []
+milestone: v2.0.0-along-transition
 ---
 
 # Session Log: AsyncObjectPool.DisposeAsync Fault-Tolerant Draining

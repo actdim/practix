@@ -1,12 +1,12 @@
 # ActDim.Three.NewtonsoftJson
 
-`ActDim.Three.NewtonsoftJson` is the official `Newtonsoft.Json` compatibility adapter and converter library for [`ActDim.Three`](file:///d:/Src/my/actdim/public/dotnet/ActDim.Three/README.md).
+`ActDim.Three.NewtonsoftJson` is the official `Newtonsoft.Json` compatibility adapter and converter library for [`ActDim.Three`](../ActDim.Three/README.md).
 
 ## Overview
 
 This library provides full support for serializing and deserializing `ActDim.Three` 3D scene graphs (`SceneDocument`), resource pools, and typed array attributes (`BufferAttribute`, `Float32Array`, `Uint32Array`, etc.) using `Newtonsoft.Json`.
 
-It decouples `Newtonsoft.Json` dependencies from the core engine [`ActDim.Three`](file:///d:/Src/my/actdim/public/dotnet/ActDim.Three/README.md), allowing core applications to run with native, lightweight `System.Text.Json` while offering legacy or custom `Newtonsoft.Json` integration when needed.
+It decouples `Newtonsoft.Json` dependencies from the core engine [`ActDim.Three`](../ActDim.Three/README.md), allowing core applications to run with native, lightweight `System.Text.Json` while offering legacy or custom `Newtonsoft.Json` integration when needed.
 
 ## Features
 
@@ -59,4 +59,4 @@ dotnet test Tests/Three.Tests/ActDim.Three.Tests.csproj
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](../LICENSE).

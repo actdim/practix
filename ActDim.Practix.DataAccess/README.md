@@ -1,4 +1,4 @@
-﻿https://github.com/AppMetrics/AppMetrics
+https://github.com/AppMetrics/AppMetrics
 https://github.com/alastairtree/LazyCache
 https://serdedotnet.github.io/overview.html
 https://github.com/DapperLib/Dapper/blob/main/Readme.md

@@ -3,9 +3,12 @@ This folder belongs to a repository that uses the ALONG structure. The full work
 guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
 read it there. This folder keeps its OWN `.along/` state; use the nearest one.
 Only this folder's specifics follow.
-<!-- END ALONG-PROTOCOL -->
+<!-- END ALONG-PROTOCOL -->## Project specifics
 
-## Project specifics
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/csharp.md](file://.along/rules/languages/csharp.md)`
+<!-- END ALONG-RULES -->
 
 # ActDim.BytePath
 
@@ -41,7 +44,7 @@ Tests/BytePath.Tests/BlobManagerTests.cs   # 69 xUnit v3 tests
 unusual (why writes consume a stream, why the producer-delegate overload exists, why there is no
 `OpenWriteAsync`). Keep it in sync when the public surface changes.
 
-Read `.along/DECISIONS.md` before changing any of the invariants below: #001–#006 explain why
+Read `.along/DECISIONS.md` before changing any of the invariants below: #001-#006 explain why
 they are the way they are, including alternatives already rejected.
 
 ---
@@ -69,10 +72,10 @@ Read lock: concurrent readers, no writers. Write lock: exclusive. Acquisition is
 `BlobManager.ReconcileContentAsync` runs on every entry point and reconciles the registry with the
 data store: it mutates both, hence the name:
 
-- `TryGetOrSetAsync` → `allowNew: true`. No content ⇒ `BlobResult.IsNew = true`, keeping the lock.
+- `TryGetOrSetAsync` -> `allowNew: true`. No content => `BlobResult.IsNew = true`, keeping the lock.
   `IsNew` therefore means "there is no content yet", covering both a fresh record and one that
   outlived its blob.
-- `TryGetForReadingAsync` / `TryGetForWritingAsync` → `allowNew: false`. No content ⇒ the orphaned
+- `TryGetForReadingAsync` / `TryGetForWritingAsync` -> `allowNew: false`. No content => the orphaned
   record is deleted and `KeyNotFound` returned. An `IsNew` result here is an impossible state and
   throws `InvalidOperationException`.
 
@@ -124,7 +127,7 @@ Task<long>   PutAsync(record, Stream content, ct);     // FileMode.Create: creat
 Task<long>   AppendAsync(record, Stream content, ct);  // FileMode.Append: creates when absent
 Task<Stream> ReadAsync(record, ct);                    // FileMode.Open: seekable
 Task<bool>   DeleteAsync(record, ct);                  // also prunes emptied shard directories
-Task<long?>  GetSizeAsync(record, ct);                 // null ⇒ no content: the single primitive
+Task<long?>  GetSizeAsync(record, ct);                 // null => no content: the single primitive
 Task<bool>   ExistsAsync(record, ct);                  // default: GetSizeAsync(...).HasValue
 Task<string> ResolveLocationAsync(record, ct);
 ```
@@ -189,7 +192,7 @@ exclusive, so mutation under one is exactly what the lock is for. Facts the libr
 `internal` (`Size`, `Hash`, `CreatedAt`/`UpdatedAt`/`AccessedAt`, `Key`); intent only the caller can
 supply stays public (`ContentType`, `Metadata`, `SlidingExpiration`, `ExpiresAt`).
 
-`TryGetForWritingAsync(key, options, …)` is `TryGetForWritingAsync` + `Apply` on the handed-out record;
+`TryGetForWritingAsync(key, options, ...)` is `TryGetForWritingAsync` + `Apply` on the handed-out record;
 it applies nothing on a failed acquisition and persists on dispose, because the write lock is held
 throughout. `TryGetOrSetAsync` persists options immediately only because it may downgrade to a read
 lock (#008).
@@ -209,8 +212,8 @@ Priority in `ApplyOptions`: `AbsoluteExpiration` > `Ttl` > existing `SlidingExpi
 `SlidingExpiration` also persists `sliding_expiration_seconds` so it is re-applied on each access
 (read dispose refreshes `AccessedAt`, write dispose also `UpdatedAt`).
 
-`lockType` on `TryGetOrSetAsync` is honoured only for an existing record: new ⇒ always `Write`;
-existing + `Read` ⇒ metadata saved under a write lock, then downgraded. That downgrade releases and
+`lockType` on `TryGetOrSetAsync` is honoured only for an existing record: new => always `Write`;
+existing + `Read` => metadata saved under a write lock, then downgraded. That downgrade releases and
 re-acquires, which is safe only because nothing is being destroyed: see #004 for why the same
 pattern is forbidden in deletion.
 
@@ -221,7 +224,7 @@ pattern is forbidden in deletion.
 **`blob_records`**: `blob_key` TEXT PK, `metadata`, `content_type`, `size`, `hash`, `created_at`,
 `updated_at`, `accessed_at`, `sliding_expiration_seconds`, `expires_at`. Index on `expires_at`.
 
-**`blob_locks`**: `blob_key` (FK → `blob_records` ON DELETE CASCADE), `is_write_lock`, `locked_by`
+**`blob_locks`**: `blob_key` (FK -> `blob_records` ON DELETE CASCADE), `is_write_lock`, `locked_by`
 (UUID), `locked_at`, `expires_at`. Index on `blob_key`.
 
 All timestamps are Unix seconds. `expires_at` uses **ceiling** rounding in both tables so integer

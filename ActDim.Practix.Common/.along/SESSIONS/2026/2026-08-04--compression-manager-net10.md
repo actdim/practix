@@ -58,7 +58,7 @@ the whole contract against the .NET 10 BCL only, keeping the payload off the man
 `IArchiveEntry` carried only `FullName` / `Size` / `ArchiveInfo`, which made extract-to-disk impossible: a
 directory entry was indistinguishable from an empty file. Added `ArchiveEntryType EntryType` (new enum in
 Abstractions), `DateTimeOffset? LastWriteTime`, `long? CompressedSize`, `string LinkTarget`; populated for both
-formats via two new mappers (`CreateEntry(ZipArchiveEntry…)` / `CreateEntry(TarEntry…)`) that also replaced four
+formats via two new mappers (`CreateEntry(ZipArchiveEntry...)` / `CreateEntry(TarEntry...)`) that also replaced four
 copies of the same object initializer. ZIP directories are recognized by the empty file-name part (the BCL's own
 rule), TAR maps from `TarEntryType`. TAR reports `CompressedSize == null` (entries are stored verbatim); ZIP
 timestamps are timezone-less DOS wall clock, documented on the interface after a test caught the offset
@@ -69,11 +69,11 @@ not produced: folded into task P7. → 276 tests passing.
 
 ## Known gaps / follow-ups
 - `ICompressionManager` warts worth revisiting (left as declared, not changed):
-  `Task<byte[]> DecompressAsync(Stream, …)` breaks the zero-alloc theme and is asymmetric with its
+  `Task<byte[]> DecompressAsync(Stream, ...)` breaks the zero-alloc theme and is asymmetric with its
   `ReadOnlyMemory` sibling that returns `Task<Stream>`; `GetArchiveFormat`/`GetCompressionFormat` return a
   non-nullable enum with no `Unknown` member, so "unrecognized" can only be an
-  `InvalidDataException` (same for `GetArchiveFormatByFileExtension`): a `TryGet…` pair or an `Unknown`
-  member would be cleaner. There is no `CompressAsync(Stream input, Stream output, …)` in the interface;
+  `InvalidDataException` (same for `GetArchiveFormatByFileExtension`): a `TryGet...` pair or an `Unknown`
+  member would be cleaner. There is no `CompressAsync(Stream input, Stream output, ...)` in the interface;
   added as a public overload here since it is the only truly allocation-free compress path.
 - `ArchiveEntrySource.OpenReadAsync` is typed `Func<Stream>` (sync despite the name).
 - `CreateTempStream` still always memory-backed: the large-payload FileStream variant remains a TODO.

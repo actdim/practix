@@ -5,7 +5,7 @@ slug: common-review-fixes
 agent: Claude Code / claude-opus-4-8
 branch: main
 commit: 4995d1e
-summary: Broad critical review of ActDim.Practix.Common (dubious-value + implementation problems) plus four targeted fixes: ShortId, EnumerableExtensions.While, CallContext, DisposableAction.
+summary: "Broad critical review of ActDim.Practix.Common (dubious-value + implementation problems) plus four targeted fixes: ShortId, EnumerableExtensions.While, CallContext, DisposableAction."
 milestone: v2.0.0-along-transition
 issues_advanced: []
 issues_completed: []
