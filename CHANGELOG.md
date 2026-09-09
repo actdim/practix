@@ -1,0 +1,140 @@
+# Changelog
+
+All notable changes to this project, newest first.
+
+## v1.0.15 - 2026-09-09
+
+- test: eliminate test debt across RepoDb, AppRegistry, DataAccess, Service, and upgrade to xunit.v3
+- chore: bump version to 1.0.15 and fix concurrency, lock leak, and sync-over-async defects
+- docs: deepen documentation for Common, Reflectron, Emitron, and bump version to 1.0.14
+- chore: bump version to 1.0.13, sync Along v2.2.18, and expand Knowledge Base
+- bump version to 1.0.12 and update solution context
+- add ThrowIfDisposed and post-factory cleanup in AsyncObjectPool.GetAsync
+- implement fault-tolerant idle object draining in AsyncObjectPool.DisposeAsync
+- handle missing target exceptions in DeleteAsync
+- implement Discard and DiscardAsync in AsyncObjectPool
+- feat(bytepath): implement url-safe key separator and configurable hierarchy (refs #url-safe-key-separator)
+- feat: Add ActDim.Emitron.Razor library, reinitialize ACTDIM-AGENTS across projects, bump version to 1.0.10
+- refactor(service): replace SmartFormat.NET with native ActDim.Emitron template interpolation
+- docs(three): update test count in README.md to 39 passed
+- feat(three): extract ActDim.Three.NewtonsoftJson, implement extended Three.js types and bump version to 1.0.9
+- docs(observability): add Npgsql.OpenTelemetry instrumentation recommendations and database diagnostic matrix
+- style(bytepath): format single-line if statement into braced block in SQLiteBlobRegistry
+- docs(bytepath): update SqliteRegistry README to reference RepoDb.Sqlite.Microsoft
+- refactor(bytepath): migrate SQLiteBlobRegistry from sqlite-net-pcl to RepoDb.Sqlite.Microsoft
+- feat(vscode): add nuget update and observability runner tasks to tasks.json
+- feat(tools/nuget): add update-packages CLI tool script and update central package versions
+- docs(observability): highlight .NET Aspire Dashboard native OTLP ingestion and visualizer setup
+- chore(release): bump version to 1.0.8 and wrap up stage protocol in agent context
+- fix(tools/seq): update seqcli release to latest v2026.1.02616 and add seqcli.exe binary detection
+- feat(observability): add Seq CLI helper scripts, SeqClient, and SeqIntegrationTests
+- refactor: migrate repository to NuGet Central Package Management (CPM)
+- docs(observability): add Seq (Datalust) to architecture overview, pipeline flow, and developer setup guides
+- docs(observability): expand production log level recommendations for Kestrel, Routing, EFCore, and Diagnostics
+- docs(observability): document FullName logger categories, Microsoft LogLevel best practices, and wildcards
+- feat(observability): introduce unified ObservabilityStatus struct and reader property
+- docs(observability): add .NET observability architecture best practices guide
+- debt(common): remove unused MemoryStreamManagerExtensions dead code
+- docs(common): rename issue to feat--pipeline-register-for-dispose to decouple from AmbientContext
+- docs(common): add feat--ambient-context-register-for-dispose issue for end-of-scope resource cleanup
+- docs(common): detail AsyncLocal thread safety and execution flow isolation in README.md
+- docs(common): add feat--memory-arena-auto-cleanup issue for memory arena pattern with automatic buffer disposal
+- feat(context): expose RecyclableMemoryStreamManager directly in AmbientContext.Memory with ambient scoping and fix MemoryManager static init
+- feat(bytepath): add BlobResultExtensions with fluent AssertValid and EnsureRecord helper methods and tests
+- docs(observability): relocate metrics enhancement issue to ActDim.Observability/.agents/ISSUES/
+- docs(issue): create feat--metrics-enrichment-and-timers issue for metrics extensions and low-cardinality context filtering
+- docs(observability): add ClickHouse and HyperDX GUI overview to Recommended Open-Source Solutions
+- docs(observability): detail Web GUI URLs and default credentials for OpenObserve and VictoriaLogs launchers
+- docs(observability): add Architectural Rationale section comparing Dedicated Observability Engines vs Relational Databases
+- chore(gitignore): remove redundant victoria-logs-data/ and openobserve-data/ fallback rules
+- docs(agent): record session log and update HISTORY.md for VictoriaLogs and OpenObserve tooling
+- chore(gitignore): enable automatic tracking for all scripts in Tools while ignoring executables and data directories
+- style(tests): replace all Russian comments with English across test files per code style convention
+- refactor(tests): structure VictoriaLogs and OpenObserve integration tests with explicit AAA (Arrange, Act, Assert) sections
+- fix(observability): name primary log message field _msg as required by VictoriaLogs specification
+- fix(observability): accept information or info level in VictoriaLogs integration tests
+- fix(observability): pass _stream parameter in /insert/jsonline and add polling loop for indexing in VictoriaLogs tests
+- fix(tools): update VictoriaLogs Web UI URL to /select/vmui and non-enterprise download URL
+- feat(observability): add OpenObserve integration tests, download scripts, and browser GUI launcher
+- feat(tools): add download-victoria-logs script and update gitignore for binaries and data folders
+- docs(agent): update CONTEXT.md with VictoriaLogs integration and test metrics
+- feat(tools): add run-victoria-logs.cmd script for manual local launching
+- feat(tests): support victoria-logs-windows-amd64-prod.exe and Tools/victoria-logs subfolder in integration tests
+- chore(gitignore): add Tools/ and *.exe to gitignore
+- feat(tests): add auto-process launch and temporary data folder cleanup for VictoriaLogs test
+- docs(test): document standalone Windows binary for VictoriaLogs test startup
+- refactor(tests): move VictoriaLogs helper client & provider into Observability.Tests test suite
+- feat(observability): add VictoriaLogs JSON Lines provider and LogsQL query integration test
+- style(code): simplify using declarations to single-line using var across READMEs and unit tests
+- docs(readme): add AmbientContext.Log<T>().BeginMethodScope() example to README
+- refactor(logging): move LoggerExtensions.BeginMethodScope to ActDim.Practix.Common
+- test(fix): resolve xUnit warnings across unit test assemblies
+- chore(version): bump global package version to 1.0.5 and fix XML doc comment references
+- refactor(ambient-context): streamline AsyncLocal storage, add typed extensions, compression support & nullable annotations
+- cleanup
+- refactor: standardize extension methods layout, namespaces, and optimize LINQ/memoization
+- Emitron improvements
+- ActDim.Reflectron refactoring
+- ActDim.Emitron API refactoring
+- readme updated
+- new version
+- readme updated
+- JSON ser-zr  optimized
+- Multi data store
+- BlobManager->BytePath, nuget tools
+- Special exceptions
+- Cleanup + patterns
+- Docs updated
+- Emitron improvements
+- API refactoring, Nuget preparation
+- Refactoring
+- Optimized JSON merge
+- Issue cleanup
+- Cleanup, comments
+- Cleanup, comments
+- Reflectron.Tests updated
+- Comments, cleanup
+- Cleanup, refactoring
+- TypeAccess fixes, ObservabilityFixes + new tests
+- Agent skills added+issues, ambient context + observability refactoring and fixes
+- Agent skills added for projects
+- Common refactoring
+- removed logging
+- BlobManager refactoring, context updated
+- Observability platform added
+- ActDim.Practix.BlobManager api changes (planned)
+- ActDim.Practix.Common cleanup
+- StaticMap + ReachabilityObserver + tests, removed typeswitch
+- New tasks for ActDim.Practix.BlobManager, small refinements
+- Updated tests
+- New BlobManager API overloads
+- Common lib updates and fixes, API refactoring
+- BlobManager updates and fixes, API refactoring
+- ActDim.Practix.Three->ActDim.Three
+- Compression manager implemented
+- Refactoring, renames, StreamExtensions fixes
+- THREE updates (STJ-based utils)
+- THREE refactoring
+- THREE refactoring
+- THREE refactoring
+- THREE STJ utility added
+- STJ support updated
+- THREE improvements
+- THREE improvements
+- THREE refactoring
+- THREE Refactoring, STJ support
+- Refactoring to speedup
+- THREE refactoring
+- Async obj pool
+- Small updates, refactoring plan
+- Added old THREE project
+- New architecture drafts
+- Many updates and fixes, removed dead code
+- Fixes
+- BlobStore, encoding fixes
+- removed old files
+- Introspection refactoring, json moved to common, test migration to xunit
+- Fixes, migration from Conditions to Guard
+- Initial drafts
+- Initial commit
+

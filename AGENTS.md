@@ -1,5 +1,5 @@
 <!-- BEGIN ALONG-PROTOCOL root (managed by along-init - do not edit by hand) -->
-# ALONG-PROTOCOL v2.2.26
+# ALONG-PROTOCOL v2.2.27
 
 This repo carries its own agent context, provider-agnostically. Follow it every session, whatever tool you are.
 
@@ -25,8 +25,9 @@ Also, when relevant: `.along/VISION.md`, `.along/GLOSSARY.md`. These reflect the
 ## Multi-Agent & Multi-Branch Concurrency Protocol
 1. **Single Source of Truth (SSOT) vs Derived Projections**:
    - **SSOT Entities**: Atomic markdown files (`.along/ISSUES/<type>--<slug>.md`, `.along/SESSIONS/<YYYY>/<date>--<slug>.md`, `docs/topic--<slug>.md`, `.along/DECISIONS.md`).
-   - **Derived Projections (Compiled Views)**: `.along/ISSUES.md`, `docs/INDEX.md`, `.along/DASHBOARD.md`.
-   - **Zero-Manual-Merge Rule**: When git merge conflicts occur in derived projections (`ISSUES.md`, `INDEX.md`), never resolve diffs manually. Accept either incoming change and run `/along-issue-sync` or `/along-kb-sync` to recompile the projection from source files.
+   - **Tracked Derived Projections (Compiled Views)**: `.along/ISSUES.md`, `docs/INDEX.md`. These files are tracked in Git as human-readable overview and documentation catalogs.
+   - **Untracked Export Artifacts**: `.along/dashboard.html`, `.along/DASHBOARD.md`. Generated static dashboards and reports are created on demand (e.g. `--export`) and MUST NOT be tracked in Git; they are ignored via `.gitignore` to prevent history churn and merge conflicts.
+   - **Zero-Manual-Merge Rule**: When git merge conflicts occur in tracked derived projections (`ISSUES.md`, `INDEX.md`), never resolve diffs manually. Accept either incoming change (`git checkout --ours` or `git checkout --theirs`) and run `/along-issue-sync` or `/along-kb-sync` to recompile the projection from source files.
 2. **Append-Only Linear Merge Driver**:
    - `.along/HISTORY.md` and `.along/DECISIONS.md` are append-only. Configure `.gitattributes` with `merge=union` to allow parallel branches to append entries without git merge conflicts.
 3. **Feature-Scoped Context & Blackboard Isolation**:
@@ -56,22 +57,24 @@ All entities are designed for zero-friction auto-parsing by dashboards and tools
   - `protocol_version`: optional quoted protocol version at creation, taken from the version in this document's title.
   - `slug`: lowercase kebab-case slug (2-5 words).
   - `type`: `feat` | `bug` | `debt` | `task` | `docs`.
-  - `status`: `open` | `in-progress` | `blocked` | `done`.
+  - `status`: `open` | `in-progress` | `blocked` | `done` | `superseded` | `cancelled` | `duplicate`.
   - `priority`: `critical` | `high` | `medium` | `low`.
   - `created`: `YYYY-MM-DD`.
   - `updated`: `YYYY-MM-DD`.
-  - `completed`: `YYYY-MM-DD` (mandatory when `status: done` / moved to `done/`).
+  - `completed`: `YYYY-MM-DD` (mandatory when closed: `status: done` | `superseded` | `cancelled` | `duplicate` / moved to `done/`).
   - `agent`: model or tool name (e.g. `antigravity`, `claude-code`).
   - `tags`: array of tags (e.g. `[mcp, protocol]`).
   - `milestone`: optional milestone slug (e.g. `v2.2.0-along`).
   - `blocked_by`: optional array of blocking entity keys/slugs (e.g. `[feat--core-parser]`).
   - `related`: optional array of associative entity keys/slugs (e.g. `[risk--api-limit]`).
   - `parent`: optional parent entity key/slug (e.g. `feat--epic-container`).
+  - `superseded_by`: optional canonical key/slug of superseding issue (when `status: superseded`).
+  - `duplicate_of`: optional canonical key/slug of primary issue (when `status: duplicate`).
 - **Entity Linking & Graph Invariance**:
   - Reference entities strictly by canonical key (`<type>--<slug>` or `<slug>`), NEVER by local file path, ensuring links survive moves into `done/`.
   - Links are unidirectional in front-matter; inverse relationships (`blocks`, `children`) and full DAGs are resolved dynamically by graph tools and dashboards.
 - `.along/ISSUES.md` is the compact board read every session (`## Active`, `## Backlog`, `## Done (recent)`).
-- On completion: set `status: done` and `completed: YYYY-MM-DD`, MOVE to `.along/ISSUES/done/<type>--<slug>.md`, and update `.along/ISSUES.md`.
+- On completion: set closed status (`done`, `superseded`, `cancelled`, or `duplicate`) and `completed: YYYY-MM-DD`, MOVE to `.along/ISSUES/done/<type>--<slug>.md`, and update `.along/ISSUES.md`. Only delivered issues (`status: done`) count towards milestone and sprint completion metrics.
 
 ### 2. Decisions & Constraints (`.along/DECISIONS.md` & `.along/CONSTRAINTS.md`)
 - Append-only Architectural Decision Records with decentralized slug headers in `.along/DECISIONS.md`:
@@ -132,7 +135,7 @@ To keep `.along/` lean and avoid token bloat:
 - **Portable Markdown Links**: All internal cross-references MUST use standard relative Markdown links (`[Title](./target.md)`) for universal rendering across GitHub, GitHub Pages, IDEs, and npm.
 - **Idempotent Synchronization & Deterministic LLM Context**: Use `/along-kb-sync` to bootstrap, compile, and validate links in `docs/`, detect drift across sources, sync `llms.txt`, and deterministically compile `llms-full.txt` supporting `.well-known/` and context root locations.
 - **Strict Fact Grounding Requirement**: Agents MUST extract facts strictly from actual `README.md`, `docs/`, `package.json`, and codebase symbols. Generating generic LLM placeholders is strictly prohibited.
-- **Targeted Fast Retrieval**: Agents MUST query `/along-kb-search` or `wiki_query` for concise snippets before reading whole documentation files into context.
+- **Targeted Fast Retrieval**: Agents MUST query `/along-kb-search` for concise snippets before reading whole documentation files into context.
 - **Documentation Blast Radius & Code-Graph-to-Wiki Synchronization**: After non-trivial code modifications, agents MUST determine the documentation blast radius by mapping affected AST symbols and dependent modules (discovered via `code-review-graph` or code search) to corresponding Knowledge Base articles (`docs/topic--<slug>.md`) using `along-kb-search` or symbol search. All impacted topic articles MUST be updated to reflect interface, architectural, or workflow changes before completing the task.
 
 ## While working
@@ -140,8 +143,8 @@ To keep `.along/` lean and avoid token bloat:
 - `DECISIONS.md` is APPEND-ONLY: add a new dated entry with slug header (`## ADR-YYYY-MM-DD--<slug>`) per non-trivial architectural decision; never edit past ones - mark a replaced one "Superseded by ADR-YYYY-MM-DD--<slug>". Recompile `.along/CONSTRAINTS.md` via `along decision sync`.
 - Add any new/clarified domain term to `.along/GLOSSARY.md`.
 - **Context & Token hygiene**: Keep tool output lean to prevent context bloat. Use quiet flags for builds/tests (`pytest -q`, `dotnet test -v q`), filter command outputs, and inspect targeted line ranges.
-- **Mandatory Agentic Code Review & Blast Radius Impact**: After completing non-trivial code modifications, agents MUST critically inspect their own diffs and evaluate systemic blast radius. Use `code-review-graph` MCP tools (`build_or_update_graph_tool`, `get_impact_radius_tool`, `get_affected_flows_tool`) to verify that downstream callers, interfaces, and dependent systems remain unbroken, edge cases and nulls are handled, and active ADRs in `.along/DECISIONS.md` are respected.
-- **Targeted Knowledge Base Search**: Prioritize `along-kb-search` or `wiki_query` MCP tools for targeted searches across `docs/`, `README.md`, and `DECISIONS.md`.
+- **Dual Search Architecture**: Distinguish between code and documentation retrieval: query MCP tools (`semantic_search_nodes_tool`, `query_graph_tool`) for codebase AST / call graph search, and `/along-kb-search` for Knowledge Base / living project memory (`docs/`, `README.md`, `DECISIONS.md`, `ISSUES/`).
+- **Mandatory Agentic Code Review & Blast Radius Impact**: After completing non-trivial code modifications, agents MUST critically inspect their own diffs and evaluate systemic blast radius. Agents MUST execute `code-review-graph` MCP tools (`build_or_update_graph_tool`, `get_impact_radius_tool`, `get_affected_flows_tool`) to verify that downstream callers, interfaces, and dependent systems remain unbroken, edge cases and nulls are handled, and active ADRs in `.along/DECISIONS.md` are respected. If `code-review-graph` is offline or fails, agents MUST output a loud diagnostic warning (`[CRITICAL WARNING: code-review-graph OFFLINE, degraded to static search]`) and fall back to static search (`grep_search` across callers, imports, and references). Silent skips are strictly forbidden.
 
 ## Mandatory Stage & Session Completion Checklist
 When a Stage or session completes, agents MUST execute this verification checklist in exact order:
@@ -150,7 +153,7 @@ When a Stage or session completes, agents MUST execute this verification checkli
 3. [ ] **Code Review & Blast Radius Assessment**:
    - Inspect git diff for unintended side effects, unhandled nulls/errors, and edge cases.
    - Verify 100% requirement coverage against the initial user request (`REQ-N`) across both core implementation and public mirror surfaces (`README.md`, `AGENTS.md`).
-   - Evaluate systemic impact radius on callers/dependents using `code-review-graph` (`get_impact_radius_tool`, `get_affected_flows_tool`) or AST analysis.
+   - Evaluate systemic impact radius on callers/dependents using `code-review-graph` (`get_impact_radius_tool`, `get_affected_flows_tool`). If offline, loudly warn and fall back to static AST / text search, recording the degraded state in the session log.
    - Identify all modified subsystem symbols and impacted downstream interfaces to inform documentation updates.
    - Verify compliance with architectural decisions in `.along/DECISIONS.md`.
 4. [ ] **Entity Reconciliation**:
@@ -188,7 +191,6 @@ When a Stage or session completes, agents MUST execute this verification checkli
   - **Relative & Portable Links**: Always use standard relative Markdown links (`[Title](./target.md)`), never pseudo-schemes (`file://`) or OS-specific backslashes.
   - **UTF-8 Clean Encoding**: Keep all text files in clean UTF-8 without BOM.
   - **File Content Never Travels Through a Command Line**: Create files with the agent's file-writing tool and change them with its edit tool. NEVER carry file content in a heredoc, a `python -c` string, or any inline shell command. Such content crosses several parsers in sequence (shell, heredoc or `-c`, the language string literal, sometimes a regex), and any one of them may consume a backslash or a quote: the file is then silently corrupted, or fails with an unterminated-literal error. Symptoms observed in practice: `"
-
 "` arriving as a real newline, an apostrophe in prose ending a quoted heredoc early, and a multi-line `python -c` losing its newlines entirely.
   - **Deterministic Entity & Command Execution**: Use deterministic subcommands via `along` (or `python scripts/along_exec.py`) (`issue create`, `session create`, `scratch init`) for entity work. When a script is genuinely required, write it to a file first and execute that path; never inline it. Build backslashes in code (`chr(92)`, `os.linesep`, `re.escape`) instead of escaping them through layers, and never reuse line indices captured before a list of lines was mutated.
   - **Verify Every Written File**: After writing or patching a file, confirm it still parses before moving on: `python -m compileall -q` for Python, `bash -n` for shell, `[System.Management.Automation.Language.Parser]::ParseFile()` for PowerShell, and the project's own reader for structured data. Parsing is not proof of correctness, but a file that does not parse must never be left on disk. (A fixed, content-free command like `bash -n <file>` is not what the rule above forbids: the ban is on carrying file CONTENT through a command line.)

@@ -23,5 +23,4 @@
 - [x] `(docs)` [comprehensive-knowledge-base](ISSUES/done/docs--comprehensive-knowledge-base.md)
 - [x] `(feat)` [async-object-pool-discard](ISSUES/done/feat--async-object-pool-discard.md)
 - [x] `(bug)` [getasync-disposed-check-and-cleanup](ISSUES/done/bug--getasync-disposed-check-and-cleanup.md)
-- [x] `(bug)` [disposeasync-drain-fault-tolerance](ISSUES/done/bug--disposeasync-drain-fault-tolerance.md)
-<!-- 7 older completed issue(s) archived in .along/ISSUES/done/ -->
+<!-- 8 older completed issue(s) archived in .along/ISSUES/done/ -->

@@ -10,6 +10,9 @@ updated: 2026-09-09
 agent: antigravity
 tags: [appregistry, zitadel, oidc, auth, identity, jwt, security]
 parent: feat--unified-configurable-authentication
+milestone: v2.0.0-along-transition
+blocked_by: []
+related: []
 ---
 
 # Support Zitadel OIDC and Multi-Auth in AppRegistry

@@ -10,6 +10,9 @@ updated: 2026-09-09
 completed: 2026-09-09
 agent: antigravity
 tags: [sqlite, registry, concurrency, deadlock, sync-over-async]
+milestone: v1.3.0-knowledge-base-and-graph
+blocked_by: []
+related: []
 ---
 
 # Fix sync-over-async in SQLiteBlobRegistry constructor

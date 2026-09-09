@@ -10,6 +10,9 @@ updated: 2026-09-09
 completed: 2026-09-09
 agent: antigravity
 tags: [tests, xunit-v3, service-tests, msbuild]
+milestone: v1.3.0-knowledge-base-and-graph
+blocked_by: []
+related: []
 ---
 
 # Fix Service.Tests Project Configuration & Test Process Launcher

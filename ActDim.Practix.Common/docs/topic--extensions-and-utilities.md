@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.26"
+protocol_version: "2.2.27"
 slug: extensions-and-utilities
 title: Extensions & Common Utilities
 type: topic
 created: 2026-09-03
-updated: 2026-09-08
+updated: 2026-09-09
 tags: [extensions, streams, strings, guards, random-id, utilities]
 ---
 

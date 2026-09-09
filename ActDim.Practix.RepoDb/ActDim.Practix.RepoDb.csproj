@@ -24,7 +24,7 @@
 
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-			<_Parameter1>ActDim.Practix.RepoDb.Tests</_Parameter1>
+			<_Parameter1>ActDim.Practix.RepoDb.Tests, PublicKey=$(ActDimPublicKey)</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
 

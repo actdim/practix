@@ -10,6 +10,8 @@ issues_completed: [bug--fix-lock-leak-on-io-failure]
 decisions: []
 risks_logged: []
 spikes_conducted: []
+commit: unknown
+milestone: v2.0.0-along-transition
 ---
 
 # Session: Fix Write Lock Leak in BlobManager On Disposal Error

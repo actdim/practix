@@ -5,7 +5,7 @@
 		<Authors>ActDim</Authors>
 		<Company>ActDim</Company>
 		<Product>ActDim Practix</Product>
-		<Version>1.0.15</Version>
+		<Version>1.0.16</Version>
 
 		<!-- Licensing & Repository -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -21,6 +21,13 @@
 		<!-- Documentation File Generation -->
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);1591</NoWarn>
+		<NoWarn>$(NoWarn);1591;8002</NoWarn>
+
+		<!-- Strong Naming & Public Signing -->
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)ActDim.pub</AssemblyOriginatorKeyFile>
+		<PublicSign>true</PublicSign>
+		<ActDimPublicKey>00240000048000009400000006020000002400005253413100040000010001008dbed328235572b08d7588a47c772866ebcf06a44e7cab024251933af1358501671acb296f729f82e0e2072cb2ef0d45adaed26456e8de711c5c98787ecef4c37a6cbf8f25f68d974b84e8529bdc2515a03d560f22f4626c7cf3b8e9398b6390acfed01eff91ea1b53d3f82120e44e09c0925db4ac44f381b1cf0e674f9555eb</ActDimPublicKey>
 	</PropertyGroup>
 
 </Project>

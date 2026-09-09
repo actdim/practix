@@ -10,6 +10,8 @@ issues_completed: [bug--fix-using-statement-false-positive]
 decisions: []
 risks_logged: []
 spikes_conducted: []
+commit: unknown
+milestone: v2.0.0-along-transition
 ---
 
 # Session: Fix False Positive on Using Statements in Emitron

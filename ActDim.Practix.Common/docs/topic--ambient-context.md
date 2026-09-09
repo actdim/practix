@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.26"
+protocol_version: "2.2.27"
 slug: ambient-context
 title: Ambient Execution Context
 type: topic
 created: 2026-09-03
-updated: 2026-09-08
+updated: 2026-09-09
 tags: [context, ambient, async-local, logging, dependency-injection]
 ---
 

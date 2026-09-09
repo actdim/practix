@@ -1,6 +1,6 @@
 # ActDim.BytePath - Full Documentation Context
 
-> Knowledge Base and documentation index for ActDim.BytePath.
+> High-performance keyed blob and binary payload storage engine with metadata, expiration, and distributed read/write locking.
 
 ---
 

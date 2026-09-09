@@ -10,6 +10,9 @@ updated: 2026-09-09
 agent: antigravity
 tags: [auth, security, oidc, zitadel, jwt, apikey, cookie, basic, aspnetcore]
 parent: feat--unified-configurable-authentication
+milestone: v2.0.0-along-transition
+blocked_by: []
+related: []
 ---
 
 # Support Configurable Authentication Schemes in ActDim.Practix.Service

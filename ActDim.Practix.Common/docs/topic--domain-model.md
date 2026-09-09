@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.26"
+protocol_version: "2.2.27"
 slug: domain-model
 title: Domain Model & Vocabulary
 type: domain-model
 created: 2026-08-31
-updated: 2026-09-08
+updated: 2026-09-09
 tags: [domain-model, entities, contracts, error-handling, vocabulary]
 ---
 

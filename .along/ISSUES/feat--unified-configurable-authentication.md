@@ -10,6 +10,8 @@ updated: 2026-09-09
 agent: antigravity
 tags: [auth, security, oidc, zitadel, jwt, apikey, cookie, basic, configuration]
 related: [feat--service-configurable-auth-schemes, feat--appregistry-zitadel-and-auth]
+milestone: v2.0.0-along-transition
+blocked_by: []
 ---
 
 # Unified Configurable Authentication Subsystem

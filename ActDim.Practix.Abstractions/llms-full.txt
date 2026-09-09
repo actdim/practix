@@ -1,6 +1,6 @@
 # ActDim.Practix.Abstractions - Full Documentation Context
 
-> Knowledge Base and documentation index for ActDim.Practix.Abstractions.
+> `ActDim.Practix.Abstractions` defines the core contract interfaces, abstractions, and data models for the ActDim.Practix framework ecosystem.
 
 ---
 

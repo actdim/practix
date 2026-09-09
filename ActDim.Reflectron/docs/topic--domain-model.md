@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.26"
+protocol_version: "2.2.27"
 slug: domain-model
 title: Domain Model & Entities
 type: domain-model
 created: 2026-09-03
-updated: 2026-09-08
+updated: 2026-09-09
 tags: [domain-model, interfaces, reflection, delegates, exceptions]
 ---
 

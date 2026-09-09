@@ -1,6 +1,6 @@
 # ActDim.Practix.Common - Full Documentation Context
 
-> [!NOTE]
+> `ActDim.Practix.Common` provides shared ambient execution context primitives, concurrent collection factories, caching proxies, compression helpers, memory buffer management, and Microsoft Dependency Injection extensions for the ActDim.Practix framework.
 
 ---
 

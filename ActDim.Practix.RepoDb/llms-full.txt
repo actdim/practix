@@ -1,6 +1,6 @@
 # ActDim.Practix.RepoDb - Full Documentation Context
 
-> Knowledge Base and documentation index for ActDim.Practix.RepoDb.
+> `ActDim.Practix.RepoDb` provides RepoDb extensions, lambda expression SQL translators, and best practices for ActDim.Practix.
 
 ---
 

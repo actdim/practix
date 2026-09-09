@@ -1,6 +1,6 @@
 # ActDim.Practix.Json - Full Documentation Context
 
-> Knowledge Base and documentation index for ActDim.Practix.Json.
+> `ActDim.Practix.Json` is a high-performance JSON serialization subsystem for .NET built on top of `System.Text.Json` (STJ), enhanced with a rich suite of converters, resolvers, and declarative attributes designed to make migration from **Newtonsoft.Json (Json.NET)** completely painless.
 
 ---
 

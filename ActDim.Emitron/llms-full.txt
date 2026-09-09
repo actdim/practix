@@ -1,6 +1,6 @@
 # ActDim.Emitron - Full Documentation Context
 
-> Knowledge Base and documentation index for ActDim.Emitron.
+> `ActDim.Emitron` is a Roslyn-powered C# scripting evaluation engine and string template interpolation compiler for .NET.
 
 ---
 

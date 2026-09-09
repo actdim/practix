@@ -1,12 +1,12 @@
 ---
 protocol: along
-protocol_version: "2.2.26"
+protocol_version: "2.2.27"
 slug: compiled-expressions-and-delegates
 title: Compiled Expressions and Delegate Caching
 type: topic
 curated: true
 created: 2026-09-03
-updated: 2026-09-08
+updated: 2026-09-09
 tags: [reflection, expressions, delegates, caching, dynamic-method, constructors]
 ---
 

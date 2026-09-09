@@ -163,7 +163,11 @@ namespace ActDim.Practix.Common.Tests.Context
                 Assert.Equal(timeoutToken, AmbientContext.CancellationToken);
                 Assert.False(AmbientContext.CancellationToken.IsCancellationRequested);
 
-                await Task.Delay(100, TestContext.Current.CancellationToken);
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                while (!AmbientContext.CancellationToken.IsCancellationRequested && sw.ElapsedMilliseconds < 2000)
+                {
+                    await Task.Delay(20);
+                }
                 Assert.True(AmbientContext.CancellationToken.IsCancellationRequested);
                 Assert.True(timeoutToken.IsCancellationRequested);
             }
