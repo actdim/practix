@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>annotations</Nullable>
     <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,12 +15,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="RepoDb.Sqlite.Microsoft" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ActDim.Observability\ActDim.Observability.csproj" />
-    <ProjectReference Include="..\..\ActDim.Practix.Common\ActDim.Practix.Common.csproj" />
+    <ProjectReference Include="..\..\ActDim.Practix.RepoDb\ActDim.Practix.RepoDb.csproj" />
   </ItemGroup>
 
 </Project>
-

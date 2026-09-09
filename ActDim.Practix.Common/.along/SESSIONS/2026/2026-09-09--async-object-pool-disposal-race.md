@@ -25,3 +25,4 @@ In `AsyncObjectPool<T>`:
 2. In `DiscardAsync`, guarded `_semaphore.Release()` against concurrent disposal.
 3. In `DisposeAsync`, added post-semaphore drain to guarantee no straggler items remain in `_items`.
 4. Added concurrency unit test `DisposeAsync_WithConcurrentReturns_CleansUpAllItemsWithoutException` in `Tests/Common.Tests/Pooling/AsyncObjectPoolTests.cs`.
+

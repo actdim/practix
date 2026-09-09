@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>annotations</Nullable>
     <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,12 +15,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ActDim.Observability\ActDim.Observability.csproj" />
-    <ProjectReference Include="..\..\ActDim.Practix.Common\ActDim.Practix.Common.csproj" />
+    <ProjectReference Include="..\..\AppRegistry\AppRegistry.Domain\ActDim.AppRegistry.Domain.csproj" />
+    <ProjectReference Include="..\..\AppRegistry\AppRegistry.Repo\ActDim.AppRegistry.Repo.csproj" />
+    <ProjectReference Include="..\..\AppRegistry\AppRegistry.Service\AppRegistry.Service.csproj" />
   </ItemGroup>
 
 </Project>
-
