@@ -20,7 +20,7 @@ namespace ActDim.Practix.Service.Settings
         /// <summary>
         /// Local JWT authentication. Tokens are issued and validated by this application.
         /// </summary>
-        LocalJwt = 2, // StandaloneJwt        
+        LocalJwt = 2, // StandaloneJwt
 
         /// <summary>
         /// Cookie-based authentication with server-side session (stateful).

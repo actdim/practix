@@ -1,0 +1,122 @@
+# ActDim.Three.NewtonsoftJson - Full Documentation Context
+
+> Knowledge Base and documentation index for ActDim.Three.NewtonsoftJson.
+
+---
+
+## Document: README.md (Overview)
+
+# ActDim.Three.NewtonsoftJson
+
+`ActDim.Three.NewtonsoftJson` is the official `Newtonsoft.Json` compatibility adapter and converter library for [`ActDim.Three`](../ActDim.Three/README.md).
+
+## Overview
+
+This library provides full support for serializing and deserializing `ActDim.Three` 3D scene graphs (`SceneDocument`), resource pools, and typed array attributes (`BufferAttribute`, `Float32Array`, `Uint32Array`, etc.) using `Newtonsoft.Json`.
+
+It decouples `Newtonsoft.Json` dependencies from the core engine [`ActDim.Three`](../ActDim.Three/README.md), allowing core applications to run with native, lightweight `System.Text.Json` while offering legacy or custom `Newtonsoft.Json` integration when needed.
+
+## Features
+
+- **`ThreeNewtonsoftSerializer`:** High-level convenience helper for `Newtonsoft.Json` serialization and deserialization.
+- **`SceneDocumentConverter`:** Custom Newtonsoft `JsonConverter` for Three.js Object/Scene JSON format 4.
+- **`BufferAttributeConverter`:** High-performance converter reading and writing typed primitive arrays (`Float32Array`, `Uint32Array`, etc.) without per-element object boxing.
+- **`ElementConverter`:** Polymorphic discriminator converter for heterogeneous element pools (`geometries`, `materials`, `textures`, `images`).
+- **`CamelCaseCustomResolver`:** Custom contract resolver preserving dictionary keys and camelCase property conventions.
+
+## Installation
+
+Install via the .NET CLI:
+
+```bash
+dotnet add package ActDim.Three.NewtonsoftJson
+```
+
+Or via Package Manager Console:
+
+```powershell
+Install-Package ActDim.Three.NewtonsoftJson
+```
+
+## Quick Start Example
+
+```csharp
+using ActDim.Three;
+using ActDim.Three.NewtonsoftJson;
+using ActDim.Three.Scenes;
+
+// Create or obtain a scene document
+Scene scene = new Scene();
+SceneDocument doc = scene.ToSceneDocument();
+
+// 1. Serialize using ThreeNewtonsoftSerializer
+string json = ThreeNewtonsoftSerializer.ToJson(doc, indented: true);
+
+// 2. Deserialize using ThreeNewtonsoftSerializer
+SceneDocument restoredDoc = ThreeNewtonsoftSerializer.FromJson<SceneDocument>(json);
+```
+
+## Testing & Quality
+
+- **Test Suite:** `ActDim.Three.Tests`
+- **Target Framework:** .NET 10.0
+
+```bash
+dotnet test Tests/Three.Tests/ActDim.Three.Tests.csproj
+```
+
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.
+
+---
+
+## License
+
+This project is licensed under the [MIT License](../LICENSE).
+
+---
+
+## Document: AGENTS.md (Agent Conventions & Protocol)
+
+<!-- BEGIN ALONG-PROTOCOL ref=../AGENTS.md (managed by along-init - do not edit by hand) -->
+This folder belongs to a repository that uses the ALONG structure. The full working
+guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
+read it there. This folder keeps its OWN `.along/` state; use the nearest one.
+Only this folder's specifics follow.
+<!-- END ALONG-PROTOCOL -->## Project specifics
+
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
+<!-- END ALONG-RULES -->
+
+Dedicated Newtonsoft.Json compatibility adapter for 3D engine serialization (`ThreeNewtonsoftSerializer`, `SceneDocumentConverter`, `BufferAttributeConverter`, `ElementConverter`, `CamelCaseCustomResolver`).
+
+---
+
+## Document: docs/topic--architecture.md (System Architecture & Flow)
+
+# System Architecture & Flow
+
+High-level architectural components, module boundaries, and execution models.
+
+Standalone compatibility adapter for Newtonsoft.Json serialization of ActDim.Three scene graphs and primitives (ThreeNewtonsoftSerializer). Cleanly decoupled from core ActDim.Three engine library.
+
+---
+
+## Document: docs/topic--domain-model.md (Domain Model & Entities)
+
+# Domain Model & Entities
+
+Core domain terminology, data models, and schema relationships.
+
+---
+
+## Document: docs/topic--setup-and-workflow.md (Setup & Developer Workflow)
+
+# Setup & Developer Workflow
+
+Build instructions, test suites, local development, and skill deployment guidelines.

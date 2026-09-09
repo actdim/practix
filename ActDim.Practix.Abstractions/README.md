@@ -79,6 +79,14 @@ public class OrderProcessor
 
 Implementations of these interfaces are available in concrete packages such as [`ActDim.Practix.Common`](https://www.nuget.org/packages/ActDim.Practix.Common) and [`ActDim.Practix.Json`](https://www.nuget.org/packages/ActDim.Practix.Json).
 
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.
+
+---
+
 ## License
 
 This project is licensed under the [MIT License](../LICENSE).

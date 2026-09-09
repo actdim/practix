@@ -13,16 +13,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         public static IServiceCollection AddAppRegistryRepo(this IServiceCollection services)
         {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
+            ArgumentNullException.ThrowIfNull(services);
             services.AddTransient<CommonRepo>();
-            services.AddTransient<ProjectRepo>();
-            services.AddTransient<RoleRepo>();
-            services.AddTransient<UserRepo>();
-
+            services.AddTransient<IProjectRepo, ProjectRepo>();
+            services.AddTransient<IRoleRepo, RoleRepo>();
+            services.AddTransient<IUserRepo, UserRepo>();
             return services;
         }
     }

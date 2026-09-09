@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.18"
+protocol_version: "2.2.26"
 slug: caching-proxies
 title: Resilient Caching Proxies
 type: topic
 created: 2026-09-03
-updated: 2026-09-03
+updated: 2026-09-08
 tags: [caching, memory-cache, distributed-cache, proxy, serialization]
 ---
 

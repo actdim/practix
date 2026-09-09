@@ -7,7 +7,7 @@ Only this folder's specifics follow.
 
 <!-- BEGIN ALONG-RULES -->
 See the following engineering guidelines:
-- `[languages/csharp.md](file://.along/rules/languages/csharp.md)`
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
 <!-- END ALONG-RULES -->
 
 Autonomous JSON serialization subsystem (`CoreJsonSerializer`, custom converters, policies, attributes) using compiled Expression Trees for zero-allocation `CopyOptions` and property setters (`AddPractixJson()`).

@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.18"
+protocol_version: "2.2.26"
 slug: architecture
 title: System Architecture & Compilation Pipeline
 type: architecture
 created: 2026-09-03
-updated: 2026-09-03
+updated: 2026-09-08
 tags: [architecture, roslyn, scripting, compilation-pipeline, template-engine]
 ---
 

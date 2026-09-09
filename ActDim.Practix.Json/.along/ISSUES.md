@@ -1,8 +1,10 @@
 # Active Issues
 
-_Subproject issue board for ActDim.Practix.Json._
-
 ## Active
+<!-- No active issues -->
+
+## Backlog
+<!-- Planned or deferred issues -->
 
 ## Done (recent)
-
+<!-- No completed issues -->

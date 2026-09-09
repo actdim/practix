@@ -1,0 +1,85 @@
+# ActDim.BytePath.SqliteRegistry - Full Documentation Context
+
+> Knowledge Base and documentation index for ActDim.BytePath.SqliteRegistry.
+
+---
+
+## Document: README.md (Overview)
+
+# ActDim.BytePath.SqliteRegistry
+
+SQLite metadata registry implementation for `ActDim.BytePath`.
+
+## Features
+- **ACID Metadata Registry**: Backed by SQLite (`RepoDb.Sqlite.Microsoft` / `Microsoft.Data.Sqlite`) with transactions (`BEGIN IMMEDIATE`) ensuring zero concurrency race conditions.
+- **Distributed Read/Write Locks**: Pessimistic cooperative locking with expiration and automatic cleanup.
+- **TTL & Sliding Expiration**: Direct querying of expired keys and age-based key scanning.
+
+## Installation
+
+```bash
+dotnet add package ActDim.BytePath.SqliteRegistry
+```
+
+## Quick Start
+
+```csharp
+services.AddBlobManager(builder =>
+{
+    builder.WithSQLiteRegistry(options =>
+    {
+        options.DatabaseName = "blobs.db";
+        options.BaseDirectory = "./my-blobs";
+    });
+});
+```
+
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.
+
+---
+
+## Document: AGENTS.md (Agent Conventions & Protocol)
+
+<!-- BEGIN ALONG-PROTOCOL ref=../AGENTS.md (managed by along-init - do not edit by hand) -->
+This folder belongs to a repository that uses the ALONG structure. The full working
+guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
+read it there. This folder keeps its OWN `.along/` state; use the nearest one.
+Only this folder's specifics follow.
+<!-- END ALONG-PROTOCOL -->## Project specifics
+
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
+<!-- END ALONG-RULES -->
+
+SQLite-backed ACID blob registry (`SQLiteBlobRegistry`), distributed locking, TTL expiration, metadata management, and DI extensions (`WithSQLiteRegistry()`, `AddSQLiteBlobRegistry()`).
+
+---
+
+## Document: docs/topic--architecture.md (System Architecture & Flow)
+
+# System Architecture & Flow
+
+High-level architectural components, module boundaries, and execution models.
+
+SQLite-backed ACID blob registry (SQLiteBlobRegistry). Distributed locking, TTL metadata expiration, key prefix routing, and DI extension methods (WithSQLiteRegistry(), AddSQLiteBlobRegistry()).
+
+---
+
+## Document: docs/topic--domain-model.md (Domain Model & Entities)
+
+# Domain Model & Entities
+
+Core domain terminology, data models, and schema relationships.
+
+---
+
+## Document: docs/topic--setup-and-workflow.md (Setup & Developer Workflow)
+
+# Setup & Developer Workflow
+
+Build instructions, test suites, local development, and skill deployment guidelines.

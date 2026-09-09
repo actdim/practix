@@ -1,0 +1,492 @@
+# ActDim.Reflectron - Full Documentation Context
+
+> Knowledge Base and documentation index for ActDim.Reflectron.
+
+---
+
+## Document: README.md (Overview)
+
+# ActDim.Reflectron
+
+`ActDim.Reflectron` is a high-performance, memory-safe .NET reflection and dynamic member access engine. It provides compiled expression-tree property/field accessors, cached delegates, and fluent weak-referenced object wrappers that eliminate traditional `System.Reflection` runtime overhead.
+
+## Features
+
+- **Fast Indexer & Member Access:** Read and write properties or fields by string name (`reflector["Prop"] = value`) or lambda expression with near-native execution speed.
+- **Memory-Safe Weak References:** Instance reflectors hold the target object via `WeakReference<T>`, allowing the garbage collector to reclaim unused objects without memory leaks.
+- **Compiled Expression-Tree Caching:** Automatic, concurrent, thread-safe caching of compiled getters, setters, constructors, and method invocators.
+- **Strongly-Typed & Dynamic Type Factories:** Obtain reusable reflector factories for static types (`typeof(User).Reflect<User>()`) or runtime types (`type.Reflect()`).
+- **Fast Dynamic Method & Constructor Invocations:** Generate high-speed invokers (`FastMethodCallDelegate`, `FastDynamicDelegate`) and DynamicMethod IL constructors.
+- **Safe Member Discovery:** Retrieve `MemberInfo`, `PropertyInfo`, or `MethodInfo` safely through strongly-typed lambda expressions (`Reflectron.GetMemberInfo((User u) => u.Name)`).
+
+## Installation
+
+Install via the .NET CLI:
+
+```bash
+dotnet add package ActDim.Reflectron
+```
+
+Or via Package Manager Console:
+
+```powershell
+Install-Package ActDim.Reflectron
+```
+
+---
+
+## Quick Start & Usage Examples
+
+### 1. Fluent Object Reflector (`obj.Reflect()`)
+
+Call `.Reflect()` on an object instance **once** to obtain a reusable, memory-safe `IReflectron<T>` wrapper:
+
+```csharp
+using ActDim.Reflectron;
+
+var user = new User { Name = "Initial", Age = 25 };
+
+// Obtain the reflector once for the target instance:
+var reflector = user.Reflect();
+
+// Read and write via indexer (supports properties and fields):
+reflector["Name"] = "Alice";
+reflector["Age"] = 30;
+Console.WriteLine(reflector["Name"]); // Output: Alice
+
+// Strongly-typed reading and writing by lambda expression:
+string updatedName = reflector.Set(u => u.Name, "Bob");
+int age = reflector.Get(u => u.Age);
+
+// Reading and writing by member name:
+reflector.Set("Name", "Charlie");
+string name = reflector.Get<string>("Name");
+```
+
+### 2. Calling Methods via Reflector
+
+Extract cached method delegates by name or expression from the instance reflector:
+
+```csharp
+using ActDim.Reflectron;
+
+var user = new User { Name = "Alice" };
+var reflector = user.Reflect();
+
+// By method name:
+var greetByName = reflector.GetMethod<Func<User, string, string>>("FormatGreeting");
+string result1 = greetByName(user, "Hello"); // Output: Hello, Alice!
+
+// By lambda expression:
+var greetByExpr = reflector.GetMethod<Func<User, string, string>, string>(u => u.FormatGreeting(default));
+string result2 = greetByExpr(user, "Welcome");
+```
+
+### 3. Cached Type Reflector Factories
+
+Obtain reusable factory delegates to spawn reflectors efficiently:
+
+```csharp
+using ActDim.Reflectron;
+
+// 1. Strongly-typed factory for known compile-time types:
+Func<User, IReflectron<User>> userReflectorFactory = typeof(User).Reflect<User>();
+
+foreach (var u in userList)
+{
+    var r = userReflectorFactory(u);
+    r.Set(x => x.Age, 35);
+}
+
+// 2. Runtime Type factory for dynamically resolved types:
+Type runtimeType = payload.GetType();
+Func<object, IReflectron<object>> dynamicFactory = runtimeType.Reflect();
+
+var dynamicReflector = dynamicFactory(payload);
+dynamicReflector["Status"] = "Processed";
+```
+
+### 4. Direct High-Performance Delegate Caches
+
+When writing performance-critical frameworks, use static `Reflectron` caches directly:
+
+```csharp
+using ActDim.Reflectron;
+using System.Reflection;
+
+// Property getters and setters:
+PropertyInfo propInfo = typeof(User).GetProperty(nameof(User.Name));
+Func<User, string> nameGetter = Reflectron.GetPropertyGetter<User, string>(propInfo);
+Action<User, string> nameSetter = Reflectron.GetPropertySetter<User, string>(propInfo);
+
+nameSetter(user, "David");
+string currentName = nameGetter(user);
+
+// Dynamic method invocation:
+MethodInfo method = typeof(string).GetMethod(nameof(string.ToUpper), Type.EmptyTypes);
+FastMethodCallDelegate fastCaller = Reflectron.GetMethodCaller(method);
+object upper = fastCaller("hello world", null); // Output: HELLO WORLD
+
+// High-speed compiled constructor:
+Func<User> userCtor = Reflectron.CreateConstructor<Func<User>>();
+User newUser = userCtor();
+```
+
+### 5. Memory Safety & Weak References
+
+`Reflectron<T>` uses `WeakReference<T>` internally. Long-lived reflectors will never cause memory leaks by holding dead instances:
+
+```csharp
+IReflectron<User> reflector;
+
+void Initialize()
+{
+    var tempUser = new User { Name = "ShortLived" };
+    reflector = tempUser.Reflect();
+    Console.WriteLine(reflector["Name"]); // Output: ShortLived
+}
+
+Initialize();
+
+GC.Collect();
+GC.WaitForPendingFinalizers();
+
+// Target object was collected; attempting access throws ReflectionException:
+// reflector["Name"] -> throws ReflectionException("Can't access target object")
+```
+
+---
+
+## Testing & Quality
+
+- **Test Suite:** `ActDim.Reflectron.Tests`
+- **Total Tests:** 56 passed (100% success rate, 0 failed, 0 skipped)
+- **Target Framework:** .NET 10.0
+
+```bash
+dotnet test Tests/Reflectron.Tests/ActDim.Reflectron.Tests.csproj
+```
+
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.
+
+---
+
+## License
+
+This project is licensed under the [MIT License](../LICENSE).
+
+---
+
+## Document: AGENTS.md (Agent Conventions & Protocol)
+
+<!-- BEGIN ALONG-PROTOCOL ref=../AGENTS.md (managed by along-init - do not edit by hand) -->
+This folder belongs to a repository that uses the ALONG structure. The full working
+guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
+read it there. This folder keeps its OWN `.along/` state; use the nearest one.
+Only this folder's specifics follow.
+<!-- END ALONG-PROTOCOL -->## Project specifics
+
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
+<!-- END ALONG-RULES -->
+
+<!-- Fill in: what this project is, how to build / test / run, architecture map, project-specific conventions. -->
+
+---
+
+## Document: docs/topic--architecture.md (System Architecture & Flow)
+
+# System Architecture & Flow
+
+`ActDim.Reflectron` provides high-performance, memory-safe reflection acceleration by converting runtime member lookups into compiled Expression Trees and managing target lifetimes through weak references.
+
+---
+
+## High-Level Architecture Pipeline
+
+```
+[Target Object / Type]
+          |
+          +---> .Reflect() Extension / Factory
+                    |
+      +-------------+-------------+
+      |                           |
+[Lookup in Static Cache]    [Expression Compiler Pipeline]
+      |                           |
+      |                     1. Build Expression Parameter Graph
+      |                     2. Emit Property/Field/Method Access
+      |                     3. LambdaExpression.Compile()
+      |                           |
+      +<--------------------------+
+      |
+[Wrap in IReflectron<T> with WeakReference<T>]
+      |
+[Native-Speed Getter/Setter/Method Invocation]
+```
+
+---
+
+## Architectural Subsystems
+
+1. **Compiled Expression Trees & Delegates ([`topic--compiled-expressions-and-delegates.md`](./topic--compiled-expressions-and-delegates.md))**:
+   - Compiles strongly-typed lambda expressions into native function pointers (`Func<T, TValue>`, `Action<T, TValue>`).
+   - Generates high-speed constructors and dynamic method invokers (`FastMethodCallDelegate`).
+
+2. **Instance Reflection & Weak Memory Lifecycle ([`topic--dynamic-member-access.md`](./topic--dynamic-member-access.md))**:
+   - `IReflectron<T>` encapsulates target objects inside `WeakReference<T>` to guarantee zero memory leaks.
+   - Provides string indexer access (`reflector["Prop"]`) and strongly-typed lambda access (`reflector.Get(...)`, `reflector.Set(...)`).
+
+---
+
+## Document: docs/topic--compiled-expressions-and-delegates.md (Compiled Expressions and Delegate Caching)
+
+# Compiled Expressions and Delegate Caching
+
+`ActDim.Reflectron` bypasses the performance penalties of standard `System.Reflection` (boxing, unboxing, runtime dispatch, metadata lookups) by generating and caching strongly-typed delegates compiled from LINQ Expression Trees and DynamicMethod IL.
+
+---
+
+## High-Performance Property and Field Accessors
+
+Static cache methods in `Reflectron` compile runtime `PropertyInfo` and `FieldInfo` into strongly-typed native delegates:
+
+```csharp
+using ActDim.Reflectron;
+using System.Reflection;
+
+PropertyInfo propInfo = typeof(User).GetProperty(nameof(User.Name));
+
+// Strongly-typed compiled delegates
+Func<User, string> getter = Reflectron.GetPropertyGetter<User, string>(propInfo);
+Action<User, string> setter = Reflectron.GetPropertySetter<User, string>(propInfo);
+
+setter(user, "Alice");
+string name = getter(user);
+```
+
+### Supported Member Types
+- **Properties**: Instance, static, indexed, and auto-properties via `Reflectron.Properties.cs`.
+- **Fields**: Public and non-public fields via `Reflectron.Fields.cs`.
+- **Untyped Overloads**: Object-based accessors for dynamic scenarios where member types are resolved only at runtime.
+
+---
+
+## Dynamic Method Invocation
+
+For method invocation without `MethodInfo.Invoke` overhead, `Reflectron` emits `FastMethodCallDelegate`:
+
+```csharp
+using ActDim.Reflectron;
+using System.Reflection;
+
+MethodInfo method = typeof(string).GetMethod(nameof(string.ToUpper), Type.EmptyTypes);
+FastMethodCallDelegate caller = Reflectron.GetMethodCaller(method);
+
+object result = caller("hello world", null); // Output: HELLO WORLD
+```
+
+`FastMethodCallDelegate` signatures accept `(object target, object[] args)` and invoke the underlying method through compiled expression casts, eliminating reflection lookup loops.
+
+---
+
+## Compiled Constructor Generation
+
+Instead of `Activator.CreateInstance`, `Reflectron` generates delegates targeting constructors:
+
+```csharp
+using ActDim.Reflectron;
+
+// Parameterless constructor delegate
+Func<User> ctor = Reflectron.CreateConstructor<Func<User>>();
+User instance = ctor();
+
+// Parameterized constructor delegate
+Func<string, int, User> parameterizedCtor = Reflectron.CreateConstructor<Func<string, int, User>>();
+User userWithData = parameterizedCtor("Alice", 30);
+```
+
+---
+
+## Thread-Safe Caching Strategy
+
+- Delegates are compiled once on initial access and cached in thread-safe concurrent collections.
+- Cache keys combine the target type, member metadata token, and delegate signature to prevent collisions across generic types and interface implementations.
+- Successive calls resolve from the cache in sub-microsecond time with zero allocation.
+
+---
+
+## Related Topics
+
+- [System Architecture & Flow](./topic--architecture.md)
+- [Dynamic Member Access & Lifetime Management](./topic--dynamic-member-access.md)
+- [Knowledge Base Index](./INDEX.md)
+
+---
+
+## Document: docs/topic--domain-model.md (Domain Model & Entities)
+
+# Domain Model & Entities
+
+Core abstractions, delegate types, interfaces, and exception specifications across `ActDim.Reflectron`.
+
+---
+
+## Core Interfaces & Abstractions
+
+| Type | Kind | Description |
+| :--- | :--- | :--- |
+| `IReflectron<T>` | Interface | Generic instance reflector wrapper over a target object of type `T`. |
+| `IReflectron` | Interface | Non-generic instance reflector for dynamically typed objects. |
+| `Reflectron` | Static Class | Central factory, cache manager, and expression compiler facade. |
+| `FastMethodCallDelegate` | Delegate | High-performance method caller delegate `(object instance, object[] args) => object`. |
+| `FastDynamicDelegate` | Delegate | Dynamic invoker delegate for variable parameter signatures. |
+| `ReflectionException` | Exception | Thrown when target member is missing or dead weak-reference is accessed. |
+
+---
+
+## Error Handling & Exception Guarantees
+
+1. **Dead Target Access**: Accessing any member on an `IReflectron<T>` whose underlying target has been reclaimed by the Garbage Collector throws `ReflectionException("Target object is no longer alive.")`.
+2. **Missing Member Access**: Attempting to get or set a non-existent property or field by name throws `ReflectionException("Member not found.")`.
+3. **Type Mismatch**: Attempting to set an incompatible value type to a strongly-typed member throws `ArgumentException` or `InvalidCastException`.
+
+---
+
+## Document: docs/topic--dynamic-member-access.md (Dynamic Member Access and Lifetime Management)
+
+# Dynamic Member Access and Lifetime Management
+
+`ActDim.Reflectron` provides fluent, memory-safe member access and mutation through `IReflectron<T>`, eliminating boilerplate while protecting long-lived caches from memory leaks.
+
+---
+
+## Fluent Instance Reflector (`.Reflect()`)
+
+Calling `.Reflect()` on any reference object wraps the instance in `IReflectron<T>`:
+
+```csharp
+using ActDim.Reflectron;
+
+var user = new User { Name = "Initial", Age = 25 };
+var reflector = user.Reflect();
+
+// Indexer access for properties and fields
+reflector["Name"] = "Alice";
+reflector["Age"] = 30;
+Console.WriteLine(reflector["Name"]); // Output: Alice
+
+// Strongly-typed access via lambda expressions
+reflector.Set(u => u.Name, "Bob");
+int age = reflector.Get(u => u.Age);
+
+// String-based typed access
+reflector.Set("Name", "Charlie");
+string name = reflector.Get<string>("Name");
+```
+
+---
+
+## Memory Safety via `WeakReference<T>`
+
+Long-lived caches or wrappers can inadvertently prevent garbage collection if they hold strong references to transient objects.
+
+`Reflectron<T>` holds its target instance through `WeakReference<T>`. When the target object is no longer referenced elsewhere in the application, the .NET Garbage Collector reclaims it normally:
+
+```csharp
+using ActDim.Reflectron;
+
+IReflectron<User> reflector;
+
+void Scope()
+{
+    var transient = new User { Name = "Temporary" };
+    reflector = transient.Reflect();
+}
+
+Scope();
+GC.Collect();
+GC.WaitForPendingFinalizers();
+
+// Accessing the target after collection throws ReflectionException
+// reflector["Name"] -> throws ReflectionException("Can't access target object")
+```
+
+If the target object has been collected, subsequent calls to `Get`, `Set`, or indexers throw `ReflectionException`.
+
+---
+
+## Type Reflector Factories
+
+When processing collections of objects, creating individual reflector delegates per item introduces unnecessary allocation. Use cached reflector factories instead:
+
+### Strongly-Typed Compile-Time Factory
+
+```csharp
+using ActDim.Reflectron;
+
+Func<User, IReflectron<User>> userFactory = typeof(User).Reflect<User>();
+
+foreach (var user in users)
+{
+    var r = userFactory(user);
+    r.Set(u => u.Status, "Active");
+}
+```
+
+### Dynamic Runtime Type Factory
+
+```csharp
+using ActDim.Reflectron;
+
+Type runtimeType = payload.GetType();
+Func<object, IReflectron<object>> dynamicFactory = runtimeType.Reflect();
+
+var r = dynamicFactory(payload);
+r["ProcessedAt"] = DateTime.UtcNow;
+```
+
+---
+
+## Related Topics
+
+- [System Architecture & Flow](./topic--architecture.md)
+- [Compiled Expressions and Delegate Caching](./topic--compiled-expressions-and-delegates.md)
+- [Knowledge Base Index](./INDEX.md)
+
+---
+
+## Document: docs/topic--setup-and-workflow.md (Setup & Developer Workflow)
+
+# Setup & Developer Workflow
+
+Package installation, developer workflow, and test execution for `ActDim.Reflectron`.
+
+---
+
+## Installation
+
+```bash
+dotnet add package ActDim.Reflectron
+```
+
+---
+
+## Test Execution
+
+The test suite is located in `Tests/Reflectron.Tests/`:
+
+```bash
+dotnet test Tests/Reflectron.Tests/ActDim.Reflectron.Tests.csproj -v q
+```
+
+### Verified Test Suites (56 Tests Total):
+- `ReflectronPropertyTests`: Property getter and setter expressions, indexer lookups, private properties.
+- `ReflectronFieldTests`: Field getter and setter expressions.
+- `ReflectronConstructorTests`: Default and parameterized compiled constructor invocations.
+- `ReflectronMethodTests`: Fast dynamic method calls and parameter passing.
+- `ReflectronWeakReferenceTests`: Target GC reclamation and exception behavior.

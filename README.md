@@ -49,3 +49,9 @@ dotnet test ActDim.Practix.sln
 # 3D Math & Scene Graph (35 tests)
 dotnet test ActDim.Three.sln
 ```
+
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.

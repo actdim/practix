@@ -1,0 +1,13 @@
+# ActDim.Reflectron
+
+> Knowledge Base and documentation index for ActDim.Reflectron.
+
+## Documentation Links
+- [README.md](README.md): Overview, quick installation, and full skill list.
+- [AGENTS.md](AGENTS.md): Active ALONG-PROTOCOL conventions and instructions.
+- [docs/INDEX.md](docs/INDEX.md): Central Knowledge Base topic catalog.
+- [docs/topic--architecture.md](docs/topic--architecture.md): System Architecture & Flow.
+- [docs/topic--compiled-expressions-and-delegates.md](docs/topic--compiled-expressions-and-delegates.md): Compiled Expressions and Delegate Caching.
+- [docs/topic--domain-model.md](docs/topic--domain-model.md): Domain Model & Entities.
+- [docs/topic--dynamic-member-access.md](docs/topic--dynamic-member-access.md): Dynamic Member Access and Lifetime Management.
+- [docs/topic--setup-and-workflow.md](docs/topic--setup-and-workflow.md): Setup & Developer Workflow.

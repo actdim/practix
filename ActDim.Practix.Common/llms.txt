@@ -1,0 +1,18 @@
+# ActDim.Practix.Common
+
+> [!NOTE]
+
+## Documentation Links
+- [README.md](README.md): Overview, quick installation, and full skill list.
+- [AGENTS.md](AGENTS.md): Active ALONG-PROTOCOL conventions and instructions.
+- [docs/INDEX.md](docs/INDEX.md): Central Knowledge Base topic catalog.
+- [docs/topic--ambient-context.md](docs/topic--ambient-context.md): Ambient Execution Context.
+- [docs/topic--architecture.md](docs/topic--architecture.md): System Architecture & Flow.
+- [docs/topic--async-object-pool.md](docs/topic--async-object-pool.md): Asynchronous Bounded Object Pool.
+- [docs/topic--caching-proxies.md](docs/topic--caching-proxies.md): Resilient Caching Proxies.
+- [docs/topic--compression-and-archives.md](docs/topic--compression-and-archives.md): Stream & Payload Compression and Archiving.
+- [docs/topic--concurrent-collections.md](docs/topic--concurrent-collections.md): Specialized Concurrent Collections.
+- [docs/topic--domain-model.md](docs/topic--domain-model.md): Domain Model & Vocabulary.
+- [docs/topic--extensions-and-utilities.md](docs/topic--extensions-and-utilities.md): Extensions & Common Utilities.
+- [docs/topic--memory-and-disposal.md](docs/topic--memory-and-disposal.md): Memory Management & Disposal Lifecycle.
+- [docs/topic--setup-and-workflow.md](docs/topic--setup-and-workflow.md): Setup, Installation & Developer Workflows.

@@ -392,8 +392,17 @@ namespace ActDim.BytePath
             {
                 record.Size = await dataStore.GetSizeAsync(record, CancellationToken.None);
                 if (releaseAsync != null)
+                try
                 {
                     await releaseAsync();
+                    record.Size = await dataStore.GetSizeAsync(record, CancellationToken.None);
+                }
+                finally
+                {
+                    if (releaseAsync != null)
+                    {
+                        await releaseAsync();
+                    }
                 }
             };
 

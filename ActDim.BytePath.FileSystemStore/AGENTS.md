@@ -7,7 +7,7 @@ Only this folder's specifics follow.
 
 <!-- BEGIN ALONG-RULES -->
 See the following engineering guidelines:
-- `[languages/csharp.md](file://.along/rules/languages/csharp.md)`
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
 <!-- END ALONG-RULES -->
 
 Sharded physical file system data store (`FileSystemBlobDataStore`), key prefix routing, SHA-256 integrity hashing, stream pumping, and DI extensions (`WithFileSystemDataStore()`, `AddFileSystemBlobDataStore()`).

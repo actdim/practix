@@ -126,34 +126,9 @@ namespace ActDim.Emitron
                     continue;
                 }
 
-                // 5. Check for "using " or "global using "
-                var remaining = code.Substring(i);
-                if (remaining.StartsWith("using ", StringComparison.Ordinal) ||
-                    remaining.StartsWith("using\t", StringComparison.Ordinal) ||
-                    remaining.StartsWith("using\r", StringComparison.Ordinal) ||
-                    remaining.StartsWith("using\n", StringComparison.Ordinal) ||
-                    remaining.StartsWith("global using ", StringComparison.Ordinal))
+                // 5. Check for using directive (using ..., global using ...)
+                if (TryConsumeUsingDirective(code, ref i))
                 {
-                    while (i < len && code[i] != ';')
-                    {
-                        i++;
-                    }
-
-                    if (i < len && code[i] == ';')
-                    {
-                        i++;
-                    }
-
-                    while (i < len && (code[i] == ' ' || code[i] == '\t' || code[i] == '\r'))
-                    {
-                        i++;
-                    }
-
-                    if (i < len && code[i] == '\n')
-                    {
-                        i++;
-                    }
-
                     lastValidHeaderEnd = i;
                     continue;
                 }
@@ -163,6 +138,287 @@ namespace ActDim.Emitron
             }
 
             return lastValidHeaderEnd;
+        }
+
+        private static bool TryConsumeUsingDirective(string code, ref int i)
+        {
+            var len = code.Length;
+            var cur = i;
+
+            // Check optional "global"
+            if (HasKeyword(code, cur, "global"))
+            {
+                cur += 6;
+                SkipWhitespaceAndComments(code, ref cur);
+            }
+
+            if (!HasKeyword(code, cur, "using"))
+            {
+                return false;
+            }
+
+            cur += 5;
+            SkipWhitespaceAndComments(code, ref cur);
+
+            if (cur >= len)
+            {
+                return false;
+            }
+
+            // A using directive never has '(' immediately after using: e.g. using (var x = ...)
+            if (code[cur] == '(')
+            {
+                return false;
+            }
+
+            // Check optional "static" or "unsafe"
+            if (HasKeyword(code, cur, "static"))
+            {
+                cur += 6;
+                SkipWhitespaceAndComments(code, ref cur);
+            }
+            else if (HasKeyword(code, cur, "unsafe"))
+            {
+                cur += 6;
+                SkipWhitespaceAndComments(code, ref cur);
+            }
+
+            if (cur >= len || code[cur] == '(')
+            {
+                return false;
+            }
+
+            // A using directive never starts with "var": e.g. using var x = ...
+            if (HasKeyword(code, cur, "var"))
+            {
+                return false;
+            }
+
+            // Scan until semicolon ';'
+            // Validate that between cur and ';':
+            // 1. No '{' or '}'
+            // 2. No "new" keyword
+            // 3. If there is '=', verify alias syntax (exactly one identifier before '=')
+            // 4. If no '=', verify no '(' before ';'
+            var equalsIndex = -1;
+            var semiIndex = -1;
+            var scan = cur;
+            var parenDepth = 0;
+            var bracketDepth = 0;
+
+            while (scan < len)
+            {
+                // Skip comments inside using directive
+                if (scan + 1 < len && code[scan] == '/' && code[scan + 1] == '/')
+                {
+                    scan += 2;
+                    while (scan < len && code[scan] != '\n')
+                    {
+                        scan++;
+                    }
+                    continue;
+                }
+
+                if (scan + 1 < len && code[scan] == '/' && code[scan + 1] == '*')
+                {
+                    scan += 2;
+                    while (scan + 1 < len && !(code[scan] == '*' && code[scan + 1] == '/'))
+                    {
+                        scan++;
+                    }
+                    if (scan + 1 < len)
+                    {
+                        scan += 2;
+                    }
+                    continue;
+                }
+
+                var c = code[scan];
+
+                if (c == '{' || c == '}')
+                {
+                    return false;
+                }
+
+                if (c == '(')
+                {
+                    // If '(' occurs before '=', this is not a using directive (e.g. using (expr))
+                    if (equalsIndex == -1)
+                    {
+                        return false;
+                    }
+                    parenDepth++;
+                }
+                else if (c == ')')
+                {
+                    parenDepth--;
+                }
+                else if (c == '<')
+                {
+                    bracketDepth++;
+                }
+                else if (c == '>')
+                {
+                    if (bracketDepth > 0)
+                    {
+                        bracketDepth--;
+                    }
+                }
+                else if (c == '=' && equalsIndex == -1 && parenDepth == 0 && bracketDepth == 0)
+                {
+                    // Found '=', check if this is '=='
+                    if (scan + 1 < len && code[scan + 1] == '=')
+                    {
+                        return false;
+                    }
+                    equalsIndex = scan;
+                }
+                else if (c == ';' && parenDepth == 0 && bracketDepth == 0)
+                {
+                    semiIndex = scan;
+                    break;
+                }
+                else if (HasKeyword(code, scan, "new"))
+                {
+                    return false;
+                }
+
+                scan++;
+            }
+
+            if (semiIndex == -1)
+            {
+                return false;
+            }
+
+            // If there is an '=', check what is before '=':
+            // In a using alias, there must be exactly ONE identifier between cur and equalsIndex:
+            // e.g. "using Alias = ..."
+            if (equalsIndex != -1)
+            {
+                var aliasPart = code.Substring(cur, equalsIndex - cur).Trim();
+                if (!IsValidIdentifier(aliasPart))
+                {
+                    return false;
+                }
+            }
+
+            // Advance index past the semicolon and trailing inline spaces and newline
+            var next = semiIndex + 1;
+            while (next < len && (code[next] == ' ' || code[next] == '\t' || code[next] == '\r'))
+            {
+                next++;
+            }
+
+            if (next < len && code[next] == '\n')
+            {
+                next++;
+            }
+
+            i = next;
+            return true;
+        }
+
+        private static bool HasKeyword(string code, int index, string keyword)
+        {
+            var len = code.Length;
+            var klen = keyword.Length;
+            if (index + klen > len)
+            {
+                return false;
+            }
+
+            if (string.CompareOrdinal(code, index, keyword, 0, klen) != 0)
+            {
+                return false;
+            }
+
+            if (index + klen < len)
+            {
+                var nextChar = code[index + klen];
+                if (char.IsLetterOrDigit(nextChar) || nextChar == '_')
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static void SkipWhitespaceAndComments(string code, ref int i)
+        {
+            var len = code.Length;
+            while (i < len)
+            {
+                if (char.IsWhiteSpace(code[i]))
+                {
+                    i++;
+                    continue;
+                }
+
+                if (i + 1 < len && code[i] == '/' && code[i + 1] == '/')
+                {
+                    i += 2;
+                    while (i < len && code[i] != '\n')
+                    {
+                        i++;
+                    }
+                    if (i < len && code[i] == '\n')
+                    {
+                        i++;
+                    }
+                    continue;
+                }
+
+                if (i + 1 < len && code[i] == '/' && code[i + 1] == '*')
+                {
+                    i += 2;
+                    while (i + 1 < len && !(code[i] == '*' && code[i + 1] == '/'))
+                    {
+                        i++;
+                    }
+                    if (i + 1 < len)
+                    {
+                        i += 2;
+                    }
+                    continue;
+                }
+
+                break;
+            }
+        }
+
+        private static bool IsValidIdentifier(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                return false;
+            }
+
+            var start = 0;
+            if (s[0] == '@')
+            {
+                start = 1;
+                if (s.Length == 1)
+                {
+                    return false;
+                }
+            }
+
+            if (!char.IsLetter(s[start]) && s[start] != '_')
+            {
+                return false;
+            }
+
+            for (var k = start + 1; k < s.Length; k++)
+            {
+                if (!char.IsLetterOrDigit(s[k]) && s[k] != '_')
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>

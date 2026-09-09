@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ActDim.Practix.Pooling;
@@ -346,6 +348,57 @@ namespace ActDim.Practix.Common.Tests.Pooling
             Assert.Single(disposedItems);
             Assert.Equal(42, disposedItems.ToArray()[0].Id);
             Assert.Equal(0, pool.CreatedCount);
+        }
+
+        [Fact]
+        public async Task DisposeAsync_WithConcurrentReturns_CleansUpAllItemsWithoutException()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var createdId = 0;
+            var disposedItems = new ConcurrentBag<int>();
+            const int poolSize = 10;
+            const int iterations = 10;
+
+            for (var iter = 0; iter < iterations; iter++)
+            {
+                disposedItems.Clear();
+                var pool = new AsyncObjectPool<TestResource>(
+                    () => Task.FromResult(new TestResource { Id = Interlocked.Increment(ref createdId) }),
+                    maxSize: poolSize,
+                    disposer: item =>
+                    {
+                        disposedItems.Add(item.Id);
+                        return ValueTask.CompletedTask;
+                    });
+
+                var leased = new List<AsyncObjectPool<TestResource>.PooledObject>();
+                for (var i = 0; i < poolSize; i++)
+                {
+                    leased.Add(await pool.GetAsync(ct));
+                }
+
+                // Concurrently dispose the pool while all leased objects are being returned or discarded
+                var returnTasks = leased.Select((p, idx) => Task.Run(async () =>
+                {
+                    await Task.Yield();
+                    if (idx % 2 == 0)
+                    {
+                        await p.DisposeAsync();
+                    }
+                    else
+                    {
+                        await p.DiscardAsync();
+                    }
+                }, ct)).ToArray();
+
+                var disposeTask = Task.Run(async () => await pool.DisposeAsync(), ct);
+
+                await Task.WhenAll(returnTasks);
+                await disposeTask;
+
+                Assert.Equal(0, pool.CreatedCount);
+                Assert.Equal(poolSize, disposedItems.Count);
+            }
         }
     }
 }

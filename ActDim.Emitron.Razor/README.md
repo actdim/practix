@@ -43,6 +43,14 @@ string output = razorTemplate.FormatRazor(model);
 Console.WriteLine(output);
 ```
 
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.
+
+---
+
 ## License
 
 MIT License.

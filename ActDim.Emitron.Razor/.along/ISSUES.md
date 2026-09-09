@@ -1,9 +1,10 @@
 # Active Issues
 
-_Subproject issue board for ActDim.Emitron.Razor._
-
 ## Active
+<!-- No active issues -->
+
+## Backlog
+<!-- Planned or deferred issues -->
 
 ## Done (recent)
-- `feat--emitron-razor-engine`: Create ActDim.Emitron.Razor project and Razor template compiler engine
-
+- [x] `(docs)` [emitron-razor-knowledge-base](ISSUES/done/docs--emitron-razor-knowledge-base.md)

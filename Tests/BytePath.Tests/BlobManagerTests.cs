@@ -1834,5 +1834,161 @@ namespace ActDim.BytePath.Tests
                 }
             }
         }
+
+        [Fact]
+        public async Task DisposeAsync_ReleasesWriteLock_EvenWhenDataStoreGetSizeThrows()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_lock_leak_" + Guid.NewGuid().ToString("N"));
+            var storeDir = Path.Combine(tempBase, "store");
+            var dbPath = Path.Combine(tempBase, "registry.db");
+
+            try
+            {
+                var baseStore = new FileSystemBlobDataStore(storeDir);
+                var faultyStore = new FaultyDataStore(baseStore);
+                var registry = new SQLiteBlobRegistry(dbPath, TimeSpan.FromMilliseconds(200));
+                var manager = new BlobManager(faultyStore, registry);
+
+                // 1. Seed initial blob content
+                var (seedErr, seedRecord) = await manager.TryGetOrSetAsync("fault-key", ct);
+                Assert.Equal(BlobErrorCode.None, seedErr);
+                await using (seedRecord)
+                {
+                    await faultyStore.PutAsync(seedRecord, Content("initial-data"), ct);
+                }
+
+                // 2. Acquire a write lock
+                var (writeErr, writeRecord) = await manager.TryGetForWritingAsync("fault-key", ct);
+                Assert.Equal(BlobErrorCode.None, writeErr);
+                Assert.NotNull(writeRecord);
+
+                // 3. Configure store to throw on GetSizeAsync (simulating I/O disk failure)
+                faultyStore.ThrowOnGetSize = true;
+
+                // 4. Dispose the write handle: should throw IOException
+                await Assert.ThrowsAsync<IOException>(async () => await writeRecord.DisposeAsync());
+
+                // 5. Restore normal store operations
+                faultyStore.ThrowOnGetSize = false;
+
+                // 6. Verify that the write lock was NOT leaked and can be re-acquired immediately
+                var (retryErr, retryRecord) = await manager.TryGetForWritingAsync("fault-key", TimeSpan.FromSeconds(5), ct);
+                Assert.Equal(BlobErrorCode.None, retryErr);
+                Assert.NotNull(retryRecord);
+                await retryRecord.DisposeAsync();
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try { Directory.Delete(tempBase, true); } catch { }
+                }
+            }
+        }
+
+        private sealed class FaultyDataStore : IBlobDataStore
+        {
+            private readonly IBlobDataStore _inner;
+            public bool ThrowOnGetSize { get; set; }
+
+            public FaultyDataStore(IBlobDataStore inner) => _inner = inner;
+
+            public string KeyPrefix => _inner.KeyPrefix;
+            public Task<string> ResolveLocationAsync(BlobRecord blobRecord, CancellationToken ct) => _inner.ResolveLocationAsync(blobRecord, ct);
+            public Task<long?> GetSizeAsync(BlobRecord blobRecord, CancellationToken ct)
+            {
+                if (ThrowOnGetSize)
+                {
+                    throw new IOException("Simulated I/O failure during GetSizeAsync");
+                }
+                return _inner.GetSizeAsync(blobRecord, ct);
+            }
+            public Task<long> PutAsync(BlobRecord blobRecord, Stream content, CancellationToken ct) => _inner.PutAsync(blobRecord, content, ct);
+            public Task<long> AppendAsync(BlobRecord blobRecord, Stream content, CancellationToken ct) => _inner.AppendAsync(blobRecord, content, ct);
+            public Task<long> PutAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> produce, CancellationToken ct) => _inner.PutAsync(blobRecord, produce, ct);
+            public Task<long> AppendAsync(BlobRecord blobRecord, Func<Stream, CancellationToken, Task> produce, CancellationToken ct) => _inner.AppendAsync(blobRecord, produce, ct);
+            public Task<Stream> ReadAsync(BlobRecord blobRecord, CancellationToken ct) => _inner.ReadAsync(blobRecord, ct);
+            public Task<bool> DeleteAsync(BlobRecord blobRecord, CancellationToken ct) => _inner.DeleteAsync(blobRecord, ct);
+        }
+
+        [Fact]
+        public void Constructor_UnderSingleThreadSynchronizationContext_DoesNotDeadlock()
+        {
+            var tempDb = Path.Combine(Path.GetTempPath(), "blob_reg_sync_ctx_" + Guid.NewGuid().ToString("N") + ".db");
+            try
+            {
+                using var syncCtx = new SingleThreadSynchronizationContext();
+                SQLiteBlobRegistry registry = null;
+
+                syncCtx.Send(_ =>
+                {
+                    registry = new SQLiteBlobRegistry(tempDb);
+                }, null);
+
+                Assert.NotNull(registry);
+            }
+            finally
+            {
+                if (File.Exists(tempDb))
+                {
+                    try { File.Delete(tempDb); } catch { }
+                }
+            }
+        }
+
+        private sealed class SingleThreadSynchronizationContext : SynchronizationContext, IDisposable
+        {
+            private readonly System.Collections.Concurrent.BlockingCollection<(SendOrPostCallback Callback, object State)> _queue = new();
+            private readonly Thread _thread;
+
+            public SingleThreadSynchronizationContext()
+            {
+                _thread = new Thread(Run) { IsBackground = true };
+                _thread.Start();
+            }
+
+            public override void Post(SendOrPostCallback d, object state)
+            {
+                _queue.Add((d, state));
+            }
+
+            public override void Send(SendOrPostCallback d, object state)
+            {
+                var done = new ManualResetEventSlim(false);
+                Exception caught = null;
+                Post(_ =>
+                {
+                    try { d(state); }
+                    catch (Exception ex) { caught = ex; }
+                    finally { done.Set(); }
+                }, null);
+
+                if (!done.Wait(TimeSpan.FromSeconds(5)))
+                {
+                    throw new TimeoutException("SingleThreadSynchronizationContext.Send timed out (deadlock detected).");
+                }
+
+                if (caught != null)
+                {
+                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(caught).Throw();
+                }
+            }
+
+            private void Run()
+            {
+                SetSynchronizationContext(this);
+                foreach (var (cb, st) in _queue.GetConsumingEnumerable())
+                {
+                    cb(st);
+                }
+            }
+
+            public void Dispose()
+            {
+                _queue.CompleteAdding();
+                _thread.Join(TimeSpan.FromSeconds(2));
+            }
+        }
     }
 }

@@ -7,7 +7,7 @@ Only this folder's specifics follow.
 
 <!-- BEGIN ALONG-RULES -->
 See the following engineering guidelines:
-- `[languages/csharp.md](file://.along/rules/languages/csharp.md)`
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
 <!-- END ALONG-RULES -->
 
 SQLite-backed ACID blob registry (`SQLiteBlobRegistry`), distributed locking, TTL expiration, metadata management, and DI extensions (`WithSQLiteRegistry()`, `AddSQLiteBlobRegistry()`).

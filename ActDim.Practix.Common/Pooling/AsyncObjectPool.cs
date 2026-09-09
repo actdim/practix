@@ -128,28 +128,58 @@ namespace ActDim.Practix.Pooling
 
             if (Volatile.Read(ref _disposed) == 0)
             {
-                _semaphore.Release();
+                try
+                {
+                    _semaphore.Release();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Pool was disposed concurrently, semaphore is already disposed
+                }
             }
 
             await DisposeItemAsync(item).ConfigureAwait(false);
         }
 
-        private ValueTask ReturnAsync(T item)
+        private async ValueTask ReturnAsync(T item)
         {
             if (item == null)
             {
-                return ValueTask.CompletedTask;
+                return;
             }
 
             if (Volatile.Read(ref _disposed) != 0)
             {
                 Interlocked.Decrement(ref _createdCount);
-                return DisposeItemAsync(item);
+                await DisposeItemAsync(item).ConfigureAwait(false);
+                return;
             }
 
             _items.Enqueue(item);
-            _semaphore.Release();
-            return ValueTask.CompletedTask;
+
+            if (Volatile.Read(ref _disposed) != 0)
+            {
+                if (_items.TryDequeue(out var queuedItem))
+                {
+                    Interlocked.Decrement(ref _createdCount);
+                    await DisposeItemAsync(queuedItem).ConfigureAwait(false);
+                }
+
+                return;
+            }
+
+            try
+            {
+                _semaphore.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+                if (_items.TryDequeue(out var queuedItem))
+                {
+                    Interlocked.Decrement(ref _createdCount);
+                    await DisposeItemAsync(queuedItem).ConfigureAwait(false);
+                }
+            }
         }
 
         /// <summary>
@@ -181,7 +211,28 @@ namespace ActDim.Practix.Pooling
                 }
             }
 
-            _semaphore.Dispose();
+            try
+            {
+                _semaphore.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+
+            // Drain any items that were enqueued concurrently during disposal
+            while (_items.TryDequeue(out var item))
+            {
+                Interlocked.Decrement(ref _createdCount);
+                try
+                {
+                    await DisposeItemAsync(item).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= new List<Exception>();
+                    exceptions.Add(ex);
+                }
+            }
 
             if (exceptions is { Count: > 0 })
             {

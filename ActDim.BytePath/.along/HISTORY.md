@@ -10,3 +10,4 @@ _<YYYY-MM-DD>: <slug>: <agent>: <summary>: <relative link>_
 2026-08-29: 2026-08-10--extend-create-task: antigravity: Work session log.: [SESSIONS/2026/2026-08-10--extend-create-task.md](SESSIONS/2026/2026-08-10--extend-create-task.md)
 2026-08-11: put-and-multipart: Codex / GPT-5: Renamed whole-blob WriteAsync to PutAsync and replaced raw offset-write planning with multipart upload sessions.: [SESSIONS/2026/2026-08-11--put-and-multipart.md](SESSIONS/2026/2026-08-11--put-and-multipart.md)
 2026-08-29: 2026-08-29--url-safe-key-separator: antigravity: Work session log.: [SESSIONS/2026/2026-08-29--url-safe-key-separator.md](SESSIONS/2026/2026-08-29--url-safe-key-separator.md)
+2026-09-09: fix-lock-leak-on-io-failure: antigravity: Fixed write lock leak in BlobManager.TrackSizeOnDispose on disposal I/O errors: [SESSIONS/2026/2026-09-09--fix-lock-leak-on-io-failure.md](SESSIONS/2026/2026-09-09--fix-lock-leak-on-io-failure.md)

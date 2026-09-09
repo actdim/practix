@@ -1,0 +1,103 @@
+# ActDim.BytePath.FileSystemStore - Full Documentation Context
+
+> Knowledge Base and documentation index for ActDim.BytePath.FileSystemStore.
+
+---
+
+## Document: README.md (Overview)
+
+# ActDim.BytePath.FileSystemStore
+
+File-system blob data store implementation for `ActDim.BytePath`.
+
+## Features
+- **URL-Safe Hierarchy & Hash-Sharded Storage**: Splits multi-segment keys by `HierarchySeparator` (defaults to `':'` per RFC 3986 `pchar`) into directory structures, or applies uniform 2-level `XxHash3` hash-sharding for flat keys.
+- **Lossless Bijective Escaping**: Reversibly escapes invalid filename characters (`%XX`) while preserving file extensions for `ResolveLocationAsync`.
+- **Windows Device Name & Trailing Char Protection**: Escapes DOS device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1`-`COM9`, `LPT1`-`LPT9`) and trailing dots/spaces to prevent silent Win32 file aliasing and collisions.
+- **Direct & Piped Streaming**: Zero-copy stream reads and file writes.
+- **Empty Directory Pruning**: Automatically cleans up empty parent subdirectories on deletion down to the root base directory.
+
+## Installation
+
+```bash
+dotnet add package ActDim.BytePath.FileSystemStore
+```
+
+## Key Format & Storage Layout
+
+### Logical Separator (`:`)
+Keys use `:` (colon) as the standard logical namespace delimiter (e.g. `tenant:reports:2026:august.pdf`). Colon is unreserved in RFC 3986 `pchar`, making keys safe to pass directly inside URL path segments (`/api/blobs/{key}`) without percent-encoding issues or catch-all route collisons.
+
+### Storage Layout Rules
+- **Multi-Segment Keys:** When `HierarchySeparator` is set (default `':'`), a key with multiple segments is placed in matching subdirectories (`_basePath/tenant/reports/2026/august.pdf`).
+- **Single-Segment / Flat Keys:** Keys without the hierarchy separator are uniformly distributed into 2-level directory buckets derived from the 64-bit non-cryptographic `XxHash3` of the key (`_basePath/hash[0..2]/hash[2..4]/filename`).
+- **Pure Hash-Sharding:** Setting `options.HierarchySeparator = null` disables directory splitting and routes all keys through hash-sharded buckets.
+
+### Escaping Mechanics
+1. **Reversible `%XX` Encoding:** Invalid filesystem characters (`Path.GetInvalidFileNameChars()`) and `%` itself are hex-encoded (`%XX`), guaranteeing zero collisions.
+2. **File Extension Preservation:** Standard filename characters and extensions (`.png`, `.pdf`) remain untouched for direct path resolution via `ResolveLocationAsync`.
+3. **DOS/Windows Device Names:** Reserved names (`CON`, `PRN`, `AUX`, `NUL`, `COM1`-`COM9`, `LPT1`-`LPT9` with or without extensions) have their first character escaped (e.g. `con.txt` -> `%63on.txt`) so Win32 never mistakes a file for a system device pipe.
+4. **Trailing Dots & Spaces:** Win32 silently trims trailing `.` and ` `; escaping them (`%2E`, `%20`) ensures `name.` and `name` never alias to the same file.
+
+## Quick Start
+
+```csharp
+services.AddBlobManager(builder =>
+{
+    builder.WithFileSystemDataStore(options =>
+    {
+        options.BaseDirectory = "./my-blobs";
+        options.HierarchySeparator = ':'; // default, or null for pure hash-sharding
+    });
+});
+```
+
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.
+
+---
+
+## Document: AGENTS.md (Agent Conventions & Protocol)
+
+<!-- BEGIN ALONG-PROTOCOL ref=../AGENTS.md (managed by along-init - do not edit by hand) -->
+This folder belongs to a repository that uses the ALONG structure. The full working
+guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
+read it there. This folder keeps its OWN `.along/` state; use the nearest one.
+Only this folder's specifics follow.
+<!-- END ALONG-PROTOCOL -->## Project specifics
+
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
+<!-- END ALONG-RULES -->
+
+Sharded physical file system data store (`FileSystemBlobDataStore`), key prefix routing, SHA-256 integrity hashing, stream pumping, and DI extensions (`WithFileSystemDataStore()`, `AddFileSystemBlobDataStore()`).
+
+---
+
+## Document: docs/topic--architecture.md (System Architecture & Flow)
+
+# System Architecture & Flow
+
+High-level architectural components, module boundaries, and execution models.
+
+Physical file system blob data store (FileSystemBlobDataStore). KeyPrefix routing, directory sharding, stream pumping, and DI extension methods (WithFileSystemDataStore(), AddFileSystemBlobDataStore()). DeleteAsync gracefully handles missing files and missing target directories (FileNotFoundException, DirectoryNotFoundException), returning alse per IBlobDataStore contract. Empty directory pruning guarded against concurrency race conditions.
+
+---
+
+## Document: docs/topic--domain-model.md (Domain Model & Entities)
+
+# Domain Model & Entities
+
+Core domain terminology, data models, and schema relationships.
+
+---
+
+## Document: docs/topic--setup-and-workflow.md (Setup & Developer Workflow)
+
+# Setup & Developer Workflow
+
+Build instructions, test suites, local development, and skill deployment guidelines.

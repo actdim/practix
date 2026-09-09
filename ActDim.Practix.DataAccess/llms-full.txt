@@ -1,0 +1,70 @@
+# ActDim.Practix.DataAccess - Full Documentation Context
+
+> Knowledge Base and documentation index for ActDim.Practix.DataAccess.
+
+---
+
+## Document: README.md (Overview)
+
+https://github.com/AppMetrics/AppMetrics
+https://github.com/alastairtree/LazyCache
+https://serdedotnet.github.io/overview.html
+https://github.com/DapperLib/Dapper/blob/main/Readme.md
+https://www.savantbuffer.com/DbConnector/index.html
+https://medium.com/@mohammed0hamdan/the-easiest-net-orm-framework-34b3aac68285
+https://mikarsoft.com/Projects/BlackHoleORM#blackhole
+https://twentyfourminutes.github.io/Venflow/guides/operations/query.html
+https://github.com/mikependon/RepoDb
+https://github.com/rivantsov/vita/wiki/DevGuide
+https://github.com/rivantsov/ngraphql
+
+---
+
+## Document: AGENTS.md (Agent Conventions & Protocol)
+
+<!-- BEGIN ALONG-PROTOCOL ref=../AGENTS.md (managed by along-init - do not edit by hand) -->
+This folder belongs to a repository that uses the ALONG structure. The full working
+guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
+read it there. This folder keeps its OWN `.along/` state; use the nearest one.
+Only this folder's specifics follow.
+<!-- END ALONG-PROTOCOL -->## Project specifics
+
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
+<!-- END ALONG-RULES -->
+
+Data access layer implementations and repository patterns for `ActDim.Practix`.
+
+---
+
+## Document: docs/topic--architecture.md (System Architecture & Flow)
+
+# System Architecture & Flow
+
+Core technical specification and documentation for ActDim.Practix.DataAccess.
+
+## Overview
+Document system components and engineering guidelines here.
+
+---
+
+## Document: docs/topic--domain-model.md (Domain Model & Entity Ecosystem)
+
+# Domain Model & Entity Ecosystem
+
+Core technical specification and documentation for ActDim.Practix.DataAccess.
+
+## Overview
+Document system components and engineering guidelines here.
+
+---
+
+## Document: docs/topic--setup-and-workflow.md (Setup, Installation & Agent Workflows)
+
+# Setup, Installation & Agent Workflows
+
+Core technical specification and documentation for ActDim.Practix.DataAccess.
+
+## Overview
+Document system components and engineering guidelines here.
