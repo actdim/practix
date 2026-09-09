@@ -17,9 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ActDim.Observability\ActDim.Observability.csproj" />
-    <ProjectReference Include="..\..\ActDim.Practix.Common\ActDim.Practix.Common.csproj" />
+    <ProjectReference Include="..\..\ActDim.Practix.DataAccess\ActDim.Practix.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>
-

@@ -334,8 +334,8 @@ namespace ActDim.Practix.Common.Tests.Pooling
             // Wait until factory has started
             await factoryStartedTcs.Task;
 
-            // Dispose pool while factory is paused
-            var disposeTask = Task.Run(async () => await pool.DisposeAsync(), ct);
+            // Dispose pool while factory is paused (synchronous prefix immediately sets _disposed = 1)
+            var disposeTask = pool.DisposeAsync().AsTask();
 
             // Let factory finish creating the object
             factoryContinueTcs.TrySetResult(true);
