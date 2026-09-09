@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.18"
+protocol_version: "2.2.26"
 slug: concurrent-collections
 title: Specialized Concurrent Collections
 type: topic
 created: 2026-09-03
-updated: 2026-09-03
+updated: 2026-09-08
 tags: [collections, concurrent, weak-table, composite-key, lock-free]
 ---
 

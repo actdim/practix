@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.18"
+protocol_version: "2.2.26"
 slug: INDEX
 title: Knowledge Base Topic Index
 type: index
-created: 2026-09-03
-updated: 2026-09-03
+created: 2026-09-08
+updated: 2026-09-08
 tags: [index, kb, topics, map]
 ---
 
@@ -22,11 +22,8 @@ flowchart TD
     INDEX --> T_ARCHITECTURE
     T_DOMAIN_MODEL["Domain Model & Entities"]
     INDEX --> T_DOMAIN_MODEL
-    T_RAZOR_TEMPLATE_RENDERING["Dynamic Razor Template Parsing & Rendering"]
-    INDEX --> T_RAZOR_TEMPLATE_RENDERING
     T_SETUP_AND_WORKFLOW["Setup & Developer Workflow"]
     INDEX --> T_SETUP_AND_WORKFLOW
-    T_ARCHITECTURE -.->|references| T_RAZOR_TEMPLATE_RENDERING
 ```
 
 ---
@@ -35,7 +32,6 @@ flowchart TD
 
 - **[System Architecture & Flow](./topic--architecture.md)** (architecture) `architecture`, `razor`, `template-engine`, `transpilation`, `roslyn`
 - **[Domain Model & Entities](./topic--domain-model.md)** (domain-model) `domain-model`, `razor`, `parsing`, `templates`
-- **[Dynamic Razor Template Parsing & Rendering](./topic--razor-template-rendering.md)** (topic) `razor`, `templates`, `html`, `foreach`, `conditionals`, `emitron`, `rendering`
 - **[Setup & Developer Workflow](./topic--setup-and-workflow.md)** (setup-workflow) `setup`, `workflow`, `testing`, `nuget`, `razor`
 
 ---

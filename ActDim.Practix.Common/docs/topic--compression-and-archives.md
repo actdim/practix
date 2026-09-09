@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.18"
+protocol_version: "2.2.26"
 slug: compression-and-archives
 title: Stream & Payload Compression and Archiving
 type: topic
 created: 2026-09-03
-updated: 2026-09-03
+updated: 2026-09-08
 tags: [compression, archiving, gzip, brotli, tar, zip, zero-allocation, buffer-pool]
 ---
 

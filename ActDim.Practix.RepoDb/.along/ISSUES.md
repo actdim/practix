@@ -1,6 +1,10 @@
-# Issues   (glyphs: [ ] open  [~] in-progress  [!] blocked  [x] done)
+# Active Issues
 
 ## Active
+<!-- No active issues -->
+
+## Backlog
+<!-- Planned or deferred issues -->
 
 ## Done (recent)
-
+<!-- No completed issues -->

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ActDim.Emitron.Tests
@@ -398,6 +399,229 @@ namespace ActDim.Emitron.Tests
 
 			var result = Emitron.Evaluate<bool>(code, new { Json = """{"active":true}""" }, options);
 			Assert.True(result);
+		}
+
+		[Fact]
+		public void Evaluate_WithUsingStatement_DoesNotTreatUsingAsDirective()
+		{
+			const string code = """
+				using (var ms = new System.IO.MemoryStream())
+				{
+					return (int)ctx.Value;
+				}
+				""";
+
+			var result = Emitron.Evaluate<int>(
+				code,
+				new { Value = 42 },
+				inputParameterName: "ctx");
+
+			Assert.Equal(42, result);
+		}
+
+		[Fact]
+		public void Evaluate_WithUsingStatementNoBraces_DoesNotTreatUsingAsDirective()
+		{
+			const string code = """
+				using (var ms = new System.IO.MemoryStream())
+					return (int)ctx.Value * 2;
+				""";
+
+			var result = Emitron.Evaluate<int>(
+				code,
+				new { Value = 21 },
+				inputParameterName: "ctx");
+
+			Assert.Equal(42, result);
+		}
+
+		[Fact]
+		public void Evaluate_WithUsingStatementWithoutSpace_EvaluatesCorrectly()
+		{
+			const string code = """
+				using(var ms = new System.IO.MemoryStream())
+				{
+					return (int)ctx.Value + 10;
+				}
+				""";
+
+			var result = Emitron.Evaluate<int>(
+				code,
+				new { Value = 32 },
+				inputParameterName: "ctx");
+
+			Assert.Equal(42, result);
+		}
+
+		[Fact]
+		public void Evaluate_WithUsingDeclarationInBlock_AllowsAccessToContextParameter()
+		{
+			const string code = """
+				{
+					using var ms = new System.IO.MemoryStream((int)ctx.Capacity);
+					return ms.Capacity;
+				}
+				""";
+
+			var result = Emitron.Evaluate<int>(
+				code,
+				new { Capacity = 128 },
+				inputParameterName: "ctx");
+
+			Assert.Equal(128, result);
+		}
+
+		[Fact]
+		public void Evaluate_WithUsingDirectivesAndUsingStatement_InjectsAfterDirectives()
+		{
+			const string code = """
+				#r "System.Text.Json"
+				using System.IO;
+				using System.Text.Json;
+
+				using (var ms = new MemoryStream())
+				{
+					var doc = JsonDocument.Parse((string)ctx.Json);
+					return doc.RootElement.GetProperty("val").GetInt32();
+				}
+				""";
+
+			var result = Emitron.Evaluate<int>(
+				code,
+				new { Json = """{"val":99}""" },
+				inputParameterName: "ctx");
+
+			Assert.Equal(99, result);
+		}
+
+		[Fact]
+		public void Evaluate_WithParameterInsideUsingExpression_EvaluatesCorrectly()
+		{
+			const string code = """
+				using (var ms = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes((string)ctx.Text)))
+				{
+					return ms.Length;
+				}
+				""";
+
+			var result = Emitron.Evaluate<long>(
+				code,
+				new { Text = "hello" },
+				inputParameterName: "ctx");
+
+			Assert.Equal(5L, result);
+		}
+
+		[Fact]
+		public async Task EvaluateAsync_EvaluatesExpression_Asynchronously()
+		{
+			var result = await Emitron.EvaluateAsync<int>(
+				"(int)@params.A + (int)@params.B",
+				new { A = 10, B = 20 });
+
+			Assert.Equal(30, result);
+		}
+
+		[Fact]
+		public async Task EvaluateAsync_WithTopLevelAwait_EvaluatesSuccessfully()
+		{
+			const string code = """
+				await System.Threading.Tasks.Task.Delay(10);
+				return (int)@params.Value * 3;
+				""";
+
+			var result = await Emitron.EvaluateAsync<int>(code, new { Value = 14 });
+			Assert.Equal(42, result);
+		}
+
+		[Fact]
+		public async Task CompileAsync_ReturnsWorkingAsyncDelegate()
+		{
+			var func = Emitron.CompileAsync<string>("((string)@params.Greeting).ToUpper()");
+			var result = await func(new { Greeting = "hello world" });
+			Assert.Equal("HELLO WORLD", result);
+		}
+
+		[Fact]
+		public void Evaluate_UnderSingleThreadSynchronizationContext_DoesNotDeadlock()
+		{
+			using var syncCtx = new SingleThreadSynchronizationContext();
+			int result = 0;
+
+			syncCtx.Send(_ =>
+			{
+				result = Emitron.Evaluate<int>("(int)@params.X * 2", new { X = 21 });
+			}, null);
+
+			Assert.Equal(42, result);
+		}
+
+		[Fact]
+		public void EvaluateAsync_UnderSingleThreadSynchronizationContext_CompletesSuccessfully()
+		{
+			using var syncCtx = new SingleThreadSynchronizationContext();
+			int result = 0;
+
+			syncCtx.Send(_ =>
+			{
+				result = Emitron.EvaluateAsync<int>("(int)@params.X + 5", new { X = 37 }).GetAwaiter().GetResult();
+			}, null);
+
+			Assert.Equal(42, result);
+		}
+
+		private sealed class SingleThreadSynchronizationContext : System.Threading.SynchronizationContext, IDisposable
+		{
+			private readonly System.Collections.Concurrent.BlockingCollection<(System.Threading.SendOrPostCallback Callback, object State)> _queue = new();
+			private readonly System.Threading.Thread _thread;
+
+			public SingleThreadSynchronizationContext()
+			{
+				_thread = new System.Threading.Thread(Run) { IsBackground = true };
+				_thread.Start();
+			}
+
+			public override void Post(System.Threading.SendOrPostCallback d, object state)
+			{
+				_queue.Add((d, state));
+			}
+
+			public override void Send(System.Threading.SendOrPostCallback d, object state)
+			{
+				var done = new System.Threading.ManualResetEventSlim(false);
+				Exception caught = null;
+				Post(_ =>
+				{
+					try { d(state); }
+					catch (Exception ex) { caught = ex; }
+					finally { done.Set(); }
+				}, null);
+
+				if (!done.Wait(TimeSpan.FromSeconds(5)))
+				{
+					throw new TimeoutException("SingleThreadSynchronizationContext.Send timed out (deadlock detected).");
+				}
+
+				if (caught != null)
+				{
+					System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(caught).Throw();
+				}
+			}
+
+			private void Run()
+			{
+				SetSynchronizationContext(this);
+				foreach (var (cb, st) in _queue.GetConsumingEnumerable())
+				{
+					cb(st);
+				}
+			}
+
+			public void Dispose()
+			{
+				_queue.CompleteAdding();
+				_thread.Join(TimeSpan.FromSeconds(2));
+			}
 		}
 	}
 }

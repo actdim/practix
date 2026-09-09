@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.18"
+protocol_version: "2.2.26"
 slug: setup-and-workflow
 title: Setup, Installation & Developer Workflows
 type: setup-workflow
 created: 2026-08-31
-updated: 2026-09-03
+updated: 2026-09-08
 tags: [setup, workflow, testing, dependency-injection, installation]
 ---
 

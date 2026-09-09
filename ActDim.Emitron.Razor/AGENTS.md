@@ -7,7 +7,7 @@ Only this folder's specifics follow.
 
 <!-- BEGIN ALONG-RULES -->
 See the following engineering guidelines:
-- `[languages/csharp.md](file://.along/rules/languages/csharp.md)`
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
 <!-- END ALONG-RULES -->
 
 Roslyn-powered Razor syntax template compiler (`EmitronRazor`, `RazorParser`), supporting multi-line HTML/text templates, `@if / @else` conditionals, `@foreach / @for` loops, code blocks `@{ ... }`, comments `@* ... *@`, `@Model` property binding, and fluent string extensions (`template.FormatRazor(model)`).

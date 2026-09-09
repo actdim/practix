@@ -11,6 +11,8 @@ issues_completed: [docs--comprehensive-knowledge-base]
 decisions: []
 risks_logged: []
 spikes_conducted: []
+commit: unknown
+milestone: v2.0.0-along-transition
 ---
 
 # Session: Comprehensive Knowledge Base Expansion for ActDim.Practix.Common

@@ -1,0 +1,10 @@
+# AppRegistry
+
+> Knowledge Base and documentation index for AppRegistry.
+
+## Documentation Links
+- [AGENTS.md](AGENTS.md): Active ALONG-PROTOCOL conventions and instructions.
+- [docs/INDEX.md](docs/INDEX.md): Central Knowledge Base topic catalog.
+- [docs/topic--architecture.md](docs/topic--architecture.md): System Architecture & Flow.
+- [docs/topic--domain-model.md](docs/topic--domain-model.md): Domain Model & Entities.
+- [docs/topic--setup-and-workflow.md](docs/topic--setup-and-workflow.md): Setup & Developer Workflow.

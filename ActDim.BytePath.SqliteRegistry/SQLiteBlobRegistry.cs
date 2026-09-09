@@ -68,7 +68,7 @@ namespace ActDim.BytePath
             _defaultTimeout = defaultTimeout <= TimeSpan.Zero ? TimeSpan.FromSeconds(30) : defaultTimeout;
 
             RepoDbBootstrapper.InitializeSqLite();
-            EnsureSchemaAsync().GetAwaiter().GetResult();
+            EnsureSchema();
         }
 
         private static string NormalizeConnectionString(string connectionString)
@@ -674,50 +674,40 @@ namespace ActDim.BytePath
             }
         }
 
-        private async Task EnsureSchemaAsync()
+        private void EnsureSchema()
         {
-            await _dbSemaphore.WaitAsync();
+            _dbSemaphore.Wait();
             try
             {
-                await using var conn = await CreateOpenConnectionAsync();
-                await conn.ExecuteNonQueryAsync("BEGIN IMMEDIATE;");
-                try
-                {
-                    await conn.ExecuteNonQueryAsync(
-                        "CREATE TABLE IF NOT EXISTS blob_records (" +
-                        "    blob_key TEXT PRIMARY KEY, " +
-                        "    metadata TEXT, " +
-                        "    content_type TEXT, " +
-                        "    size INTEGER, " +
-                        "    hash TEXT, " +
-                        "    created_at INTEGER NOT NULL, " +
-                        "    updated_at INTEGER NOT NULL, " +
-                        "    accessed_at INTEGER NOT NULL, " +
-                        "    sliding_expiration_seconds INTEGER, " +
-                        "    expires_at INTEGER" +
-                        ");"
-                    );
-
-                    await conn.ExecuteNonQueryAsync(
-                        "CREATE TABLE IF NOT EXISTS blob_locks (" +
-                        "    blob_key TEXT NOT NULL, " +
-                        "    is_write_lock INTEGER NOT NULL DEFAULT 0, " +
-                        "    locked_by TEXT NOT NULL, " +
-                        "    locked_at INTEGER NOT NULL, " +
-                        "    expires_at INTEGER NOT NULL, " +
-                        "    FOREIGN KEY(blob_key) REFERENCES blob_records(blob_key) ON DELETE CASCADE" +
-                        ");"
-                    );
-
-                    await conn.ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_blob_records_expires_at ON blob_records(expires_at);");
-                    await conn.ExecuteNonQueryAsync("CREATE INDEX IF NOT EXISTS idx_blob_locks_blob_key ON blob_locks(blob_key);");
-                    await conn.ExecuteNonQueryAsync("COMMIT;");
-                }
-                catch
-                {
-                    await conn.ExecuteNonQueryAsync("ROLLBACK;");
-                    throw;
-                }
+                using var conn = new SqliteConnection(_connectionString);
+                conn.Open();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText =
+                    "BEGIN IMMEDIATE;" +
+                    "CREATE TABLE IF NOT EXISTS blob_records (" +
+                    "    blob_key TEXT PRIMARY KEY, " +
+                    "    metadata TEXT, " +
+                    "    content_type TEXT, " +
+                    "    size INTEGER, " +
+                    "    hash TEXT, " +
+                    "    created_at INTEGER NOT NULL, " +
+                    "    updated_at INTEGER NOT NULL, " +
+                    "    accessed_at INTEGER NOT NULL, " +
+                    "    sliding_expiration_seconds INTEGER, " +
+                    "    expires_at INTEGER" +
+                    ");" +
+                    "CREATE TABLE IF NOT EXISTS blob_locks (" +
+                    "    blob_key TEXT NOT NULL, " +
+                    "    is_write_lock INTEGER NOT NULL DEFAULT 0, " +
+                    "    locked_by TEXT NOT NULL, " +
+                    "    locked_at INTEGER NOT NULL, " +
+                    "    expires_at INTEGER NOT NULL, " +
+                    "    FOREIGN KEY(blob_key) REFERENCES blob_records(blob_key) ON DELETE CASCADE" +
+                    ");" +
+                    "CREATE INDEX IF NOT EXISTS idx_blob_records_expires_at ON blob_records(expires_at);" +
+                    "CREATE INDEX IF NOT EXISTS idx_blob_locks_blob_key ON blob_locks(blob_key);" +
+                    "COMMIT;";
+                cmd.ExecuteNonQuery();
             }
             finally
             {

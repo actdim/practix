@@ -1,15 +1,23 @@
-# Issues   (glyphs: [ ] open  [~] in-progress  [!] blocked  [x] done)
+# Active Issues
 
 ## Active
+- [ ] `(debt)` [repodb-sqlite-registry](ISSUES/debt--repodb-sqlite-registry.md)
+- [ ] `(feat)` [add-try-create-with-conflict-behavior](ISSUES/feat--add-try-create-with-conflict-behavior.md)
+- [ ] `(feat)` [async-enumerable-blob-find](ISSUES/feat--async-enumerable-blob-find.md)
+- [ ] `(feat)` [move-blob-key](ISSUES/feat--move-blob-key.md)
+- [ ] `(task)` [batch-content-delete](ISSUES/task--batch-content-delete.md)
+- [ ] `(task)` [content-hash](ISSUES/task--content-hash.md)
+- [ ] `(task)` [integrity-audit](ISSUES/task--integrity-audit.md)
+- [ ] `(task)` [multipart-upload-session](ISSUES/task--multipart-upload-session.md)
+- [ ] `(task)` [range-read](ISSUES/task--range-read.md)
+- [ ] `(task)` [read-lock-persists-mutations](ISSUES/task--read-lock-persists-mutations.md)
 
-- [ ] multipart-upload-session: persistent staged upload sessions: `BeginUploadAsync`, out-of-order `UploadPartAsync`, `CompleteUploadAsync`, and `AbortUploadAsync`; publish only complete content
-- [~] add-try-create-with-conflict-behavior: `TryCreateAsync` (conflict handling) + `BlobManagerExtensions.CreateAsync` (one-shot creation from byte[]/Stream/producer delegate); see `.agents/ISSUES/add-try-create-with-conflict-behavior.md`
-- [ ] move-blob-key: blob move & key rename support (`MoveAsync`) with physical content relocation, deadlock prevention, multi-datastore routing, and overwrite policies; see `.agents/ISSUES/feat--move-blob-key.md`
-- [ ] repodb-sqlite-registry: refactor `SQLiteBlobRegistry` to use RepoDb (Microsoft.Data.Sqlite) instead of `sqlite-net-pcl`
 ## Backlog
+<!-- Planned or deferred issues -->
 
-- [x] url-safe-key-separator: URL-safe key separator (:) per RFC 3986 pchar, configurable HierarchySeparator, and Windows reserved names escaping (2026-08-28)
-- [x] multi-backend: multiple IBlobDataStore instances with KeyPrefix routing and DI support (2026-08-17)
-- [x] di-registration: Microsoft DI extension methods (AddBlobManager) implemented and documented (2026-08-17)
-- [x] delete-blob-content: all deletion paths now remove the stored bytes too (2026-08-05)
-
+## Done (recent)
+- [x] `(bug)` [fix-lock-leak-on-io-failure](ISSUES/done/bug--fix-lock-leak-on-io-failure.md)
+- [x] `(task)` [url-safe-key-separator](ISSUES/done/task--url-safe-key-separator.md)
+- [x] `(task)` [delete-blob-content](ISSUES/done/task--delete-blob-content.md)
+- [x] `(task)` [multi-backend](ISSUES/done/task--multi-backend.md)
+- [x] `(task)` [di-registration](ISSUES/done/task--di-registration.md)

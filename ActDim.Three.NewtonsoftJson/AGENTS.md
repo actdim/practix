@@ -7,7 +7,7 @@ Only this folder's specifics follow.
 
 <!-- BEGIN ALONG-RULES -->
 See the following engineering guidelines:
-- `[languages/csharp.md](file://.along/rules/languages/csharp.md)`
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
 <!-- END ALONG-RULES -->
 
 Dedicated Newtonsoft.Json compatibility adapter for 3D engine serialization (`ThreeNewtonsoftSerializer`, `SceneDocumentConverter`, `BufferAttributeConverter`, `ElementConverter`, `CamelCaseCustomResolver`).

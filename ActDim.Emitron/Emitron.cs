@@ -2,8 +2,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Ardalis.GuardClauses;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 
 namespace ActDim.Emitron
 {
@@ -180,6 +183,44 @@ namespace ActDim.Emitron
         }
 
         /// <summary>
+        /// Compiles the given C# <paramref name="code"/> into a reusable asynchronous <c>Func&lt;object, Task&lt;T&gt;&gt;</c> delegate.
+        /// </summary>
+        /// <typeparam name="T">The expected return type of the code.</typeparam>
+        /// <param name="code">A C# expression or statement block.</param>
+        /// <param name="inputParameterName">
+        /// The variable name bound to caller inputs inside the script (defaults to <c>@params</c>).
+        /// </param>
+        /// <param name="options">
+        /// Optional compilation options (assemblies, usings, search paths). If <see langword="null"/>, <see cref="DefaultOptions"/> is used.
+        /// </param>
+        /// <returns>A compiled, cached delegate accepting an input object and returning <see cref="Task{T}"/>.</returns>
+        public static Func<object, Task<T>> CompileAsync<T>(
+            string code,
+            string inputParameterName = DefaultInputParameterName,
+            EmitronOptions? options = null)
+        {
+            Guard.Against.NullOrWhiteSpace(code, nameof(code));
+            var normParam = NormalizeInputParameterName(inputParameterName);
+            var effectiveOptions = options ?? DefaultOptions;
+            var key = (code, normParam, typeof(Task<T>), effectiveOptions);
+            var cached = _cache.GetOrAdd(key, k => CompileAsyncInternal<T>(k.Code, k.InputParameterName, k.Options));
+            return (Func<object, Task<T>>)cached;
+        }
+
+        /// <summary>
+        /// Compiles the given C# <paramref name="code"/> into a reusable asynchronous <c>Func&lt;object, Task&lt;T&gt;&gt;</c> delegate
+        /// using the specified <paramref name="options"/>.
+        /// </summary>
+        /// <typeparam name="T">The expected return type of the code.</typeparam>
+        /// <param name="code">A C# expression or statement block.</param>
+        /// <param name="options">Compilation options (assemblies, usings, search paths).</param>
+        /// <returns>A compiled, cached delegate accepting an input object and returning <see cref="Task{T}"/>.</returns>
+        public static Func<object, Task<T>> CompileAsync<T>(string code, EmitronOptions options)
+        {
+            return CompileAsync<T>(code, DefaultInputParameterName, options);
+        }
+
+        /// <summary>
         /// Convenience overload: compiles <paramref name="code"/> and immediately evaluates it
         /// with the given <paramref name="input"/> object.
         /// </summary>
@@ -264,6 +305,44 @@ namespace ActDim.Emitron
         }
 
         /// <summary>
+        /// Convenience overload: compiles <paramref name="code"/> and asynchronously evaluates it
+        /// with the given <paramref name="input"/> object.
+        /// </summary>
+        /// <typeparam name="T">The expected return type.</typeparam>
+        /// <param name="code">A C# expression or statement block.</param>
+        /// <param name="input">
+        /// An object whose public properties are accessible via <paramref name="inputParameterName"/> inside the code.
+        /// </param>
+        /// <param name="inputParameterName">The variable name bound to caller inputs (defaults to <c>@params</c>).</param>
+        /// <param name="options">
+        /// Optional compilation options (assemblies, usings, search paths). If <see langword="null"/>, <see cref="DefaultOptions"/> is used.
+        /// </param>
+        /// <returns>A task representing the asynchronous evaluation result of type <typeparamref name="T"/>.</returns>
+        public static Task<T> EvaluateAsync<T>(
+            string code,
+            object input,
+            string inputParameterName = DefaultInputParameterName,
+            EmitronOptions? options = null)
+        {
+            Guard.Against.Null(input, nameof(input));
+            return CompileAsync<T>(code, inputParameterName, options)(input);
+        }
+
+        /// <summary>
+        /// Convenience overload: compiles <paramref name="code"/> with the specified <paramref name="options"/>
+        /// and asynchronously evaluates it with the given <paramref name="input"/> object.
+        /// </summary>
+        /// <typeparam name="T">The expected return type.</typeparam>
+        /// <param name="code">A C# expression or statement block.</param>
+        /// <param name="input">The input parameter bag containing properties.</param>
+        /// <param name="options">Compilation options (assemblies, usings, search paths).</param>
+        /// <returns>A task representing the asynchronous evaluation result of type <typeparamref name="T"/>.</returns>
+        public static Task<T> EvaluateAsync<T>(string code, object input, EmitronOptions options)
+        {
+            return EvaluateAsync<T>(code, input, DefaultInputParameterName, options);
+        }
+
+        /// <summary>
         /// Compiles a C# string interpolation template into a reusable formatter delegate.
         /// </summary>
         /// <param name="template">
@@ -337,7 +416,7 @@ namespace ActDim.Emitron
             return string.IsNullOrWhiteSpace(inputParameterName) ? DefaultInputParameterName : inputParameterName;
         }
 
-        private static Func<object, T> CompileInternal<T>(string code, string inputParameterVar, EmitronOptions? options)
+        private static ScriptRunner<T> CreateRunner<T>(string code, string inputParameterVar, EmitronOptions? options)
         {
             var scriptSource = ScriptInternals.PrepareScriptSource(code, inputParameterVar);
             var scriptOptions = ScriptInternals.GetDefaultScriptOptions(options);
@@ -348,11 +427,33 @@ namespace ActDim.Emitron
                 globalsType: typeof(ScriptGlobals));
 
             ScriptInternals.ThrowOnErrors(code, script.Compile());
+            return script.CreateDelegate();
+        }
+
+        private static Func<object, T> CompileInternal<T>(string code, string inputParameterVar, EmitronOptions? options)
+        {
+            var runner = CreateRunner<T>(code, inputParameterVar, options);
 
             return (inputObj) =>
             {
                 var globals = ScriptInternals.BuildGlobals(inputObj);
-                return script.RunAsync(globals).GetAwaiter().GetResult().ReturnValue;
+                if (SynchronizationContext.Current == null)
+                {
+                    return runner(globals, CancellationToken.None).GetAwaiter().GetResult();
+                }
+
+                return Task.Run(() => runner(globals, CancellationToken.None)).GetAwaiter().GetResult();
+            };
+        }
+
+        private static Func<object, Task<T>> CompileAsyncInternal<T>(string code, string inputParameterVar, EmitronOptions? options)
+        {
+            var runner = CreateRunner<T>(code, inputParameterVar, options);
+
+            return async (inputObj) =>
+            {
+                var globals = ScriptInternals.BuildGlobals(inputObj);
+                return await runner(globals, CancellationToken.None).ConfigureAwait(false);
             };
         }
     }

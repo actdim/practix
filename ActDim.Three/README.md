@@ -115,6 +115,14 @@ SceneDocument doc = ThreeSerializer.FromJson<SceneDocument>(jsonString);
 dotnet test Tests/Three.Tests/ActDim.Three.Tests.csproj
 ```
 
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.
+
+---
+
 ## License
 
 This project is licensed under the [MIT License](../LICENSE).

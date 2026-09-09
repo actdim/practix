@@ -1,0 +1,170 @@
+# ActDim.Emitron.Razor - Full Documentation Context
+
+> Knowledge Base and documentation index for ActDim.Emitron.Razor.
+
+---
+
+## Document: README.md (Overview)
+
+# ActDim.Emitron.Razor
+
+`ActDim.Emitron.Razor` is a Roslyn-powered Razor template compilation and execution engine for .NET built on top of `ActDim.Emitron`.
+
+## Features
+
+- **Full Razor Template Support:** Render complex dynamic templates containing HTML, Plain Text, `@if / @else` conditionals, `@foreach / @for` loops, code blocks `@{ ... }`, and comments `@* ... *@`.
+- **Model Property Access:** Reference properties seamlessly via `@Model.PropertyName` or `@params.PropertyName`.
+- **Powered by Roslyn & Emitron:** Templates are transpiled into optimized C# scripts and compiled directly into memory using Roslyn Scripting with thread-safe delegate caching.
+- **Fluent String Extensions:** Render templates directly using `template.FormatRazor(model)` or pre-compile using `template.CompileRazor()`.
+
+## Quick Start Example
+
+```csharp
+using ActDim.Emitron.Razor;
+using ActDim.Emitron.Razor.Extensions;
+
+string razorTemplate = """
+<h1>Welcome @Model.Name!</h1>
+@if (Model.IsVip) {
+    <p>Status: <strong>VIP Customer</strong></p>
+} else {
+    <p>Status: Regular Member</p>
+}
+
+<ul>
+@foreach (var item in Model.Items) {
+    <li>@item</li>
+}
+</ul>
+""";
+
+var model = new
+{
+    Name = "Alice",
+    IsVip = true,
+    Items = new[] { "Laptop", "Mouse", "Keyboard" }
+};
+
+// Compile and format in one step (cached on subsequent calls)
+string output = razorTemplate.FormatRazor(model);
+
+Console.WriteLine(output);
+```
+
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.
+
+---
+
+## License
+
+MIT License.
+
+---
+
+## Document: AGENTS.md (Agent Conventions & Protocol)
+
+<!-- BEGIN ALONG-PROTOCOL ref=../AGENTS.md (managed by along-init - do not edit by hand) -->
+This folder belongs to a repository that uses the ALONG structure. The full working
+guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
+read it there. This folder keeps its OWN `.along/` state; use the nearest one.
+Only this folder's specifics follow.
+<!-- END ALONG-PROTOCOL -->## Project specifics
+
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
+<!-- END ALONG-RULES -->
+
+Roslyn-powered Razor syntax template compiler (`EmitronRazor`, `RazorParser`), supporting multi-line HTML/text templates, `@if / @else` conditionals, `@foreach / @for` loops, code blocks `@{ ... }`, comments `@* ... *@`, `@Model` property binding, and fluent string extensions (`template.FormatRazor(model)`).
+
+---
+
+## Document: docs/topic--architecture.md (System Architecture & Flow)
+
+# System Architecture & Flow
+
+`ActDim.Emitron.Razor` provides dynamic Razor template parsing and execution by transpiling Razor syntax into C# statement scripts evaluated via `ActDim.Emitron`.
+
+---
+
+## Architectural Pipeline
+
+```
+[Dynamic Razor Template]
+          |
+          +---> RazorParser (Syntax Tokenizer & Transpiler)
+                    |
+          +---> Emitted C# Script Body
+                    |
+          +---> Emitron Engine (Roslyn In-Memory Assembly Compilation)
+                    |
+          +---> Thread-Safe Cached Template Delegate
+                    |
+          +---> Fast HTML/Text String Generation
+```
+
+---
+
+## Subsystems
+
+1. **Razor Template Rendering ([`topic--razor-template-rendering.md`](./topic--razor-template-rendering.md))**:
+   - Transpiles `@if`, `@foreach`, `@Model`, and code blocks `@{ ... }` into C# scripts.
+   - Provides fluent string extensions (`FormatRazor`, `CompileRazor`).
+
+---
+
+## Document: docs/topic--domain-model.md (Domain Model & Entities)
+
+# Domain Model & Entities
+
+Core abstractions, parser components, and execution models in `ActDim.Emitron.Razor`.
+
+---
+
+## Domain Glossary
+
+| Term | Definition | Primary Type |
+| :--- | :--- | :--- |
+| **Emitron Razor Facade** | High-level API for formatting and compiling dynamic Razor templates. | `EmitronRazor` |
+| **Razor Parser** | AST tokenizer converting Razor directives into C# string-builder statements. | `RazorParser` |
+| **String Extensions** | Fluent helper methods (`FormatRazor`, `CompileRazor`) extending `string`. | `StringExtensions` |
+
+---
+
+## Error Handling Contracts
+
+1. **Unbalanced Braces in Razor Blocks**: Throws `FormatException` or `CompilationErrorException` during template parsing/compilation.
+2. **Runtime Model Null Safety**: Accessing properties on a null model generates standard C# null-reference behavior inside the compiled script.
+
+---
+
+## Document: docs/topic--setup-and-workflow.md (Setup & Developer Workflow)
+
+# Setup & Developer Workflow
+
+Package installation and automated testing for `ActDim.Emitron.Razor`.
+
+---
+
+## Installation
+
+```bash
+dotnet add package ActDim.Emitron.Razor
+```
+
+---
+
+## Test Execution
+
+The test suite is located in `Tests/Emitron.Razor.Tests/`:
+
+```bash
+dotnet test Tests/Emitron.Razor.Tests/ActDim.Emitron.Razor.Tests.csproj -v q
+```
+
+### Verified Test Suites (8 Tests Total):
+- `RazorParserTests`: Model property substitution, conditional blocks (`@if / @else`), iteration loops (`@foreach`), embedded C# expressions.

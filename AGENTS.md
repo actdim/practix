@@ -1,5 +1,5 @@
 <!-- BEGIN ALONG-PROTOCOL root (managed by along-init - do not edit by hand) -->
-# ALONG-PROTOCOL v2.2.18
+# ALONG-PROTOCOL v2.2.26
 
 This repo carries its own agent context, provider-agnostically. Follow it every session, whatever tool you are.
 
@@ -18,7 +18,7 @@ This repo carries its own agent context, provider-agnostically. Follow it every 
 Use the NEAREST `.along/` for the area you're working in (fall back to a higher-level one if the folder has none):
 1. `AGENTS.md` (nearest) - conventions to follow.
 2. `.along/ISSUES.md` - active issue board (or query `/along-kb-search`).
-3. `.along/DECISIONS.md` - architectural decisions & constraints.
+3. `.along/CONSTRAINTS.md` - active architectural constraints (or full log in `.along/DECISIONS.md`).
 4. Active Issue file `.along/ISSUES/<type>--<slug>.md` for your task.
 Also, when relevant: `.along/VISION.md`, `.along/GLOSSARY.md`. These reflect the state WHEN WRITTEN - verify any named file/API/flag against the real code first.
 
@@ -73,11 +73,12 @@ All entities are designed for zero-friction auto-parsing by dashboards and tools
 - `.along/ISSUES.md` is the compact board read every session (`## Active`, `## Backlog`, `## Done (recent)`).
 - On completion: set `status: done` and `completed: YYYY-MM-DD`, MOVE to `.along/ISSUES/done/<type>--<slug>.md`, and update `.along/ISSUES.md`.
 
-### 2. Decisions (ADRs) (`.along/DECISIONS.md`)
-- Append-only Architectural Decision Records with decentralized slug headers:
+### 2. Decisions & Constraints (`.along/DECISIONS.md` & `.along/CONSTRAINTS.md`)
+- Append-only Architectural Decision Records with decentralized slug headers in `.along/DECISIONS.md`:
   - Header: `## ADR-YYYY-MM-DD--<slug> - <Title>`
   - Fields: `- Date: YYYY-MM-DD`, `- Status: accepted | superseded by ADR-YYYY-MM-DD--<slug>`, `- Context: ...`, `- Decision: ...`, `- Consequences: ...`
   - Slug-based headers prevent merge collisions when parallel branches record architectural decisions.
+- `.along/CONSTRAINTS.md` is the compact derived projection of active constraints read at session start, recompiled via `/along-decision-sync` (or `along decision sync`).
 
 ### 3. Milestones & Releases (`.along/MILESTONES/<slug>.md`)
 - Group multiple issues into a release target, stage, or sprint.
@@ -118,25 +119,25 @@ To keep `.along/` lean and avoid token bloat:
 
 ## Knowledge Base (KB) Management & LLM-Wiki Integration
 - **Structured Knowledge Base**: Maintain active project documentation in `docs/` with standard articles:
-  - `docs/INDEX.md`: Central cross-linked topic catalog and entry point (`[Title](./topic--architecture.md)`).
+  - `docs/INDEX.md`: Central cross-linked topic catalog and entry point (`[Title](./topic--<slug>.md)`).
   - `docs/topic--architecture.md`: System components, boundaries, and data flows.
   - `docs/topic--domain-model.md`: Domain concepts, business logic, and terms.
   - `docs/topic--setup-and-workflow.md`: Build, run, test, and workflow instructions.
   - `docs/topic--<slug>.md`: Specific domain topics and module specifications.
-- **Source Archival (`.archive/`)**: Processed raw sources, unmanaged notes, and drafts are archived into `.archive/` (excluded from active KB search and site generators).
-- **Front-matter Schema**: Every `docs/*.md` article MUST include YAML front-matter: `protocol: along`, `protocol_version` (the current protocol version, quoted), `slug`, `title`, `type` (`topic` | `architecture` | `domain-model` | `setup-workflow` | `index`), `created`, `updated`, `tags: []`.
-- **Stable Entry Point Rule**: Files outside the service directory (`README.md`, `docs/`, package manifests, external documentation) MUST NOT link directly into `.along/`, nor into legacy service paths from earlier protocol versions. Route every such reference through a stable canonical path in `docs/` (`docs/INDEX.md` or `docs/topic--<slug>.md`). The rule governs published links only: agents still read `.along/ISSUES.md` and `.along/DECISIONS.md` directly, as instructed at session start.
+- **In-Place Source Grounding & Provenance**: Raw sources, specs, and notes remain in-place in their project locations (never moved to an archive directory). Every compiled article tracks its origin via `sources: [{path, hash}]` in YAML front-matter with SHA-256 content hashes, enabling drift detection and reproducible verification.
+- **Front-matter Schema**: Every `docs/*.md` article MUST include YAML front-matter: `protocol: along`, `protocol_version` (the current protocol version, quoted), `slug`, `title`, `type` (`topic` | `architecture` | `domain-model` | `setup-workflow` | `index`), `created`, `updated`, `tags: []`, and optional `sources: [{path, hash}]` / `curated: bool`.
+- **Stable Entry Point Rule**: Files outside the service directory (`README.md`, `docs/`, package manifests, external documentation) MUST NOT link directly into `.along/`, nor into legacy service paths from earlier protocol versions. Route every such reference through a stable canonical path in `docs/` (`docs/INDEX.md` or `docs/topic--<slug>.md`). The rule governs published links only: agents still read `.along/ISSUES.md` and `.along/CONSTRAINTS.md` directly, as instructed at session start.
 - **Inbound Link Rewriting Engine & Migration Invariance**: Whenever documentation schemas change, migration engines (`/along-update`, `/along-kb-sync`) MUST recursively rewrite legacy path references across all repository Markdown files before deleting legacy directories.
 - **Monorepo Scope Rule**: Knowledge Base synchronization, link rewriting, and link verification operate recursively across all subprojects, packages (`packages/*`, `apps/*`), and directories.
 - **Portable Markdown Links**: All internal cross-references MUST use standard relative Markdown links (`[Title](./target.md)`) for universal rendering across GitHub, GitHub Pages, IDEs, and npm.
-- **Idempotent Synchronization**: Use `/along-kb-sync` to bootstrap, compile, and validate links in `docs/` and archive raw sources.
+- **Idempotent Synchronization & Deterministic LLM Context**: Use `/along-kb-sync` to bootstrap, compile, and validate links in `docs/`, detect drift across sources, sync `llms.txt`, and deterministically compile `llms-full.txt` supporting `.well-known/` and context root locations.
 - **Strict Fact Grounding Requirement**: Agents MUST extract facts strictly from actual `README.md`, `docs/`, `package.json`, and codebase symbols. Generating generic LLM placeholders is strictly prohibited.
 - **Targeted Fast Retrieval**: Agents MUST query `/along-kb-search` or `wiki_query` for concise snippets before reading whole documentation files into context.
 - **Documentation Blast Radius & Code-Graph-to-Wiki Synchronization**: After non-trivial code modifications, agents MUST determine the documentation blast radius by mapping affected AST symbols and dependent modules (discovered via `code-review-graph` or code search) to corresponding Knowledge Base articles (`docs/topic--<slug>.md`) using `along-kb-search` or symbol search. All impacted topic articles MUST be updated to reflect interface, architectural, or workflow changes before completing the task.
 
 ## While working
 - Follow the conventions in `AGENTS.md`.
-- `DECISIONS.md` is APPEND-ONLY: add a new dated entry with slug header (`## ADR-YYYY-MM-DD--<slug>`) per non-trivial architectural decision; never edit past ones - mark a replaced one "Superseded by ADR-YYYY-MM-DD--<slug>".
+- `DECISIONS.md` is APPEND-ONLY: add a new dated entry with slug header (`## ADR-YYYY-MM-DD--<slug>`) per non-trivial architectural decision; never edit past ones - mark a replaced one "Superseded by ADR-YYYY-MM-DD--<slug>". Recompile `.along/CONSTRAINTS.md` via `along decision sync`.
 - Add any new/clarified domain term to `.along/GLOSSARY.md`.
 - **Context & Token hygiene**: Keep tool output lean to prevent context bloat. Use quiet flags for builds/tests (`pytest -q`, `dotnet test -v q`), filter command outputs, and inspect targeted line ranges.
 - **Mandatory Agentic Code Review & Blast Radius Impact**: After completing non-trivial code modifications, agents MUST critically inspect their own diffs and evaluate systemic blast radius. Use `code-review-graph` MCP tools (`build_or_update_graph_tool`, `get_impact_radius_tool`, `get_affected_flows_tool`) to verify that downstream callers, interfaces, and dependent systems remain unbroken, edge cases and nulls are handled, and active ADRs in `.along/DECISIONS.md` are respected.
@@ -162,7 +163,7 @@ When a Stage or session completes, agents MUST execute this verification checkli
    - Factually update all affected `docs/topic--*.md` articles (and `README.md` / `AGENTS.md` if public entry points or conventions changed).
    - Run `/along-kb-sync` to recompile `docs/INDEX.md`, validate link integrity, and verify zero 404 broken relative links.
 6. [ ] **Session Log**: Write `.along/SESSIONS/<YYYY>/<YYYY-MM-DD>--<short-slug>.md` with complete front-matter (`protocol: along`, `issues_advanced`, `issues_completed`, `decisions`, `risks_logged`, `spikes_conducted`) and a concise Code Review & Impact summary.
-7. [ ] **ISSUES Board Projection**: Run `/along-issue-sync` (or update `.along/ISSUES.md`).
+7. [ ] **ISSUES Board & Constraints Projections**: Run `/along-issue-sync` (or update `.along/ISSUES.md`) and `/along-decision-sync` (or `along decision sync`).
 8. [ ] **HISTORY**: Append one line to `.along/HISTORY.md`: `<YYYY-MM-DD> - <slug> - <agent> - <summary> - <link>`.
 9. [ ] **Compaction Prompt**: Advise user to run `/compact` to free up token budget.
 
@@ -184,12 +185,12 @@ When a Stage or session completes, agents MUST execute this verification checkli
     - NEVER use non-breaking spaces (NBSP U+00A0, narrow NBSP U+202F) or zero-width invisible characters (ZWSP U+200B, ZWNJ, ZWJ, BOM U+FEFF); use standard ASCII spaces or omit.
     - NEVER use special bullet glyphs (U+2022, U+2023, U+2043); use standard ASCII hyphen (`-`) for lists.
   - **Explicit Code Fence Languages**: Always specify the language identifier on code fences (e.g. ```` ```bash ````, ```` ```yaml ````, ```` ```typescript ````, ```` ```python ````). Never use bare unlabelled fences.
-  - **Relative & Portable Links**: Always use relative paths (`file://...` or standard markdown links) without hardcoding local absolute paths.
+  - **Relative & Portable Links**: Always use standard relative Markdown links (`[Title](./target.md)`), never pseudo-schemes (`file://`) or OS-specific backslashes.
   - **UTF-8 Clean Encoding**: Keep all text files in clean UTF-8 without BOM.
   - **File Content Never Travels Through a Command Line**: Create files with the agent's file-writing tool and change them with its edit tool. NEVER carry file content in a heredoc, a `python -c` string, or any inline shell command. Such content crosses several parsers in sequence (shell, heredoc or `-c`, the language string literal, sometimes a regex), and any one of them may consume a backslash or a quote: the file is then silently corrupted, or fails with an unterminated-literal error. Symptoms observed in practice: `"
 
 "` arriving as a real newline, an apostrophe in prose ending a quoted heredoc early, and a multi-line `python -c` losing its newlines entirely.
-  - **Deterministic Entity & Command Execution**: Use deterministic subcommands via `python scripts/along_exec.py` (`issue create`, `session create`, `scratch init`) for entity work. When a script is genuinely required, write it to a file first and execute that path; never inline it. Build backslashes in code (`chr(92)`, `os.linesep`, `re.escape`) instead of escaping them through layers, and never reuse line indices captured before a list of lines was mutated.
+  - **Deterministic Entity & Command Execution**: Use deterministic subcommands via `along` (or `python scripts/along_exec.py`) (`issue create`, `session create`, `scratch init`) for entity work. When a script is genuinely required, write it to a file first and execute that path; never inline it. Build backslashes in code (`chr(92)`, `os.linesep`, `re.escape`) instead of escaping them through layers, and never reuse line indices captured before a list of lines was mutated.
   - **Verify Every Written File**: After writing or patching a file, confirm it still parses before moving on: `python -m compileall -q` for Python, `bash -n` for shell, `[System.Management.Automation.Language.Parser]::ParseFile()` for PowerShell, and the project's own reader for structured data. Parsing is not proof of correctness, but a file that does not parse must never be left on disk. (A fixed, content-free command like `bash -n <file>` is not what the rule above forbids: the ban is on carrying file CONTENT through a command line.)
 - **Hermetic Tests (No Test May Mutate Its Own Repository)**:
   - **Fixtures, Never the Real Root**: A test MUST point every engine, script, or command it executes at a throwaway fixture (`tempfile.mkdtemp()`), never at the repository that contains the test. Engines write: they normalize front-matter, sanitize typography, rewrite links, and move entities, so a test that passes the real root can silently edit work in progress.
@@ -202,8 +203,8 @@ When a Stage or session completes, agents MUST execute this verification checkli
 
 <!-- BEGIN ALONG-RULES -->
 See the following engineering guidelines:
-- `[languages/csharp.md](file://.along/rules/languages/csharp.md)`
-- `[platforms/monorepo.md](file://.along/rules/platforms/monorepo.md)`
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
+- `[platforms/monorepo.md](.along/rules/platforms/monorepo.md)`
 <!-- END ALONG-RULES -->
 
 <!-- Fill in: what this project is, how to build / test / run, architecture map. -->

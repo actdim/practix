@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.18"
+protocol_version: "2.2.26"
 slug: memory-and-disposal
 title: Memory Management & Disposal Lifecycle
 type: topic
 created: 2026-09-03
-updated: 2026-09-03
+updated: 2026-09-08
 tags: [memory, buffer, array-pool, buffer-owner, disposal, recyclable-stream, reachability]
 ---
 

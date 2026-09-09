@@ -354,4 +354,8 @@ Keys use `:` (colon) as the standard logical hierarchy separator (e.g. `tenant:r
 dotnet test Tests/BytePath.Tests/ActDim.BytePath.Tests.csproj
 ```
 
+---
 
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.

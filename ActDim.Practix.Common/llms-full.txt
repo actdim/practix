@@ -1,0 +1,1185 @@
+# ActDim.Practix.Common - Full Documentation Context
+
+> [!NOTE]
+
+---
+
+## Document: README.md (Overview)
+
+# ActDim.Practix.Common
+
+`ActDim.Practix.Common` provides shared ambient execution context primitives, concurrent collection factories, caching proxies, compression helpers, memory buffer management, and Microsoft Dependency Injection extensions for the ActDim.Practix framework.
+
+## Features
+
+- **Ambient Execution Context:** High-performance, zero-allocation ambient context management via `AmbientContext` and `IAmbientContext` (`AsyncLocal<ImmutableDictionary<string, object>>`).
+- **Scoped Service & Dependency Resolution:** Access scoped `IServiceProvider`, `ClaimsPrincipal` user, `CancellationToken`, `IBlobManager`, and `ICompressionManager` from anywhere without manual constructor parameter passing.
+- **Fast Zero-DI Logging:** `AmbientContext.Log<T>()` and `AmbientContext.Log(this)` resolving ambient/scoped logger factories with zero ceremony.
+- **Caching Proxies:** `MemoryCachingProxy` and `DistributedCachingProxy` offering simplified, resilient access to `IMemoryCache` and `IDistributedCache`.
+- **Stream & Payload Compression:** `CompressionManager` for `GZip`, `BZip2`, and `ZLib` buffer/stream compression.
+- **High-Performance Collections:** `ConcurrentFactoryDictionary` (thread-safe lock-free lookup/factory pattern), `WeakTable<K, V>`, and `CompositeKey`.
+- **Memory Buffer Pooling:** Zero-allocation buffer management with `ArrayPoolBufferOwner` and `MemoryManager`.
+- **Granular Microsoft DI Extensions:** Modular registration helpers (`AddAmbientContext()`, `AddCompressionManager()`, `AddMemoryCachingProxy()`, `AddDistributedCachingProxy()`).
+
+## Installation
+
+Install via the .NET CLI:
+
+```bash
+dotnet add package ActDim.Practix.Common
+```
+
+Or via Package Manager Console:
+
+```powershell
+Install-Package ActDim.Practix.Common
+```
+
+## Dependency Injection Setup
+
+Register components with Microsoft Dependency Injection (`IServiceCollection`):
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+
+public void ConfigureServices(IServiceCollection services)
+{
+    // Register ambient context singleton
+    services.AddAmbientContext();
+
+    // Register compression manager
+    services.AddCompressionManager();
+
+    // Register memory and distributed caching proxies
+    services.AddMemoryCachingProxy();
+    services.AddDistributedCachingProxy();
+}
+```
+
+---
+
+## Ambient Context Usage Guide
+
+`AmbientContext` allows passing execution state (services, user identity, cancellation tokens, blob managers, memory manager, custom metadata) down the asynchronous execution tree (`async/await`, `Task.Run`, background workers) without threading parameters through every method signature.
+
+> [!NOTE]
+> **Thread Safety & Execution Flow Isolation:**  
+> Unlike global static variables (which mutate global state and cause race conditions when accessed concurrently across threads), `AmbientContext` is backed by `AsyncLocal<ImmutableDictionary<string, object>>`. Context mutations flow strictly down the async execution tree (`async/await`, `Task.Run`). Temporary `using (AmbientContext.With...)` overrides apply exclusively to the current call branch without cross-thread pollution or race conditions.
+
+### 1. Console / Worker Application (`Program.cs`)
+
+Wrap the host lifetime in `AmbientContext.WithServices` so all background services and workers automatically inherit root services and cancellation tokens:
+
+```csharp
+using ActDim.Practix.Context;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        services.AddAmbientContext();
+        services.AddSingleton<IOrderProcessingService, OrderProcessingService>();
+        services.AddHostedService<QueueWorker>();
+    })
+    .Build();
+
+using var appCts = new CancellationTokenSource();
+
+// ══ Application Root Scope ═════════════════════════════════════════════════
+using (AmbientContext.WithServices(host.Services))
+using (AmbientContext.WithCancellationToken(appCts.Token))
+{
+    await host.RunAsync();
+}
+
+// Background Worker automatically inherits AmbientContext
+public class QueueWorker : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        // Zero-DI logging
+        var logger = AmbientContext.Log<QueueWorker>();
+        logger.LogInformation("Worker started");
+
+        // Resolve dependencies directly from ambient context
+        var processor = AmbientContext.Services.GetRequiredService<IOrderProcessingService>();
+        await processor.ProcessNextBatchAsync(AmbientContext.CancellationToken);
+    }
+}
+```
+
+---
+
+### 2. ASP.NET Core Web Application & Request Middleware
+
+In web applications, establish the root context for the application, and use a lightweight middleware to establish scoped per-request overrides (`RequestServices`, `User`, `RequestAborted`):
+
+```csharp
+using ActDim.Practix.Context;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using System.Security.Claims;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAmbientContext();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
+await using var app = builder.Build();
+
+// ══ 1. Per-Request Ambient Middleware ══════════════════════════════════════
+app.Use(async (context, next) =>
+{
+    using var _s = AmbientContext.WithServices(context.RequestServices);
+    using var _u = AmbientContext.WithUser(context.User);
+    using var _c = AmbientContext.WithCancellationToken(context.RequestAborted);
+    using var _t = AmbientContext.Push("TraceId", context.TraceIdentifier);
+
+    await next();
+});
+
+// ══ 2. Endpoint Handler / Business Logic ═══════════════════════════════════
+app.MapGet("/orders/current", () =>
+{
+    // Resolves scoped service for the current HTTP request
+    var orderService = AmbientContext.Services.GetRequiredService<IOrderService>();
+    var currentUser = AmbientContext.User;
+    var cancellationToken = AmbientContext.CancellationToken;
+
+    var order = orderService.GetOrderForUser(currentUser.Identity?.Name, cancellationToken);
+    return Results.Ok(order);
+});
+
+// ══ 3. Root Application Scope ══════════════════════════════════════════════
+using var _rootServices = AmbientContext.WithServices(app.Services);
+using var _rootCt = AmbientContext.WithCancellationToken(app.Lifetime.ApplicationStopping);
+
+await app.RunAsync();
+```
+
+---
+
+### 3. Combining Cancellation Tokens & Scoped Timeouts
+
+You can link nested cancellation tokens or apply scoped timeouts without modifying method signatures:
+
+```csharp
+// Link existing ambient token with a child timeout token
+using var timeoutScope = AmbientContext.WithTimeout(TimeSpan.FromSeconds(5), out var timeoutToken);
+
+// AmbientContext.CancellationToken is now linked to the 5-second timeout
+await httpClient.GetAsync("https://api.example.com/data", AmbientContext.CancellationToken);
+```
+
+---
+
+### 4. Zero-Ceremony Fast Logging & Structured Method Scopes
+
+Access loggers on demand and create structured OpenTelemetry method scopes (`code.function`, `code.filename`, `code.filepath`, `code.lineno`) without constructor injection:
+
+```csharp
+public class OrderManager
+{
+    public void ProcessOrder(string orderId)
+    {
+        // Begins a structured method scope capturing OpenTelemetry caller metadata
+        using var scope = AmbientContext.Log<OrderManager>().BeginMethodScope();
+
+        // Resolves ILogger<OrderManager> from ambient LoggerFactory / Services
+        AmbientContext.Log<OrderManager>().LogInformation("Processing order {OrderId}", orderId);
+        
+        // Or using caller instance type
+        AmbientContext.Log(this).LogInformation("Order {OrderId} processed successfully", orderId);
+    }
+}
+```
+
+---
+
+## Other Components
+
+### Concurrent Factory Dictionary
+
+```csharp
+using ActDim.Practix.Collections.Concurrent;
+
+var cache = new ConcurrentFactoryDictionary<string, UserProfile>(
+    key => FetchUserProfileFromDatabase(key),
+    StringComparer.OrdinalIgnoreCase
+);
+
+// Returns existing item or executes factory thread-safely
+UserProfile profile = cache.GetOrAdd("user_42");
+```
+
+### Compression Manager
+
+```csharp
+using ActDim.Practix.Abstractions.Compression;
+
+var compression = serviceProvider.GetRequiredService<ICompressionManager>();
+
+byte[] originalData = System.Text.Encoding.UTF8.GetBytes("Payload data to compress");
+byte[] compressedData = compression.Compress(originalData, CompressionFormat.GZip);
+byte[] decompressedData = compression.Decompress(compressedData, CompressionFormat.GZip);
+```
+
+---
+
+## Testing & Quality
+
+- **Test Suite:** `ActDim.Practix.Common.Tests`
+- **Total Tests:** 234 passed (100% success rate, 0 failed, 0 skipped)
+- **Target Framework:** .NET 10.0
+
+```bash
+dotnet test Tests/Common.Tests/ActDim.Practix.Common.Tests.csproj
+```
+
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.
+
+---
+
+## License
+
+This project is licensed under the [MIT License](../LICENSE).
+
+---
+
+## Document: AGENTS.md (Agent Conventions & Protocol)
+
+<!-- BEGIN ALONG-PROTOCOL ref=../AGENTS.md (managed by along-init - do not edit by hand) -->
+This folder belongs to a repository that uses the ALONG structure. The full working
+guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
+read it there. This folder keeps its OWN `.along/` state; use the nearest one.
+Only this folder's specifics follow.
+<!-- END ALONG-PROTOCOL -->## Project specifics
+
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
+<!-- END ALONG-RULES -->
+
+<!-- Fill in: what this project is, how to build / test / run, architecture map, project-specific conventions. -->
+
+---
+
+## Document: docs/topic--ambient-context.md (Ambient Execution Context)
+
+# Ambient Execution Context
+
+`AmbientContext` provides asynchronous execution flow context management, allowing scoped services, user identities, cancellation tokens, blob managers, and custom execution state to propagate down the asynchronous call hierarchy (`async`/`await`, `Task.Run`, background tasks) without manually threading parameters through every method signature.
+
+---
+
+## Core Architecture & Thread-Safety
+
+Unlike global static state (which causes race conditions when accessed concurrently across threads), `AmbientContext` is backed by `AsyncLocal<ImmutableDictionary<string, object>>`:
+
+- **Immutable State Transitions**: State updates produce new immutable dictionaries bound to the ambient `ExecutionContext`.
+- **Downstream Flow**: Child asynchronous tasks inherit the parent context state at the time of invocation.
+- **Scope Isolation**: Temporary overrides via `using (AmbientContext.With...)` apply exclusively to the current execution branch and restore the previous state upon scope disposal.
+
+```
+Caller Scope [Services=A, User=Admin]
+    |
+    +---> Task 1 (inherits Services=A, User=Admin)
+    |        |
+    |        +---> using(AmbientContext.WithUser(UserX)) --> Child Scope [User=UserX]
+    |
+    +---> Task 2 (isolated: still has Services=A, User=Admin)
+```
+
+---
+
+## Scoped Overrides & Lifetime Scopes
+
+All scoped mutators return an `IDisposable` (implemented via `DisposableAction<T>`) that pops or reverts the specific ambient key upon disposal:
+
+```csharp
+// Scope with custom services
+using (AmbientContext.WithServices(serviceProvider))
+{
+    var service = AmbientContext.Services.GetRequiredService<IMyService>();
+}
+
+// Scope with specific claims principal
+using (AmbientContext.WithUser(claimsPrincipal))
+{
+    var currentUser = AmbientContext.User;
+}
+
+// Scope with combined cancellation token
+using (AmbientContext.WithCancellationToken(cancellationToken))
+{
+    await DoWorkAsync(AmbientContext.CancellationToken);
+}
+
+// Scope with temporary timeout
+using (AmbientContext.WithTimeout(TimeSpan.FromSeconds(5), out var timeoutToken))
+{
+    // AmbientContext.CancellationToken is automatically linked to the 5-second deadline
+    await httpClient.GetAsync("/api/data", AmbientContext.CancellationToken);
+}
+```
+
+---
+
+## ASP.NET Core Middleware Integration
+
+In web applications, ambient context can be established at the HTTP request boundary to bind request-scoped dependencies:
+
+```csharp
+app.Use(async (context, next) =>
+{
+    using var _s = AmbientContext.WithServices(context.RequestServices);
+    using var _u = AmbientContext.WithUser(context.User);
+    using var _c = AmbientContext.WithCancellationToken(context.RequestAborted);
+    using var _t = AmbientContext.Push("TraceId", context.TraceIdentifier);
+
+    await next();
+});
+```
+
+---
+
+## Zero-DI Logging & Structured Method Scopes
+
+`AmbientContext.Log<T>()` and `AmbientContext.Log(this)` resolve `ILogger<T>` on demand using the ambient `IServiceProvider` or `ILoggerFactory` without constructor injection ceremony.
+
+`BeginMethodScope()` enriches logs with OpenTelemetry semantic conventions (`code.function`, `code.filename`, `code.filepath`, `code.lineno`):
+
+```csharp
+public class OrderProcessor
+{
+    public void Process(string orderId)
+    {
+        using var scope = AmbientContext.Log<OrderProcessor>().BeginMethodScope();
+
+        AmbientContext.Log<OrderProcessor>().LogInformation("Processing order {OrderId}", orderId);
+        AmbientContext.Log(this).LogInformation("Order completed");
+    }
+}
+```
+
+---
+
+## Key Invariants
+
+1. **Explicit Disposal**: Always dispose scope handles (`using`) to prevent ambient state leakage across async continuations in pooled worker threads.
+2. **Fallback Safety**: If no ambient service provider or logger factory is registered, `AmbientContext.Log` falls back to `NullLogger` without throwing null reference exceptions.
+3. **No Thread-Static Mutation**: Does not mutate thread-local storage or thread statics; execution flow is entirely governed by .NET `AsyncLocal<T>`.
+
+---
+
+## Document: docs/topic--architecture.md (System Architecture & Flow)
+
+# System Architecture & Flow
+
+`ActDim.Practix.Common` provides the shared foundational infrastructure, concurrency primitives, caching proxies, compression engines, memory management, and ambient context for the ActDim.Practix framework.
+
+---
+
+## Subsystem Vector Decomposition
+
+The library is organized into 8 distinct, decoupled functional subsystems:
+
+```
+                      +----------------------------------+
+                      |      ActDim.Practix.Common       |
+                      +----------------------------------+
+                                        |
+       +-----------------+--------------+--------------+-----------------+
+       |                 |              |              |                 |
++--------------+ +---------------+ +----------+ +-------------+ +---------------+
+| Context/     | | Pooling/      | | Caching/ | | Compression | | Collections/  |
+| AsyncLocal   | | Bounded FIFO  | | Memory & | | GZip/Brotli | | Concurrent,   |
+| Ambient State| | Object Pool   | | Distrib  | | Tar/Zip BCL | | WeakTable,    |
+| Zero-DI Logs | | Discard/Drain | | Proxies  | | Codecs      | | CompositeKey  |
++--------------+ +---------------+ +----------+ +-------------+ +---------------+
+                                        |
+                         +--------------+--------------+
+                         |                             |
+                 +---------------+             +---------------+
+                 | Memory & Disp |             | Extensions &  |
+                 | ArrayPool,    |             | Random ID     |
+                 | Recyclable    |             | Zero-Alloc IO,|
+                 | StreamManager |             | Guards, CSPRNG|
+                 +---------------+             +---------------+
+```
+
+---
+
+## Subsystem Roles & Boundaries
+
+1. **Ambient Execution Context ([`topic--ambient-context.md`](./topic--ambient-context.md))**:
+   - Manages asynchronous execution context via `AsyncLocal<ImmutableDictionary<string, object>>`.
+   - Propagates scoped `IServiceProvider`, `ClaimsPrincipal`, `CancellationToken`, and ambient loggers down async call branches.
+
+2. **Asynchronous Object Pooling ([`topic--async-object-pool.md`](./topic--async-object-pool.md))**:
+   - Manages bounded pools of reusable resources (`AsyncObjectPool<T>`) coordinated by `SemaphoreSlim` and `ConcurrentQueue<T>`.
+   - Supports leased handle lifecycle (`PooledObject`), `DiscardAsync` for corrupted instances, and `DisposeAsync` fault-tolerant draining.
+
+3. **Caching Proxies ([`topic--caching-proxies.md`](./topic--caching-proxies.md))**:
+   - Transparently wraps synchronous and asynchronous (`Task<T>`, `ValueTask<T>`) delegates with caching behavior (`MemoryCachingProxy`, `DistributedCachingProxy`).
+   - Handles binary payload serialization via `IBinarySerializer`.
+
+4. **Compression & Archiving ([`topic--compression-and-archives.md`](./topic--compression-and-archives.md))**:
+   - High-performance compression facade (`CompressionManager`) built exclusively on the .NET 10 BCL.
+   - Stream and buffer compression for GZip, Deflate, Brotli, and streaming entry traversal for ZIP and TAR archives.
+
+5. **Specialized Collections ([`topic--concurrent-collections.md`](./topic--concurrent-collections.md))**:
+   - `ConcurrentFactoryDictionary<TKey, TValue>`: Lock-free exactly-once factory execution with exception-retry guarantees.
+   - `WeakTable<K, V>`: Weak reference table supporting custom `IEqualityComparer<K>`.
+   - `CompositeKey`: Structural value-equality composite key struct.
+
+6. **Memory & Disposal Lifecycle ([`topic--memory-and-disposal.md`](./topic--memory-and-disposal.md))**:
+   - `ArrayPoolBufferOwner<T>` / `IBufferOwner<T>`: Deterministic rented buffer ownership.
+   - `MemoryManager.Default`: Process-wide `RecyclableMemoryStreamManager` configured to prevent heap allocations.
+   - `DisposableAction`: Atomic idempotent disposal wrapper; `ReachabilityObserver`: GC finalization observer.
+
+7. **Cryptographic Random Identifiers ([`topic--random-id.md`](./topic--random-id.md))**:
+   - `RandomId`: Cryptographic, URL-safe random identifier generator (Base62, Base58, Crockford Base32) backed by CSPRNG.
+
+8. **Extensions & Common Utilities ([`topic--extensions-and-utilities.md`](./topic--extensions-and-utilities.md))**:
+   - `StreamExtensions`: Zero-allocation stream conversions, UTF-8 without BOM decoding, and chunked writers.
+   - `StringExtensions`, `TaskExtensions`, `GuardExtensions`: General language combinators.
+
+---
+
+## Document: docs/topic--async-object-pool.md (Asynchronous Bounded Object Pool)
+
+# Asynchronous Bounded Object Pool
+
+`AsyncObjectPool<T>` provides a thread-safe, bounded, FIFO-ordered asynchronous object pool. It limits the total number of instantiated objects and orchestrates concurrent consumer leases without blocking OS threads.
+
+---
+
+## Architecture & Concurrency Model
+
+- **Bounded Capacity**: Total active instances (idle in queue + leased by callers) cannot exceed `maxSize`.
+- **Concurrency Control**: Coordinated via `SemaphoreSlim(maxSize, maxSize)` and `ConcurrentQueue<T>`.
+- **FIFO Ordering**: Idle instances are reused in First-In, First-Out order to guarantee uniform reuse and reduce cache eviction spikes.
+- **Asynchronous Waiting**: When all instances are leased, `GetAsync` asynchronously awaits a free slot without thread starvation.
+
+---
+
+## Leased Handle Lifecycle & `PooledObject`
+
+Calling `GetAsync` returns a `PooledObject` handle implementing `IAsyncDisposable`:
+
+```csharp
+var pool = new AsyncObjectPool<DbConnection>(
+    factory: () => CreateOpenConnectionAsync(),
+    maxSize: 16,
+    disposer: async conn => await conn.DisposeAsync()
+);
+
+// Standard lease pattern
+await using (var handle = await pool.GetAsync(cancellationToken))
+{
+    var connection = handle.Item;
+    await connection.ExecuteQueryAsync("SELECT 1");
+} // On dispose: handle.Item is safely returned to the pool FIFO queue
+```
+
+---
+
+## Discarding Corrupted Instances (`DiscardAsync`)
+
+If an object encounters a terminal failure (such as broken socket, connection timeout, corrupted stream state), returning it to the pool would poison subsequent callers.
+
+`handle.DiscardAsync()` or `pool.DiscardAsync(item)`:
+1. Atomically unbinds the instance from the lease handle.
+2. Decrements `_createdCount`.
+3. Invokes the configured `disposer` delegate for clean resource release.
+4. Releases a `SemaphoreSlim` permit so the pool can instantiate a fresh object on demand.
+
+```csharp
+await using var handle = await pool.GetAsync(ct);
+try
+{
+    await handle.Item.SendNetworkPayloadAsync(data);
+}
+catch (SocketException)
+{
+    // Discard corrupted socket: releases semaphore slot and invokes disposer
+    await handle.DiscardAsync();
+    throw;
+}
+```
+
+---
+
+## Eviction & Fault-Tolerant Draining (`DisposeAsync`)
+
+When the pool itself is disposed (such as upon application shutdown or cache eviction):
+- The pool marks itself disposed (`_disposed = 1`).
+- All remaining parked items in `_items` are dequeued and processed through `disposer`.
+- If any disposer throws an exception, all exceptions are collected and rethrown collectively in an `AggregateException`, ensuring complete draining even in the presence of failures.
+- Objects returned to an already-disposed pool are immediately disposed via `DisposeItemAsync` rather than requeued.
+
+---
+
+## Key Invariants
+
+| Scenario | Behavior |
+| :--- | :--- |
+| **Object Disposal** | Ownership is explicit: the pool only disposes objects if an explicit `disposer` delegate was passed to constructor. |
+| **GetAsync on Disposed Pool** | Throws `ObjectDisposedException`. If factory was already running, the created instance is immediately cleaned up. |
+| **Factory Failure** | If the factory delegate fails or throws, the reserved semaphore slot is released immediately to prevent capacity leaks. |
+| **Discard on Null** | `DiscardAsync(null)` is a safe no-op. |
+
+---
+
+## Document: docs/topic--caching-proxies.md (Resilient Caching Proxies)
+
+# Resilient Caching Proxies
+
+`ActDim.Practix.Caching` provides transparent caching decorators (`MemoryCachingProxy` and `DistributedCachingProxy`) that wrap synchronous and asynchronous functions with automatic cache lookups, serialization, and cache entry configuration.
+
+---
+
+## Memory Caching Proxy (`MemoryCachingProxy`)
+
+Wraps `IMemoryCache` from `Microsoft.Extensions.Caching.Memory` to decorate function delegates:
+
+```csharp
+IMemoryCachingProxy proxy = new MemoryCachingProxy(memoryCache);
+
+// Decorate an asynchronous lookup function
+Func<string, Task<UserProfile>> cachedFetcher = proxy.Get<Task<UserProfile>>(
+    async key => await database.GetUserAsync(key),
+    new MemoryCacheEntryOptions { SlidingExpiration = TimeSpan.FromMinutes(10) }
+);
+
+// Subsequent calls with same key resolve from memory cache
+UserProfile user = await cachedFetcher("user_102");
+```
+
+### Async / ValueTask Interception
+`CachingProxyHelper.GetAwaitableResultType` dynamically inspects the return type `T`:
+- Synchronous `Func<string, T>`: Checks `TryGetValue(key, out val)`, caches on miss.
+- Asynchronous `Func<string, Task<TResult>>`: Emits compiled async task wrapper.
+- High-Performance `Func<string, ValueTask<TResult>>`: Emits specialized value-task wrapper to minimize state machine heap allocations.
+
+---
+
+## Distributed Caching Proxy (`DistributedCachingProxy`)
+
+Wraps `IDistributedCache` and an `IBinarySerializer` (`ActDim.Practix.Abstractions.Serialization`) to provide binary-serialized distributed caching:
+
+```csharp
+IDistributedCachingProxy proxy = new DistributedCachingProxy(distributedCache, binarySerializer);
+
+Func<string, Task<ProductCatalog>> cachedCatalog = proxy.Get<Task<ProductCatalog>>(
+    async key => await remoteService.GetCatalogAsync(key),
+    new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1) }
+);
+
+ProductCatalog catalog = await cachedCatalog("catalog_electronics");
+```
+
+### Execution Flow:
+1. Calls `_cache.GetAsync(key)`.
+2. On Cache Hit: Deserializes payload using `_serializer.Deserialize<TResult>(bytes)`.
+3. On Cache Miss: Invokes underlying factory delegate, serializes output via `_serializer.Serialize(value)`, saves to `_cache.SetAsync(key, bytes, options)`.
+
+---
+
+## Dependency Injection Setup
+
+Register proxies through Microsoft Dependency Injection:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddMemoryCache();
+    services.AddDistributedMemoryCache(); // or Redis/SQL Server
+
+    services.AddMemoryCachingProxy();
+    services.AddDistributedCachingProxy();
+}
+```
+
+---
+
+## Key Invariants
+
+1. **Transparent Delegation**: The caller interacts with a standard `Func<string, T>` signature; caching is completely decoupled from business logic.
+2. **Deterministic Serialization**: Payloads in `DistributedCachingProxy` are serialized using `IBinarySerializer` (e.g. MessagePack, Protobuf, or System.Text.Json binary wrapper).
+3. **No Stale Exception Caching**: If the factory delegate throws an exception during invocation, no cache entry is written, allowing subsequent calls to retry immediately.
+
+---
+
+## Document: docs/topic--compression-and-archives.md (Stream & Payload Compression and Archiving)
+
+# Stream & Payload Compression and Archiving
+
+`CompressionManager` is an enterprise-grade compression and archive engine built entirely on top of the .NET 10 Base Class Library (BCL). It unifies stream compression (`GZip`, `Deflate`, `Brotli`), format auto-detection, and archive container streaming (`Zip`, `Tar`) under a zero-allocation, high-throughput pipeline.
+
+---
+
+## Architectural Principles & Zero-Heap Guarantees
+
+Traditional compression libraries frequently trigger Garbage Collector stalls by allocating large byte arrays on the Large Object Heap (LOH) or creating unnecessary intermediate streams. `CompressionManager` strictly eliminates these bottlenecks:
+
+1. **Recyclable Memory Stream Pooling (`MemoryManager.Default`)**:
+   - Every scratch or output stream generated by `CompressionManager` is rented from `MemoryManager.Default` (a pre-configured `RecyclableMemoryStreamManager`).
+   - Streams are returned to the caller positioned at `Position = 0`.
+   - The caller owns the returned `MemoryStream` and is responsible for disposing it (returning its blocks to the pool).
+2. **`ArrayPool<byte>.Shared` Rented Transfer Buffers**:
+   - Streaming read and write loops rent 80 KB transfer buffers (`ArrayPool<byte>.Shared.Rent(BufferSize)`), keeping chunk allocations below the 85,000-byte LOH threshold.
+   - Buffers are returned in `finally` blocks, guaranteeing zero buffer leakage even when operations are cancelled or fail.
+3. **No Redundant Stream Buffering**:
+   - The BCL codecs (`GZipStream`, `DeflateStream`, `BrotliStream`) maintain internal buffers. Wrapping them in `BufferedStream` or intermediate buffers is explicitly forbidden as it adds heap allocations and extra memory copy operations.
+4. **Stack-Allocated Magic Byte Sniffing**:
+   - Format detection inspects headers via `stackalloc byte[16]` and `ReadOnlySpan<byte>` slice comparisons, requiring zero heap allocations.
+5. **Stream Ownership Contracts**:
+   - **Produced Streams**: Streams created by `CompressAsync(...)` or `DecompressAsync(...)` without a destination stream are newly instantiated pooled streams owned by the caller.
+   - **Destination Streams**: When a destination stream `dst` is passed by the caller, `CompressionManager` writes directly to `dst` at its current position and leaves it open.
+
+---
+
+## Codec & Container Support Matrix
+
+| Category | Format | Magic Bytes / Signature | Detection | BCL Underlying Implementation |
+| :--- | :--- | :--- | :---: | :--- |
+| **Stream Codec** | `CompressionFormat.GZip` | `1F 8B` | Auto / Explicit | `System.IO.Compression.GZipStream` |
+| | `CompressionFormat.Deflate` | None (raw RFC 1951) | Explicit only | `System.IO.Compression.DeflateStream` |
+| | `CompressionFormat.Brotli` | None (raw RFC 7932) | Explicit only | `System.IO.Compression.BrotliStream` |
+| | `BZip2`, `LZMA`, `7z` | `42 5A`, `5D 00`, `37 7A` | Sniffed | Unsupported (throws `NotSupportedException`) |
+| **Archive Container** | `ArchiveFormat.Zip` | `50 4B 03 04` (`PK..`) | Auto / Explicit | `System.IO.Compression.ZipArchive` (Random Access) |
+| | `ArchiveFormat.Tar` | `ustar` at offset 257 | Auto / Explicit | `System.Formats.Tar.TarReader` / `TarWriter` (Streaming) |
+
+> [!IMPORTANT]
+> **Brotli & Raw Deflate Limitations:**
+> Brotli and raw Deflate streams are headerless bitstreams by specification. They cannot be auto-detected via magic bytes. Calling `DecompressAsync` without an explicit format on Brotli or raw Deflate data will throw `DataFormatException`.
+
+---
+
+## Complete API Reference & Examples
+
+### 1. Payload & Buffer Compression
+
+```csharp
+ICompressionManager manager = new CompressionManager();
+
+// Compress byte array into a pooled seekable MemoryStream
+byte[] payload = GetRawData();
+await using (Stream compressedStream = await manager.CompressAsync(payload, CompressionFormat.Brotli))
+{
+    // compressedStream is a RecyclableMemoryStream positioned at 0
+    await httpClient.PostAsync("/upload", new StreamContent(compressedStream));
+}
+
+// Compress into an owned pooled buffer handle (zero heap array allocations)
+using (IBufferOwner<byte> compressedBuffer = await manager.CompressToBytesAsync(payload, CompressionFormat.GZip))
+{
+    ReadOnlyMemory<byte> memorySlice = compressedBuffer.Memory;
+    int validLength = compressedBuffer.Length;
+    // Transmit or process buffer slice
+} // Underlying array is safely returned to ArrayPool<byte>.Shared on Dispose
+```
+
+### 2. Stream-to-Stream Zero-Copy Pipelines
+
+```csharp
+// Compress source stream directly into destination stream
+await using var fileIn = File.OpenRead("data.json");
+await using var fileOut = File.Create("data.json.gz");
+
+await manager.CompressAsync(fileIn, fileOut, CompressionFormat.GZip);
+```
+
+### 3. Decompression with Automatic Format Detection
+
+For GZip, ZIP, and TAR archives, `CompressionManager` automatically sniffs the header from seekable streams:
+
+```csharp
+await using var incomingStream = File.OpenRead("payload.bin");
+
+// Auto-detects GZip and decompresses into a pooled RecyclableMemoryStream
+await using Stream decompressedStream = await manager.DecompressAsync(incomingStream);
+
+// Or decompress directly into an owned pooled buffer:
+using IBufferOwner<byte> decompressedBuffer = await manager.DecompressToBytesAsync(incomingStream);
+```
+
+---
+
+## Archive Streaming & Inspection (`DecompressArchiveAsync`)
+
+`DecompressArchiveAsync` provides a unified streaming visitor over ZIP and TAR archive entries without unzipping files to disk:
+
+```csharp
+await using var archiveStream = File.OpenRead("package.tar");
+
+await manager.DecompressArchiveAsync(archiveStream, async (entry, openRead) =>
+{
+    Console.WriteLine($"Path: {entry.FullName}, Size: {entry.Size}, Modified: {entry.LastWriteTime}");
+
+    if (entry.EntryType == ArchiveEntryType.RegularFile && entry.FullName.EndsWith(".json"))
+    {
+        // openRead() returns a non-seekable entry stream owned by CompressionManager
+        await using Stream entryStream = await openRead();
+        using var jsonDoc = await JsonDocument.ParseAsync(entryStream);
+        ProcessConfig(jsonDoc);
+    }
+
+    return true; // Return true to continue traversal, or false to abort early
+});
+```
+
+### Archive Entry Stream Rules:
+1. **Synchronous Execution Window**: The `openRead` stream is only valid during the execution of the callback delegate. It is closed/disposed immediately after the delegate returns.
+2. **Streaming Tar vs Seekable Zip**:
+   - `Tar`: Requires sequential forward-only reading. Entries must be consumed in order.
+   - `Zip`: Supports random-access entry lookups if `archiveStream.CanSeek == true`.
+
+---
+
+## Error Handling & Exception Specifications
+
+- `ArgumentNullException` / `ArgumentException`: Thrown if streams are null, closed, or writeable streams are passed to read operations.
+- `DataFormatException`: Thrown when a stream contains corrupted compression blocks or unsupported header magic bytes.
+- `NotSupportedException`: Thrown when attempting to compress/decompress formats that have no BCL support (e.g. RAR, 7z, BZip2).
+- `ObjectDisposedException`: Thrown if operations are invoked on disposed streams or buffer owners.
+
+---
+
+## Document: docs/topic--concurrent-collections.md (Specialized Concurrent Collections)
+
+# Specialized Concurrent Collections
+
+`ActDim.Practix.Collections` provides optimized concurrent collections, weak tables with non-identity equality, and composite keys designed for thread safety, low allocation, and cache efficiency.
+
+---
+
+## Concurrent Factory Dictionary (`ConcurrentFactoryDictionary<TKey, TValue>`)
+
+A high-performance thread-safe dictionary backed by `ConcurrentDictionary<TKey, Lazy<TValue>>` that guarantees **exactly-once** value initialization:
+
+```csharp
+var cache = new ConcurrentFactoryDictionary<string, UserSession>(
+    key => LoadSessionFromDatabase(key),
+    StringComparer.OrdinalIgnoreCase
+);
+
+// Returns existing session or computes it once thread-safely
+UserSession session = cache.GetOrCreateValue("session_981");
+```
+
+### Key Guarantees:
+- **No Double Computation**: Multiple threads requesting the same missing key simultaneously do not invoke the factory multiple times (uses `LazyThreadSafetyMode.ExecutionAndPublication`).
+- **Exception Resilience**: If the factory throws an exception during value creation, the failed `Lazy` instance is immediately removed from the dictionary so subsequent calls can retry instead of caching a fault.
+- **Read-Only Interface**: Implements `IReadOnlyDictionary<TKey, TValue>`.
+
+---
+
+## Weak Table (`WeakTable<K, V>`)
+
+A concurrent weak table supporting **non-identity equality comparers**, modeled after .NET's `ConditionalWeakTable<K, V>`:
+
+```csharp
+var weakMap = new WeakTable<Document, DocumentMetadata>(customComparer);
+
+weakMap.Add(doc, metadata);
+
+if (weakMap.TryGetValue(doc, out var meta))
+{
+    // Access metadata
+}
+// When 'doc' is garbage collected, weakMap cleans up the entry automatically
+```
+
+### Mechanics:
+- **Resurrection Tracking**: Uses `WeakReference<State>` to track keys through finalization.
+- **Custom Comparer**: Unlike `ConditionalWeakTable` (which strictly uses reference identity `RuntimeHelpers.GetHashCode`), `WeakTable` supports custom `IEqualityComparer<K>`.
+- **Cyclic Reference Safety**: Keys and values do not hold strong circular references, preventing memory leaks when a value holds a reference back to its key.
+
+---
+
+## Composite Key (`CompositeKey`)
+
+An immutable, hashable composite key struct for multi-dimensional caching and map indexing:
+
+```csharp
+var key1 = new CompositeKey(new object[] { "tenant_42", 1001, "read" });
+var key2 = new CompositeKey(new object[] { "tenant_42", 1001, "read" });
+
+bool areEqual = (key1 == key2); // true: structural element-wise equality
+int hashCode = key1.GetHashCode(); // combined HashCode.Add over elements
+```
+
+- Implicit conversion from `object[]`.
+- Element-wise structural equality using `object.Equals`.
+- Optimized `HashCode` aggregation.
+
+---
+
+## Static String Dictionary (`StaticStringDictionary`)
+
+Optimized dictionary lookup for frozen/static string keys, providing low-overhead indexer access for configuration dictionaries, headers, and protocol metadata.
+
+---
+
+## Document: docs/topic--domain-model.md (Domain Model & Vocabulary)
+
+# Domain Model & Vocabulary
+
+Core domain concepts, resource ownership models, state transitions, and error handling semantics across `ActDim.Practix.Common`.
+
+---
+
+## Domain Glossary
+
+| Term | Definition | Primary Type |
+| :--- | :--- | :--- |
+| **Ambient Context** | Immutable dictionary of execution metadata bound to the current asynchronous execution flow (`AsyncLocal`). | `AmbientContext` |
+| **Pooled Object Handle** | Leased wrapper around a pooled resource that returns the resource to the pool on disposal or discards it on failure. | `AsyncObjectPool<T>.PooledObject` |
+| **Discard Operation** | Unbinds a corrupted or faulted instance from the pool, invokes disposer, and restores semaphore capacity. | `AsyncObjectPool<T>.DiscardAsync` |
+| **Caching Proxy** | Higher-order delegate decorator intercepting invocations to read from or populate cache storage. | `IMemoryCachingProxy`, `IDistributedCachingProxy` |
+| **Buffer Owner** | Owned buffer lease carrying valid length that returns rented memory to `ArrayPool` on disposal. | `IBufferOwner<T>`, `ArrayPoolBufferOwner<T>` |
+| **Atomic Disposal Action** | Thread-safe single-execution callback executed at most once upon `Dispose()` or `DisposeAsync()`. | `DisposableAction`, `DisposableAsyncAction` |
+| **Random ID Generator** | CSPRNG-backed uniform random token generator supporting Base62, Base58, and Crockford Base32. | `RandomId` |
+| **Weak Table** | Map holding weak references to keys, automatically cleaned up by GC finalization with custom equality support. | `WeakTable<K, V>` |
+| **Composite Key** | Immutable struct representing an ordered tuple of objects evaluated for element-wise value equality. | `CompositeKey` |
+
+---
+
+## State Transitions & Lifecycles
+
+### 1. Object Pool State Machine
+```
+[Uninstantiated] ---> GetAsync() ---> (Pool Capacity Check via Semaphore)
+                           |
+            +--------------+--------------+
+            |                             |
+    [Idle Item in Queue]         [Invoke Factory()]
+            |                             |
+            +--------------> [Leased Handle (PooledObject)]
+                                    |
+                    +---------------+---------------+
+                    |                               |
+              DisposeAsync()                  DiscardAsync()
+                    |                               |
+       [Return to Queue FIFO]           [Invoke Disposer Delegate]
+       [Release Semaphore]              [Release Semaphore Capacity]
+```
+
+### 2. Memory Buffer Rental Lifecycle
+```
+[ArrayPool<T>.Shared]
+        |
+        +---> ArrayPoolBufferOwner<T>.Rent(size)
+                    |
+              [IBufferOwner<T> Handle]
+              |-- .Array (rented bucket array)
+              |-- .Length (exact requested length)
+              |-- .Memory (slice: [0..Length])
+                    |
+              [Dispose()]
+                    |
+              [Interlocked Exchange] ---> Array returned to ArrayPool
+```
+
+---
+
+## Error Handling & Exception Guarantees
+
+1. **Pool Drain Fault-Tolerance**: If exceptions occur while disposing pooled items during `AsyncObjectPool.DisposeAsync()`, the pool completes draining all items and throws an `AggregateException` aggregating all individual errors.
+2. **Factory Failure Isolation**: If a factory throws an exception during `AsyncObjectPool.GetAsync()` or `ConcurrentFactoryDictionary.GetOrCreateValue()`, the failed state is pruned immediately, allowing subsequent requests to retry without stale error persistence.
+3. **Format Detection Exceptions**: Format sniffing throws `DataFormatException` on invalid magic bytes, and `NotSupportedException` for formats with no BCL codec (e.g. RAR, 7z).
+4. **Disposed Buffer Access**: Attempting to access `.Array` or `.Memory` on a disposed `IBufferOwner<T>` throws `ObjectDisposedException`.
+
+---
+
+## Document: docs/topic--extensions-and-utilities.md (Extensions & Common Utilities)
+
+# Extensions & Common Utilities
+
+`ActDim.Practix.Common` provides an extensive suite of high-performance BCL extensions and utilities focused on zero-allocation I/O, guard clauses, string encoding, task combinators, and collision-resistant random identifiers.
+
+---
+
+## Stream Extensions (`StreamExtensions`)
+
+High-performance stream helpers that leverage underlying buffer visibility (`TryGetBuffer`) and `ArrayPool<byte>.Shared`:
+
+```csharp
+// 1. Decode stream to string (zero copy for exposable MemoryStream, UTF-8 without BOM default)
+string content = await stream.GetStringAsync();
+
+// 2. Encode string directly into stream without allocating StreamWriter
+int bytesWritten = await stream.WriteStringAsync("payload content");
+
+// 3. Zero-allocation stream copying (writes directly from internal buffer when available)
+await memoryStream.ZeroAllocCopyToAsync(destinationStream);
+
+// 4. Copy whole stream into pooled RecyclableMemoryStream
+using MemoryStream pooledStream = await sourceStream.ToMemoryAsync();
+
+// 5. Read entire stream into pooled IBufferOwner<byte>
+using IBufferOwner<byte> bufferOwner = await stream.ReadBytesAsync();
+
+// 6. Write in bounded chunks with fine-grained cancellation checks
+await destinationStream.WriteInChunksAsync(largeByteArray, chunkSize: 8192, ct);
+```
+
+---
+
+## String Extensions (`StringExtensions`)
+
+Zero-allocation string conversion and memory streaming:
+
+```csharp
+// Encode string directly into pooled MemoryStream
+using MemoryStream stream = await "text payload".ToMemoryAsync();
+```
+
+---
+
+## Task & Threading Extensions (`TaskExtensions`, `ThreadSafe`)
+
+Extensions for task manipulation, timeout decoration, and cancellation handling:
+
+- `WithCancellation(CancellationToken)`: Wraps an un-cancellable task with a cooperative cancellation token.
+- `WithTimeout(TimeSpan)`: Wraps task with an async timeout deadline.
+- `IgnoreCancellation()`: Safely suppresses `OperationCanceledException` when tasks are cancelled intentionally.
+
+---
+
+## Guard Clauses (`GuardExtensions`)
+
+Fluent argument validation helpers:
+
+```csharp
+Guard.Against.Null(arg, nameof(arg));
+Guard.Against.NullOrEmpty(str, nameof(str));
+Guard.Against.NegativeOrZero(count, nameof(count));
+```
+
+---
+
+## Cryptographic & Random Identifiers (`RandomId`)
+
+Generates high-density, URL-safe, collision-resistant random identifiers using `RandomNumberGenerator`:
+
+```csharp
+// Base62 (default): a-z, A-Z, 0-9
+string id1 = RandomId.Generate(12);
+
+// Base58: removes visually ambiguous characters (0, O, I, l)
+string id2 = RandomId.Generate(16, IdAlphabetType.Base58);
+
+// Crockford Base32: human-readable base 32
+string id3 = RandomId.Generate(10, IdAlphabetType.CrockfordBase32);
+
+// Custom alphabet with uniqueness validation
+string customId = RandomId.Generate(8, "ABCDEF123456");
+```
+
+---
+
+## Type & Introspection Helpers (`Introspection`)
+
+Provides structured reflection metadata caching (`IntrospectionInfo`, `MethodIntrospectionInfo`, `FieldIntrospectionInfo`) and `NameHelper` for sanitized member/type name resolution.
+
+---
+
+## Document: docs/topic--memory-and-disposal.md (Memory Management & Disposal Lifecycle)
+
+# Memory Management & Disposal Lifecycle
+
+`ActDim.Practix.Common` provides high-performance memory pooling abstractions, deterministic buffer ownership models, recyclable stream managers, atomic disposal actions, and GC reachability observers.
+
+---
+
+## Buffer Ownership Model (`IBufferOwner<T>` & `ArrayPoolBufferOwner<T>`)
+
+In high-throughput .NET applications, renting arrays directly from `ArrayPool<T>.Shared` often leads to bugs where developers forget to return arrays, return arrays multiple times, or accidentally read past the logical data length (since rented arrays have bucketing power-of-two lengths).
+
+`IBufferOwner<T>` solves these issues by encapsulating leased memory in a deterministic, disposable handle:
+
+```csharp
+public interface IBufferOwner<T> : IDisposable
+{
+    T[] Array { get; }
+    Memory<T> Memory { get; }
+    int Length { get; }
+}
+```
+
+### 1. `ArrayPoolBufferOwner<T>` (Pooled Array Wrapper)
+
+Rents an array of at least `size` from an `ArrayPool<T>` (defaulting to `ArrayPool<T>.Shared`):
+
+```csharp
+using (IBufferOwner<byte> buffer = ArrayPoolBufferOwner<byte>.Rent(1024))
+{
+    byte[] rawArray = buffer.Array;        // Rented bucket array (e.g. Length = 1024 or 2048)
+    int validLength = buffer.Length;        // Exactly 1024 (the requested length)
+    Memory<byte> slice = buffer.Memory;     // Slice: rawArray.AsMemory(0, 1024)
+
+    // Pass buffer.Memory to socket, serializer, or crypto routines
+    await socket.ReceiveAsync(buffer.Memory, SocketFlags.None);
+} // Dispose returns the rented array back to ArrayPool<T>.Shared via Interlocked.Exchange
+```
+
+### Key Guarantees:
+- **Exact Logical Slicing**: `buffer.Memory` is automatically sliced to `[0..Length]`, preventing callers from inspecting dirty uninitialized bytes in the remainder of the pool bucket.
+- **Double-Return & Use-After-Free Protection**: `Dispose()` uses `Interlocked.Exchange(ref _array, null)`. Calling `Dispose()` multiple times is an idempotent no-op. Attempting to access `.Array` or `.Memory` after disposal throws `ObjectDisposedException`.
+
+### 2. `ArrayBufferOwner<T>` (Unpooled / Managed Array Wrapper)
+
+Wraps an existing managed array in the `IBufferOwner<T>` contract when pooling is not required (e.g., small arrays or pre-allocated constants):
+
+```csharp
+byte[] preallocated = new byte[64];
+using IBufferOwner<byte> owner = new ArrayBufferOwner<byte>(preallocated);
+```
+
+---
+
+## Process-Wide Recyclable Stream Pooling (`MemoryManager.Default`)
+
+`MemoryManager.Default` exposes a singleton `RecyclableMemoryStreamManager` configured for server workloads, eliminating Large Object Heap (LOH) fragmentation caused by `MemoryStream` expansions:
+
+```csharp
+using MemoryStream stream = MemoryManager.Default.GetStream("NetworkProcessor");
+
+await inputPayload.CopyToAsync(stream);
+stream.Position = 0;
+```
+
+### High-Performance Configuration Matrix:
+
+```csharp
+var blockSize = 8 * 1024;               // 8 KB small blocks
+var largeBufferMultiple = 1024 * 1024;    // 1 MB increments for large blocks
+var maxBufferSize = 16 * 1024 * 1024;     // 16 MB maximum single buffer size
+var maximumFreeSmallPoolBytes = 64 * 1024 * 1024;   // 64 MB small pool capacity
+var maximumFreeLargePoolBytes = 256 * 1024 * 1024;  // 256 MB large pool capacity
+```
+
+### Critical Invariants:
+1. **`ThrowExceptionOnToArray = true`**:
+   - Calling `.ToArray()` on a `RecyclableMemoryStream` allocates a contiguous byte array on the heap, completely defeating the purpose of memory pooling.
+   - `MemoryManager.Default` enables `ThrowExceptionOnToArray`, forcing developers to use zero-copy APIs (`GetBuffer()`, `TryGetBuffer()`, `ZeroAllocCopyTo()`, `ReadBytes()`).
+2. **`AggressiveBufferReturn = true`**:
+   - Stream segments and large buffers are immediately returned to pool buckets upon `stream.Dispose()`.
+
+---
+
+## Atomic Disposal Primitives (`DisposableAction` & `DisposableAsyncAction`)
+
+Encapsulates cleanup logic in thread-safe `IDisposable` and `IAsyncDisposable` wrappers that guarantee single execution:
+
+```csharp
+// 1. Synchronous atomic action
+IDisposable releaseLock = new DisposableAction(() => Mutex.ReleaseMutex());
+releaseLock.Dispose(); // Executes callback
+releaseLock.Dispose(); // Safe no-op
+
+// 2. Non-allocating parameterized action (no closure allocation)
+IDisposable scopedToken = new DisposableAction<string>(
+    state => RemoveLock(state), 
+    "resource_key_42"
+);
+
+// 3. Asynchronous atomic action
+IAsyncDisposable asyncCleanup = new DisposableAsyncAction(async () =>
+{
+    await connection.CloseAsync();
+});
+await asyncCleanup.DisposeAsync();
+```
+
+---
+
+## Object Reachability Observer (`ReachabilityObserver<T>`)
+
+Monitors when an unmanaged or weak reference target becomes unreachable by the Garbage Collector without modifying the target class:
+
+```csharp
+var tracker = new LargeResource();
+
+ReachabilityObserver<LargeResource>.Subscribe(tracker, () =>
+{
+    Console.WriteLine("LargeResource was garbage collected");
+});
+```
+
+### Rules & Internal Operation:
+- Attaches a lightweight finalizer node via `ConditionalWeakTable<T, Observer>`.
+- **Constraint**: The subscription callback delegate must **never capture or reference** the observed object instance (such a reference would form a strong root and prevent the object from ever being collected).
+
+---
+
+## Document: docs/topic--setup-and-workflow.md (Setup, Installation & Developer Workflows)
+
+# Setup, Installation & Developer Workflows
+
+Installation instructions, dependency injection setup, and automated testing workflows for `ActDim.Practix.Common`.
+
+---
+
+## Package Installation
+
+Install via the .NET CLI:
+```bash
+dotnet add package ActDim.Practix.Common
+```
+
+---
+
+## Microsoft Dependency Injection Registration
+
+`ActDim.Practix.Common` provides modular service registration extensions:
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+
+public void ConfigureServices(IServiceCollection services)
+{
+    // Ambient Execution Context
+    services.AddAmbientContext();
+
+    // Stream & Payload Compression Manager
+    services.AddCompressionManager();
+
+    // Resilient Caching Proxies
+    services.AddMemoryCache();
+    services.AddMemoryCachingProxy();
+    services.AddDistributedCachingProxy();
+}
+```
+
+---
+
+## Automated Testing & Quality Gates
+
+The test suite is located in `Tests/Common.Tests/` using xUnit v3:
+
+```bash
+# Run tests with quiet output
+dotnet test Tests/Common.Tests/ActDim.Practix.Common.Tests.csproj -v q
+```
+
+### Verified Test Subsystems (248 Tests Total):
+- `Tests/Common.Tests/Context/`: `AmbientContextTests`, `AsyncLocalFlowTests`, `ScopeIsolationTests`.
+- `Tests/Common.Tests/Pooling/`: `AsyncObjectPoolTests`, `DiscardAsyncTests`, `FaultTolerantDrainTests`.
+- `Tests/Common.Tests/Caching/`: `MemoryCachingProxyTests`, `DistributedCachingProxyTests`.
+- `Tests/Common.Tests/Compression/`: `CompressionManagerTests`, `ArchiveReaderTests`, `FormatSniffingTests`.
+- `Tests/Common.Tests/Collections/`: `ConcurrentFactoryDictionaryTests`, `WeakTableTests`, `CompositeKeyTests`.
+- `Tests/Common.Tests/Extensions/`: `StreamExtensionsTests`, `StringExtensionsTests`, `TaskExtensionsTests`.
+- `Tests/Common.Tests/Runtime/`: `ReachabilityObserverTests`, `RandomIdTests`.

@@ -11,6 +11,8 @@ issues_completed: []
 decisions: []
 risks_logged: []
 spikes_conducted: []
+commit: unknown
+milestone: v2.0.0-along-transition
 ---
 
 # Session: Along Protocol v2.2.18 Upgrade & Knowledge Base Standardization

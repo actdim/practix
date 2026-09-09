@@ -1,27 +1,27 @@
-# Issues   (glyphs: [ ] open  [~] in-progress  [!] blocked  [x] done)
+# Active Issues
 
 ## Active
-- [ ] feat--pipeline-register-for-dispose: Decoupled `RegisterForDispose` in ASP.NET Core pipeline & execution scopes.
-- [ ] feat--memory-arena-auto-cleanup: Memory Arena pattern with automatic cleanup of rented streams/buffers upon scope disposal.
-- [ ] feat--iconfiguration-application-config-manager: Convenient application configuration manager based on IConfiguration.
-- [~] debt--compression-interface-cleanup: 14 documented problems in `ICompressionManager` / `IArchiveEntry` / `ArchiveEntrySource`.
-- [ ] task--compression-large-payload-spill: `CompressionManager.CreateTempStream` memory vs FileStream spilling.
-- [ ] task--adaptive-stream: read-only seekable `Stream` for memory/temp-file spilling.
-- [ ] feat--dynamic-array-json-converter: Evaluate DynamicArray wrapper for JSON array deserialization in ObjectJsonConverter.
-- [ ] debt--stringsplit-regex-cache: Cache compiled Regex in StringExtensions.Split.
-- [ ] debt--arraysegment-blockcopy-optimization: Evaluate Buffer.BlockCopy / MemoryMarshal fast path in ArraySegmentExtensions.CloneToArray.
-- [ ] feat--large-payload-compression: Implement streaming/spill-to-file compression for large payloads in CompressionManager.
-- [ ] feat--encoding-async-extensions: Async Encoding stream extensions (GetStringAsync and CopyToStreamAsync).
-- [ ] feat--enumerable-estimation-extensions: Enumerable estimation and predicate extensions.
+- [ ] `(debt)` [arraysegment-blockcopy-optimization](ISSUES/debt--arraysegment-blockcopy-optimization.md)
+- [ ] `(debt)` [compression-interface-cleanup](ISSUES/debt--compression-interface-cleanup.md)
+- [ ] `(debt)` [stringsplit-regex-cache](ISSUES/debt--stringsplit-regex-cache.md)
+- [ ] `(feat)` [dynamic-array-json-converter](ISSUES/feat--dynamic-array-json-converter.md)
+- [ ] `(feat)` [encoding-async-extensions](ISSUES/feat--encoding-async-extensions.md)
+- [ ] `(feat)` [enumerable-estimation-extensions](ISSUES/feat--enumerable-estimation-extensions.md)
+- [ ] `(feat)` [iconfiguration-application-config-manager](ISSUES/feat--iconfiguration-application-config-manager.md)
+- [ ] `(feat)` [large-payload-compression](ISSUES/feat--large-payload-compression.md)
+- [ ] `(feat)` [memory-arena-auto-cleanup](ISSUES/feat--memory-arena-auto-cleanup.md)
+- [ ] `(feat)` [pipeline-register-for-dispose](ISSUES/feat--pipeline-register-for-dispose.md)
+- [ ] `(task)` [adaptive-stream](ISSUES/task--adaptive-stream.md)
+- [ ] `(task)` [compression-large-payload-spill](ISSUES/task--compression-large-payload-spill.md)
+
+## Backlog
+<!-- Planned or deferred issues -->
 
 ## Done (recent)
-- [x] docs--comprehensive-knowledge-base (2026-09-03): Comprehensive Knowledge Base expansion for all Practix.Common subsystems.
-- [x] bug--getasync-disposed-check-and-cleanup (2026-08-31): Guard GetAsync with ThrowIfDisposed and clean up objects created during disposal.
-- [x] bug--disposeasync-drain-fault-tolerance (2026-08-31): Fault-tolerant idle object draining with AggregateException in AsyncObjectPool.DisposeAsync.
-- [x] debt--remove-memory-stream-manager-extensions (2026-08-20): Removed dead MemoryStreamManagerExtensions class and GetContextStream methods.
-- [x] debt--ambient-context-direct-storage (2026-08-19): Direct AsyncLocal in AmbientContext, removed AmbientContextProvider, added scoped extensions and delegates.
-- [x] debt--enumerable-dead-code (2026-08-19): Removed dead/commented code from EnumerableExtensions.cs and modernized Chunk partitioning.
-- [x] debt--factorydict-replace-rwlock (2026-08-19): Replaced ReaderWriterLockSlim in FactoryDictionary / FuncExtensions with lock-free ConcurrentFactoryDictionary.
-- [x] debt--remove-autofac-dependency (2026-08-17): Remove Autofac dependency and migrate to standard Microsoft Dependency Injection.
-- [x] feat--extract-practix-json-assembly (2026-08-17): Extract JSON serialization subsystem into dedicated ActDim.Practix.Json assembly.
-- [x] debt--json-serializer-reflectron-optimization (2026-08-17): Replace un-cached reflection in StandardJsonSerializer with fast compiled expression tree setters and property metadata cache.
+- [x] `(bug)` [async-object-pool-disposal-race](ISSUES/done/bug--async-object-pool-disposal-race.md)
+- [x] `(docs)` [deepen-common-components](ISSUES/done/docs--deepen-common-components.md)
+- [x] `(docs)` [comprehensive-knowledge-base](ISSUES/done/docs--comprehensive-knowledge-base.md)
+- [x] `(feat)` [async-object-pool-discard](ISSUES/done/feat--async-object-pool-discard.md)
+- [x] `(bug)` [getasync-disposed-check-and-cleanup](ISSUES/done/bug--getasync-disposed-check-and-cleanup.md)
+- [x] `(bug)` [disposeasync-drain-fault-tolerance](ISSUES/done/bug--disposeasync-drain-fault-tolerance.md)
+<!-- 7 older completed issue(s) archived in .along/ISSUES/done/ -->

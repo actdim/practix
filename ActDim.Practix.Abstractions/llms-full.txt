@@ -1,0 +1,142 @@
+# ActDim.Practix.Abstractions - Full Documentation Context
+
+> Knowledge Base and documentation index for ActDim.Practix.Abstractions.
+
+---
+
+## Document: README.md (Overview)
+
+# ActDim.Practix.Abstractions
+
+`ActDim.Practix.Abstractions` defines the core contract interfaces, abstractions, and data models for the ActDim.Practix framework ecosystem.
+
+## Features
+
+- **Ambient Context Abstractions:** Defines `IAmbientContext` and `IAmbientContextProvider` for managing ambient request/operation state safely across asynchronous call flows (`AsyncLocal<T>`).
+- **Compression & Archival Contracts:** Standardized interfaces for stream and buffer compression (`ICompressionManager`) supporting `GZip`, `Brotli`, `Deflate`, `Tar`, `Zip`, and archive inspection (`IArchiveInfo`, `IArchiveEntry`).
+- **Domain Exception Contracts:** Framework exception contracts (`DataFormatException`, `IncompleteDataException`).
+- **Serialization & JSON Abstractions:** Core serialization contracts (`IJsonSerializer`, `IBinarySerializer`, `IStreamSerializer`, `IStringSerializer`).
+- **Pattern Abstractions:** Reusable design pattern contracts (`IProvider<T>`, `IAsyncProvider<T>`, `IFactory<T>`, `IAsyncFactory<T>`, `IBuilder<T>`, `IAsyncBuilder<T>`, `ICommand<T>`, `IAsyncCommand<T>`, `IHandler<T>`, `IAsyncHandler<T>`, `ISpecification<T>`, `IAsyncSpecification<T>`).
+
+## Installation
+
+Install via the .NET CLI:
+
+```bash
+dotnet add package ActDim.Practix.Abstractions
+```
+
+Or via Package Manager Console:
+
+```powershell
+Install-Package ActDim.Practix.Abstractions
+```
+
+## Quick Start
+
+### Using Ambient Context Interfaces
+
+```csharp
+using ActDim.Practix.Abstractions.Context;
+
+public class AuditService
+{
+    private readonly IAmbientContextProvider _contextProvider;
+
+    public AuditService(IAmbientContextProvider contextProvider)
+    {
+        _contextProvider = contextProvider;
+    }
+
+    public void ProcessOperation()
+    {
+        var context = _contextProvider.Current;
+        context.PushProperty("UserId", "user_12345");
+        
+        // Retrieve property later in the call stack
+        if (context.Properties.TryGetValue("UserId", out var userId))
+        {
+            Console.WriteLine($"Current User: {userId}");
+        }
+    }
+}
+```
+
+### Using Serialization Abstractions
+
+```csharp
+using ActDim.Practix.Abstractions.Json;
+
+public class OrderProcessor
+{
+    private readonly IJsonSerializer _jsonSerializer;
+
+    public OrderProcessor(IJsonSerializer jsonSerializer)
+    {
+        _jsonSerializer = jsonSerializer;
+    }
+
+    public string SerializeOrder<T>(T order)
+    {
+        return _jsonSerializer.Serialize(order);
+    }
+}
+```
+
+## Dependency Injection
+
+Implementations of these interfaces are available in concrete packages such as [`ActDim.Practix.Common`](https://www.nuget.org/packages/ActDim.Practix.Common) and [`ActDim.Practix.Json`](https://www.nuget.org/packages/ActDim.Practix.Json).
+
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.
+
+---
+
+## License
+
+This project is licensed under the [MIT License](../LICENSE).
+
+---
+
+## Document: AGENTS.md (Agent Conventions & Protocol)
+
+<!-- BEGIN ALONG-PROTOCOL ref=../AGENTS.md (managed by along-init - do not edit by hand) -->
+This folder belongs to a repository that uses the ALONG structure. The full working
+guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
+read it there. This folder keeps its OWN `.along/` state; use the nearest one.
+Only this folder's specifics follow.
+<!-- END ALONG-PROTOCOL -->## Project specifics
+
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/csharp.md](.along/rules/languages/csharp.md)`
+<!-- END ALONG-RULES -->
+
+<!-- Fill in: what this project is, how to build / test / run, architecture map, project-specific conventions. -->
+
+---
+
+## Document: docs/topic--architecture.md (System Architecture & Flow)
+
+# System Architecture & Flow
+
+High-level architectural components, module boundaries, and execution models.
+
+---
+
+## Document: docs/topic--domain-model.md (Domain Model & Entities)
+
+# Domain Model & Entities
+
+Core domain terminology, data models, and schema relationships.
+
+---
+
+## Document: docs/topic--setup-and-workflow.md (Setup & Developer Workflow)
+
+# Setup & Developer Workflow
+
+Build instructions, test suites, local development, and skill deployment guidelines.

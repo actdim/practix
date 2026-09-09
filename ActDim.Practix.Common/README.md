@@ -232,6 +232,14 @@ byte[] decompressedData = compression.Decompress(compressedData, CompressionForm
 dotnet test Tests/Common.Tests/ActDim.Practix.Common.Tests.csproj
 ```
 
+---
+
+## AI-Assisted Development
+
+Developed with [Along](https://github.com/actdim/along) - a provider-agnostic context and memory system for AI coding agents.
+
+---
+
 ## License
 
 This project is licensed under the [MIT License](../LICENSE).
