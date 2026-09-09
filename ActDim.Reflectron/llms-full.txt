@@ -1,6 +1,6 @@
 # ActDim.Reflectron - Full Documentation Context
 
-> Knowledge Base and documentation index for ActDim.Reflectron.
+> `ActDim.Reflectron` is a high-performance, memory-safe .NET reflection and dynamic member access engine. It provides compiled expression-tree property/field accessors, cached delegates, and fluent weak-referenced object wrappers that eliminate traditional `System.Reflection` runtime overhead.
 
 ---
 

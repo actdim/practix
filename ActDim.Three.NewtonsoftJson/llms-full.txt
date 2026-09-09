@@ -1,6 +1,6 @@
 # ActDim.Three.NewtonsoftJson - Full Documentation Context
 
-> Knowledge Base and documentation index for ActDim.Three.NewtonsoftJson.
+> `ActDim.Three.NewtonsoftJson` is the official `Newtonsoft.Json` compatibility adapter and converter library for [`ActDim.Three`](../ActDim.Three/README.md).
 
 ---
 

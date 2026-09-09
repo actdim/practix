@@ -31,10 +31,7 @@
 
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-			<_Parameter1>Service.Tests</_Parameter1>
-		</AssemblyAttribute>
-		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-			<_Parameter1>ActDim.Practix.Service.Tests</_Parameter1>
+			<_Parameter1>ActDim.Practix.Service.Tests, PublicKey=$(ActDimPublicKey)</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
 

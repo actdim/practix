@@ -10,6 +10,8 @@ issues_completed: [bug--fix-sync-over-async-constructor]
 decisions: []
 risks_logged: []
 spikes_conducted: []
+commit: unknown
+milestone: v2.0.0-along-transition
 ---
 
 # Session: Fix Sync-over-Async in SQLiteBlobRegistry Constructor

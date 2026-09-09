@@ -1,6 +1,6 @@
 # ActDim.Emitron.Razor - Full Documentation Context
 
-> Knowledge Base and documentation index for ActDim.Emitron.Razor.
+> `ActDim.Emitron.Razor` is a Roslyn-powered Razor template compilation and execution engine for .NET built on top of `ActDim.Emitron`.
 
 ---
 

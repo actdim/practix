@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.26"
+protocol_version: "2.2.27"
 slug: setup-and-workflow
 title: Setup & Workflow
 type: setup-workflow
 created: 2026-08-31
-updated: 2026-09-08
+updated: 2026-09-09
 tags: [workflow, setup]
 ---
 

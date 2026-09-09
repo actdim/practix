@@ -1,6 +1,6 @@
 # ActDim.Observability - Full Documentation Context
 
-> Knowledge Base and documentation index for ActDim.Observability.
+> A lightweight, OpenTelemetry-centric observability library for .NET applications built on top of `Microsoft.Extensions.Logging` and `System.Diagnostics.Activity`.
 
 ---
 

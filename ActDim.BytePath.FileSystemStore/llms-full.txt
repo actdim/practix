@@ -1,6 +1,6 @@
 # ActDim.BytePath.FileSystemStore - Full Documentation Context
 
-> Knowledge Base and documentation index for ActDim.BytePath.FileSystemStore.
+> File-system blob data store implementation for `ActDim.BytePath`.
 
 ---
 

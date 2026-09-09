@@ -1,11 +1,10 @@
 # Active Issues
 
 ## Active
-<!-- No active issues -->
+- [ ] `(feat)` [unified-configurable-authentication](ISSUES/feat--unified-configurable-authentication.md)
 
 ## Backlog
 <!-- Planned or deferred issues -->
-- [ ] `(feat)` [unified-configurable-authentication](ISSUES/feat--unified-configurable-authentication.md)
 
 ## Done (recent)
 - [x] `(docs)` [add-along-readme-section](ISSUES/done/docs--add-along-readme-section.md)

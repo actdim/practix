@@ -1,11 +1,11 @@
 ---
 protocol: along
-protocol_version: "2.2.26"
+protocol_version: "2.2.27"
 slug: INDEX
 title: Knowledge Base Topic Index
 type: index
-created: 2026-09-08
-updated: 2026-09-08
+created: 2026-09-09
+updated: 2026-09-09
 tags: [index, kb, topics, map]
 ---
 

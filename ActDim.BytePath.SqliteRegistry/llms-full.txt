@@ -1,6 +1,6 @@
 # ActDim.BytePath.SqliteRegistry - Full Documentation Context
 
-> Knowledge Base and documentation index for ActDim.BytePath.SqliteRegistry.
+> SQLite metadata registry implementation for `ActDim.BytePath`.
 
 ---
 
