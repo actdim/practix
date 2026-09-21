@@ -72,4 +72,10 @@ data/
 .env
 .env.local
 *.secret
-*.key
+*.key
+
+# Python cache & Along session/diagnostics
+__pycache__/
+*.py[cod]
+.along/diagnostics/
+**/.along/.session/

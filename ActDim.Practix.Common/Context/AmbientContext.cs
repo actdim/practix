@@ -2,7 +2,6 @@ using ActDim.BytePath;
 using ActDim.Practix.Abstractions.Compression;
 using ActDim.Practix.Abstractions.Context;
 using ActDim.Practix.Disposal;
-using Ardalis.GuardClauses;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -29,7 +28,7 @@ namespace ActDim.Practix.Context
         /// <inheritdoc />
         public IDisposable PushProperty(string name, object value)
         {
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
 
             var previous = _current.Value ?? ImmutableDictionary<string, object>.Empty;
             var existed = previous.TryGetValue(name, out var oldValue);

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Ardalis.GuardClauses;
 
 namespace ActDim.Emitron.Razor
 {
@@ -23,7 +22,7 @@ namespace ActDim.Emitron.Razor
         /// <returns>The generated C# script code.</returns>
         public static string Transpile(string razorTemplate, string inputParameterName = Emitron.DefaultInputParameterName)
         {
-            Guard.Against.Null(razorTemplate, nameof(razorTemplate));
+            ArgumentNullException.ThrowIfNull(razorTemplate);
             var normParam = Emitron.NormalizeInputParameterName(inputParameterName);
 
             var codeBuilder = new StringBuilder();

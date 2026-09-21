@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.26"
 slug: topic--random-id
 title: Topic  Random Id
 type: topic

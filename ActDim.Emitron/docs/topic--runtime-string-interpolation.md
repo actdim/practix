@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.26"
 slug: topic--runtime-string-interpolation
 title: Topic  Runtime String Interpolation
 type: topic

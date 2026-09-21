@@ -1,4 +1,3 @@
-using Ardalis.GuardClauses;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -41,7 +40,7 @@ namespace ActDim.Reflectron
         /// <returns>The extracted <see cref="MemberInfo"/>.</returns>
         public static MemberInfo GetMemberInfo(LambdaExpression expr)
         {
-            Guard.Against.Null(expr, nameof(expr));
+            ArgumentNullException.ThrowIfNull(expr);
 
             var bodyExpr = expr.Body;
 

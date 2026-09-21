@@ -1,5 +1,4 @@
 using System;
-using Ardalis.GuardClauses;
 
 namespace ActDim.Emitron
 {
@@ -21,8 +20,8 @@ namespace ActDim.Emitron
             object input,
             string inputParameterName = Emitron.DefaultInputParameterName)
         {
-            Guard.Against.Null(template, nameof(template));
-            Guard.Against.Null(input, nameof(input));
+            ArgumentNullException.ThrowIfNull(template);
+            ArgumentNullException.ThrowIfNull(input);
 
             return Interpolator.Format(template, input, inputParameterName);
         }

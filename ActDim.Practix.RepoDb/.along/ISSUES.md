@@ -7,4 +7,4 @@
 <!-- Planned or deferred issues -->
 
 ## Done (recent)
-<!-- No completed issues -->
+- [x] `(feat)` [interpolated-sql-expressions](ISSUES/done/feat--interpolated-sql-expressions.md)

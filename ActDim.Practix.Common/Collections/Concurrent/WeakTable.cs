@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Ardalis.GuardClauses;
 
 namespace ActDim.Practix.Collections.Concurrent // Specialized
 {
@@ -123,7 +122,7 @@ namespace ActDim.Practix.Collections.Concurrent // Specialized
 		/// <returns>A value for the key.</returns>
 		public V GetValue(K key, Func<K, V> createValue)
 		{
-			Guard.Against.Null(key, nameof(key));
+			ArgumentNullException.ThrowIfNull(key, nameof(key));
 
 			GetOrAdd(key, createValue, out State state);
 
@@ -139,7 +138,7 @@ namespace ActDim.Practix.Collections.Concurrent // Specialized
 		/// </returns>
 		public bool Remove(K key)
 		{
-			Guard.Against.Null(key, nameof(key));
+			ArgumentNullException.ThrowIfNull(key, nameof(key));
 
 			if (!_values.TryGetValue(key, out WeakReference<State> stateRef))
 			{
@@ -170,7 +169,7 @@ namespace ActDim.Practix.Collections.Concurrent // Specialized
 		/// <returns>true if value is successfully added, and false otherwise.</returns>
 		public bool TryAdd(K key, V value)
 		{
-			Guard.Against.Null(key, nameof(key));
+			ArgumentNullException.ThrowIfNull(key, nameof(key));
 
 			return GetOrAdd(key, k => value, out State state);
 		}

@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Ardalis.GuardClauses;
 
 namespace ActDim.Practix.Extensions
 {
@@ -18,7 +17,7 @@ namespace ActDim.Practix.Extensions
         /// <returns>The original method declared on the enclosing class marked with <see cref="AsyncStateMachineAttribute"/>.</returns>
         public static MethodBase GetRealMethodFromAsyncMethod(this MethodBase asyncMethod)
         {
-            Guard.Against.Null(asyncMethod, nameof(asyncMethod));
+            ArgumentNullException.ThrowIfNull(asyncMethod, nameof(asyncMethod));
             var generatedType = asyncMethod.DeclaringType;
             var methods = generatedType.DeclaringType.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             return methods.Single(mi => mi.GetCustomAttributes<AsyncStateMachineAttribute>().Any(a => a.StateMachineType == generatedType));

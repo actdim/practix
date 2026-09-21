@@ -1,4 +1,3 @@
-using Ardalis.GuardClauses;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -74,7 +73,7 @@ namespace Microsoft.Extensions.Logging
             [CallerFilePath] string filePath = "",
             [CallerLineNumber] int lineNumber = 0)
         {
-            Guard.Against.Null(logger, nameof(logger));
+            ArgumentNullException.ThrowIfNull(logger, nameof(logger));
 
             var fileName = string.IsNullOrEmpty(filePath) ? string.Empty : Path.GetFileName(filePath);
             var scopeData = new Dictionary<string, object?>

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Ardalis.GuardClauses;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 
@@ -89,7 +88,7 @@ namespace ActDim.Emitron
             string inputParameterName = DefaultInputParameterName,
             EmitronOptions? options = null)
         {
-            Guard.Against.NullOrWhiteSpace(code, nameof(code));
+            ArgumentException.ThrowIfNullOrWhiteSpace(code);
             var normParam = NormalizeInputParameterName(inputParameterName);
             var effectiveOptions = options ?? DefaultOptions;
             var key = (code, normParam, typeof(T), effectiveOptions);
@@ -199,7 +198,7 @@ namespace ActDim.Emitron
             string inputParameterName = DefaultInputParameterName,
             EmitronOptions? options = null)
         {
-            Guard.Against.NullOrWhiteSpace(code, nameof(code));
+            ArgumentException.ThrowIfNullOrWhiteSpace(code);
             var normParam = NormalizeInputParameterName(inputParameterName);
             var effectiveOptions = options ?? DefaultOptions;
             var key = (code, normParam, typeof(Task<T>), effectiveOptions);
@@ -242,7 +241,7 @@ namespace ActDim.Emitron
             string inputParameterName = DefaultInputParameterName,
             EmitronOptions? options = null)
         {
-            Guard.Against.Null(input, nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
             return Compile<T>(code, inputParameterName, options)(input);
         }
 
@@ -278,7 +277,7 @@ namespace ActDim.Emitron
             IEnumerable<string>? usings = null,
             string inputParameterName = DefaultInputParameterName)
         {
-            Guard.Against.Null(input, nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
             return Compile<T>(code, assemblies, usings, inputParameterName)(input);
         }
 
@@ -300,7 +299,7 @@ namespace ActDim.Emitron
             IEnumerable<string>? usings = null,
             string inputParameterName = DefaultInputParameterName)
         {
-            Guard.Against.Null(input, nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
             return Compile<T>(code, types, usings, inputParameterName)(input);
         }
 
@@ -324,7 +323,7 @@ namespace ActDim.Emitron
             string inputParameterName = DefaultInputParameterName,
             EmitronOptions? options = null)
         {
-            Guard.Against.Null(input, nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
             return CompileAsync<T>(code, inputParameterName, options)(input);
         }
 

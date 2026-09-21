@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.27"
 slug: ambient-context
 title: Ambient Execution Context
 type: topic

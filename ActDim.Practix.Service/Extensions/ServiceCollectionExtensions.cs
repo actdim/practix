@@ -23,7 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddCompressionManager();
             services.AddMemoryCachingProxy();
             services.AddDistributedCachingProxy();
-            services.AddPractixJson();
+            services.AddCoreJsonSerializer();
 
             return services;
         }

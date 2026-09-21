@@ -1,6 +1,9 @@
 # Active Issues
 
 ## Active
+<!-- No active issues -->
+
+## Backlog
 - [ ] `(debt)` [repodb-sqlite-registry](ISSUES/debt--repodb-sqlite-registry.md)
 - [ ] `(feat)` [add-try-create-with-conflict-behavior](ISSUES/feat--add-try-create-with-conflict-behavior.md)
 - [ ] `(feat)` [async-enumerable-blob-find](ISSUES/feat--async-enumerable-blob-find.md)
@@ -11,9 +14,6 @@
 - [ ] `(task)` [multipart-upload-session](ISSUES/task--multipart-upload-session.md)
 - [ ] `(task)` [range-read](ISSUES/task--range-read.md)
 - [ ] `(task)` [read-lock-persists-mutations](ISSUES/task--read-lock-persists-mutations.md)
-
-## Backlog
-<!-- Planned or deferred issues -->
 
 ## Done (recent)
 - [x] `(bug)` [fix-lock-leak-on-io-failure](ISSUES/done/bug--fix-lock-leak-on-io-failure.md)

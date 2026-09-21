@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.26"
 slug: topic--csharp-script-evaluation
 title: Topic  Csharp Script Evaluation
 type: topic

@@ -19,7 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.*/
 
-using Ardalis.GuardClauses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -43,8 +42,8 @@ namespace ActDim.Practix.Extensions
         /// <returns>A sequence of chunks of size at most <paramref name="size"/>.</returns>
         public static IEnumerable<ReadOnlyCollection<T>> Partition<T>(this IEnumerable<T> source, int size)
         {
-            Guard.Against.Null(source, nameof(source));
-            Guard.Against.NegativeOrZero(size, nameof(size));
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size, nameof(size));
 
             foreach (var chunk in source.Chunk(size))
             {
@@ -65,9 +64,9 @@ namespace ActDim.Practix.Extensions
         /// </summary>
         public static Dictionary<TKey, TElement> ToDictionaryNonGreedy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer)
         {
-            Guard.Against.Null(source, nameof(source));
-            Guard.Against.Null(keySelector, nameof(keySelector));
-            Guard.Against.Null(elementSelector, nameof(elementSelector));
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(keySelector, nameof(keySelector));
+            ArgumentNullException.ThrowIfNull(elementSelector, nameof(elementSelector));
 
             var result = new Dictionary<TKey, TElement>(comparer);
 
@@ -96,9 +95,9 @@ namespace ActDim.Practix.Extensions
         /// </summary>
         public static Dictionary<TKey, TElement> ToDictionaryGreedy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer)
         {
-            Guard.Against.Null(source, nameof(source));
-            Guard.Against.Null(keySelector, nameof(keySelector));
-            Guard.Against.Null(elementSelector, nameof(elementSelector));
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(keySelector, nameof(keySelector));
+            ArgumentNullException.ThrowIfNull(elementSelector, nameof(elementSelector));
 
             var result = new Dictionary<TKey, TElement>(comparer);
 
@@ -200,8 +199,8 @@ namespace ActDim.Practix.Extensions
         /// <returns>The minimum value in the sequence or default value if sequence is empty.</returns>
         public static double MinOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector, double defaultValue)
         {
-            Guard.Against.Null(source, nameof(source));
-            Guard.Against.Null(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(selector, nameof(selector));
 
             var hasValue = false;
             var min = double.MaxValue;
@@ -230,8 +229,8 @@ namespace ActDim.Practix.Extensions
         /// <returns>The maximum value in the sequence or default value if sequence is empty.</returns>
         public static double MaxOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector, double defaultValue)
         {
-            Guard.Against.Null(source, nameof(source));
-            Guard.Against.Null(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(selector, nameof(selector));
 
             var hasValue = false;
             var max = double.MinValue;
@@ -283,8 +282,8 @@ namespace ActDim.Practix.Extensions
         /// </summary>
         public static bool EstimateCount<T>(this IEnumerable<T> source, int max, Func<T, bool> predicate)
         {
-            Guard.Against.Null(source, nameof(source));
-            Guard.Against.Null(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
 
             if (max <= 0)
             {
@@ -312,8 +311,8 @@ namespace ActDim.Practix.Extensions
         /// </summary>
         public static bool EstimateCount<T>(this IEnumerable<T> source, int max, Func<T, int, bool> predicate)
         {
-            Guard.Against.Null(source, nameof(source));
-            Guard.Against.Null(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
 
             if (max <= 0)
             {
@@ -345,8 +344,8 @@ namespace ActDim.Practix.Extensions
         [DebuggerNonUserCode]
         public static bool All<T>(this IEnumerable<T> source, Func<T, int, bool> predicate)
         {
-            Guard.Against.Null(source, nameof(source));
-            Guard.Against.Null(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
 
             var i = 0;
 
@@ -423,8 +422,8 @@ namespace ActDim.Practix.Extensions
         [DebuggerNonUserCode]
         public static void While<T>(this IEnumerable<T> source, Func<T, int, bool> callback)
         {
-            Guard.Against.Null(source, nameof(source));
-            Guard.Against.Null(callback, nameof(callback));
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(callback, nameof(callback));
 
             var i = 0;
             foreach (var element in source)

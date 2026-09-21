@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.27"
 slug: extensions-and-utilities
 title: Extensions & Common Utilities
 type: topic

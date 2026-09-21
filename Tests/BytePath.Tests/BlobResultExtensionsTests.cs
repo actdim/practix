@@ -21,6 +21,7 @@ namespace ActDim.BytePath.Tests
             var ex = Assert.Throws<InvalidOperationException>(() => result.EnsureSuccess());
             Assert.Contains("BLOB operation failed", ex.Message);
             Assert.Contains("KeyNotFound", ex.Message);
+            Assert.Contains("IsNew: False", ex.Message);
         }
 
         [Fact]

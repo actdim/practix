@@ -1,5 +1,4 @@
 using ActDim.Practix.Collections.Concurrent;
-using Ardalis.GuardClauses;
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -23,7 +22,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled field getter delegate.</returns>
         public static Delegate GetFieldGetter(FieldInfo fieldInfo)
         {
-            Guard.Against.Null(fieldInfo, nameof(fieldInfo));
+            ArgumentNullException.ThrowIfNull(fieldInfo);
             var pair = (typeof(Delegate), fieldInfo);
             return TypedFieldGetterCache.GetOrCreateValue(pair);
         }
@@ -37,7 +36,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled field getter delegate.</returns>
         public static Func<T, TField> GetFieldGetter<T, TField>(FieldInfo fieldInfo)
         {
-            Guard.Against.Null(fieldInfo, nameof(fieldInfo));
+            ArgumentNullException.ThrowIfNull(fieldInfo);
             var pair = (typeof(Func<T, TField>), fieldInfo);
             return (Func<T, TField>)TypedFieldGetterCache.GetOrCreateValue(pair);
         }
@@ -50,11 +49,14 @@ namespace ActDim.Reflectron
         /// <returns>A compiled field getter delegate.</returns>
         public static Delegate GetFieldGetter(Type type, string name)
         {
-            Guard.Against.Null(type, nameof(type));
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentNullException.ThrowIfNull(type);
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             var fieldInfo = type.GetField(name);
-            Guard.Against.Null(fieldInfo, nameof(name), $"Field '{name}' not found on type '{type.FullName}'.");
+            if (fieldInfo == null)
+            {
+                throw new ArgumentException($"Field '{name}' not found on type '{type.FullName}'.", nameof(name));
+            }
             return GetFieldGetter(fieldInfo);
         }
 
@@ -79,7 +81,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled field getter delegate.</returns>
         public static Func<T, TField> GetFieldGetter<T, TField>(Expression<Func<T, TField>> expr)
         {
-            Guard.Against.Null(expr, nameof(expr));
+            ArgumentNullException.ThrowIfNull(expr);
             var fieldInfo = GetFieldInfo(expr);
             return GetFieldGetter<T, TField>(fieldInfo);
         }
@@ -91,7 +93,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled field setter delegate.</returns>
         public static Delegate GetFieldSetter(FieldInfo fieldInfo)
         {
-            Guard.Against.Null(fieldInfo, nameof(fieldInfo));
+            ArgumentNullException.ThrowIfNull(fieldInfo);
             var pair = (typeof(Delegate), fieldInfo);
             return TypedFieldSetterCache.GetOrCreateValue(pair);
         }
@@ -105,7 +107,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled field setter delegate.</returns>
         public static Action<T, TField> GetFieldSetter<T, TField>(FieldInfo fieldInfo)
         {
-            Guard.Against.Null(fieldInfo, nameof(fieldInfo));
+            ArgumentNullException.ThrowIfNull(fieldInfo);
             var pair = (typeof(Action<T, TField>), fieldInfo);
             return (Action<T, TField>)TypedFieldSetterCache.GetOrCreateValue(pair);
         }
@@ -118,11 +120,14 @@ namespace ActDim.Reflectron
         /// <returns>A compiled field setter delegate.</returns>
         public static Delegate GetFieldSetter(Type type, string name)
         {
-            Guard.Against.Null(type, nameof(type));
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentNullException.ThrowIfNull(type);
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             var fieldInfo = type.GetField(name);
-            Guard.Against.Null(fieldInfo, nameof(name), $"Field '{name}' not found on type '{type.FullName}'.");
+            if (fieldInfo == null)
+            {
+                throw new ArgumentException($"Field '{name}' not found on type '{type.FullName}'.", nameof(name));
+            }
             return GetFieldSetter(fieldInfo);
         }
 
@@ -135,9 +140,12 @@ namespace ActDim.Reflectron
         /// <returns>A compiled field setter delegate.</returns>
         public static Action<T, TField> GetFieldSetter<T, TField>(string name)
         {
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentException.ThrowIfNullOrEmpty(name);
             var fieldInfo = typeof(T).GetField(name);
-            Guard.Against.Null(fieldInfo, nameof(name), $"Field '{name}' not found on type '{typeof(T).FullName}'.");
+            if (fieldInfo == null)
+            {
+                throw new ArgumentException($"Field '{name}' not found on type '{typeof(T).FullName}'.", nameof(name));
+            }
             return GetFieldSetter<T, TField>(fieldInfo);
         }
 
@@ -150,7 +158,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled field setter delegate.</returns>
         public static Action<T, TField> GetFieldSetter<T, TField>(Expression<Func<T, TField>> expr)
         {
-            Guard.Against.Null(expr, nameof(expr));
+            ArgumentNullException.ThrowIfNull(expr);
             var fieldInfo = GetFieldInfo(expr);
             return GetFieldSetter<T, TField>(fieldInfo);
         }

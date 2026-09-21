@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.27"
 slug: compiled-expressions-and-delegates
 title: Compiled Expressions and Delegate Caching
 type: topic

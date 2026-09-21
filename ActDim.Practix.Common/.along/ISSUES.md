@@ -1,8 +1,18 @@
 # Active Issues
 
 ## Active
+<!-- No active issues -->
+
+## Backlog
+- [ ] `(bug)` [ambient-context-push-property-stacking-and-timeout-leak](ISSUES/bug--ambient-context-push-property-stacking-and-timeout-leak.md)
+- [ ] `(bug)` [async-object-pool-discard-and-disposed-semaphore-leak](ISSUES/bug--async-object-pool-discard-and-disposed-semaphore-leak.md)
+- [ ] `(bug)` [cache-proxy-stampede-and-concurrency](ISSUES/bug--cache-proxy-stampede-and-concurrency.md)
+- [ ] `(bug)` [concurrent-factory-dictionary-contract-and-lazy-pitfalls](ISSUES/bug--concurrent-factory-dictionary-contract-and-lazy-pitfalls.md)
+- [ ] `(bug)` [weak-table-custom-comparer-hashcode-mismatch](ISSUES/bug--weak-table-custom-comparer-hashcode-mismatch.md)
 - [ ] `(debt)` [arraysegment-blockcopy-optimization](ISSUES/debt--arraysegment-blockcopy-optimization.md)
+- [ ] `(debt)` [common-utilities-hygiene-and-safety](ISSUES/debt--common-utilities-hygiene-and-safety.md)
 - [ ] `(debt)` [compression-interface-cleanup](ISSUES/debt--compression-interface-cleanup.md)
+- [ ] `(debt)` [compression-manager-zip-bomb-and-path-sanitization](ISSUES/debt--compression-manager-zip-bomb-and-path-sanitization.md)
 - [ ] `(debt)` [stringsplit-regex-cache](ISSUES/debt--stringsplit-regex-cache.md)
 - [ ] `(feat)` [dynamic-array-json-converter](ISSUES/feat--dynamic-array-json-converter.md)
 - [ ] `(feat)` [encoding-async-extensions](ISSUES/feat--encoding-async-extensions.md)
@@ -14,13 +24,10 @@
 - [ ] `(task)` [adaptive-stream](ISSUES/task--adaptive-stream.md)
 - [ ] `(task)` [compression-large-payload-spill](ISSUES/task--compression-large-payload-spill.md)
 
-## Backlog
-<!-- Planned or deferred issues -->
-
 ## Done (recent)
+- [x] `(task)` [move-ambient-context-memory-extensions](ISSUES/done/task--move-ambient-context-memory-extensions.md)
 - [x] `(bug)` [async-object-pool-disposal-race](ISSUES/done/bug--async-object-pool-disposal-race.md)
 - [x] `(docs)` [deepen-common-components](ISSUES/done/docs--deepen-common-components.md)
 - [x] `(docs)` [comprehensive-knowledge-base](ISSUES/done/docs--comprehensive-knowledge-base.md)
 - [x] `(feat)` [async-object-pool-discard](ISSUES/done/feat--async-object-pool-discard.md)
-- [x] `(bug)` [getasync-disposed-check-and-cleanup](ISSUES/done/bug--getasync-disposed-check-and-cleanup.md)
-<!-- 8 older completed issue(s) archived in .along/ISSUES/done/ -->
+<!-- 9 older completed issue(s) archived in .along/ISSUES/done/ -->

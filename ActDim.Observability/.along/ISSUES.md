@@ -1,6 +1,9 @@
 # Active Issues
 
 ## Active
+<!-- No active issues -->
+
+## Backlog
 - [ ] `(bug)` [collection-tag-values-not-exportable](ISSUES/bug--collection-tag-values-not-exportable.md)
 - [ ] `(bug)` [logger-providers-registered-later-not-decorated](ISSUES/bug--logger-providers-registered-later-not-decorated.md)
 - [ ] `(bug)` [span-tag-restore-assumes-lifo](ISSUES/bug--span-tag-restore-assumes-lifo.md)
@@ -16,9 +19,6 @@
 - [ ] `(task)` [activity-source-registry-unbounded](ISSUES/task--activity-source-registry-unbounded.md)
 - [ ] `(task)` [attribute-naming-across-signals](ISSUES/task--attribute-naming-across-signals.md)
 - [ ] `(task)` [autocreate-activity-scope-modes](ISSUES/task--autocreate-activity-scope-modes.md)
-
-## Backlog
-<!-- Planned or deferred issues -->
 
 ## Done (recent)
 - [x] `(task)` [ambient-context-pushed-after-scope](ISSUES/done/task--ambient-context-pushed-after-scope.md)

@@ -5,6 +5,12 @@ namespace ActDim.Practix.Service.Settings
         public string Authority { get; set; }
 
         /// <summary>
+        /// Whether HTTPS is required for metadata address or authority.
+        /// If null, falls back to AuthConfig.RequireHttps.
+        /// </summary>
+        public bool? RequireHttpsMetadata { get; set; }
+
+        /// <summary>
         /// Used when audience is not explicitly specified
         /// </summary>
         public string DefaultAudience { get; set; }

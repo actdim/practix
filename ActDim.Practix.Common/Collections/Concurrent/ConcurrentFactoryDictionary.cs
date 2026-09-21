@@ -1,4 +1,3 @@
-using Ardalis.GuardClauses;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -36,8 +35,8 @@ namespace ActDim.Practix.Collections.Concurrent
         /// <param name="comparer">The equality comparer to use for keys.</param>
         public ConcurrentFactoryDictionary(Func<TKey, TValue> valueFactory, IEqualityComparer<TKey> comparer)
         {
-            Guard.Against.Null(valueFactory, nameof(valueFactory));
-            Guard.Against.Null(comparer, nameof(comparer));
+            ArgumentNullException.ThrowIfNull(valueFactory, nameof(valueFactory));
+            ArgumentNullException.ThrowIfNull(comparer, nameof(comparer));
             _dictionary = new ConcurrentDictionary<TKey, Lazy<TValue>>(comparer);
             _valueFactory = key => new Lazy<TValue>(() => valueFactory(key), LazyThreadSafetyMode.ExecutionAndPublication);
         }

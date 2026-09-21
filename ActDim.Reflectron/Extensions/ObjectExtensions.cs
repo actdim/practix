@@ -1,4 +1,4 @@
-using Ardalis.GuardClauses;
+using System;
 
 namespace ActDim.Reflectron
 {
@@ -15,7 +15,7 @@ namespace ActDim.Reflectron
         /// <returns>An <see cref="IReflectron{T}"/> instance wrapping the target object.</returns>
         public static IReflectron<T> Reflectron<T>(this T obj) where T : class
         {
-            Guard.Against.Null(obj, nameof(obj));
+            ArgumentNullException.ThrowIfNull(obj);
             return new Reflectron<T>(obj);
         }
 
@@ -27,7 +27,7 @@ namespace ActDim.Reflectron
         /// <returns>An <see cref="IReflectron{T}"/> instance wrapping the target object.</returns>
         public static IReflectron<T> Reflect<T>(this T obj) where T : class
         {
-            Guard.Against.Null(obj, nameof(obj));
+            ArgumentNullException.ThrowIfNull(obj);
             return new Reflectron<T>(obj);
         }
     }

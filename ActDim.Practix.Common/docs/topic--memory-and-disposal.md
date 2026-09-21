@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.27"
 slug: memory-and-disposal
 title: Memory Management & Disposal Lifecycle
 type: topic

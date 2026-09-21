@@ -1,4 +1,3 @@
-using Ardalis.GuardClauses;
 using System;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
@@ -37,8 +36,8 @@ namespace ActDim.Reflectron
         /// <param name="targetType">The explicit target type for member lookup.</param>
         public Reflectron(T instance, Type targetType)
         {
-            Guard.Against.Null(instance, nameof(instance));
-            Guard.Against.Null(targetType, nameof(targetType));
+            ArgumentNullException.ThrowIfNull(instance);
+            ArgumentNullException.ThrowIfNull(targetType);
             _instanceWeakRef = new WeakReference<T>(instance);
             _targetType = targetType;
         }
@@ -61,12 +60,12 @@ namespace ActDim.Reflectron
         {
             get
             {
-                Guard.Against.NullOrEmpty(name, nameof(name));
+                ArgumentException.ThrowIfNullOrEmpty(name);
                 return Get<object>(name);
             }
             set
             {
-                Guard.Against.NullOrEmpty(name, nameof(name));
+                ArgumentException.ThrowIfNullOrEmpty(name);
                 Set(name, value);
             }
         }
@@ -74,7 +73,7 @@ namespace ActDim.Reflectron
         /// <inheritdoc />
         public TMember Get<TMember>(string name)
         {
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentException.ThrowIfNullOrEmpty(name);
             var getter = GetMemberGetter<TMember>(name);
             return getter(TargetInstance);
         }
@@ -82,7 +81,7 @@ namespace ActDim.Reflectron
         /// <inheritdoc />
         public TMember Get<TMember>(Expression<Func<T, TMember>> memberExpr)
         {
-            Guard.Against.Null(memberExpr, nameof(memberExpr));
+            ArgumentNullException.ThrowIfNull(memberExpr);
             var memberInfo = Reflectron.GetMemberInfo(memberExpr);
             if (memberInfo is PropertyInfo propInfo)
             {
@@ -102,7 +101,7 @@ namespace ActDim.Reflectron
         /// <inheritdoc />
         public TMember Set<TMember>(string name, TMember value)
         {
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentException.ThrowIfNullOrEmpty(name);
             var setter = GetMemberSetter<TMember>(name);
             setter(TargetInstance, value);
             return value;
@@ -111,7 +110,7 @@ namespace ActDim.Reflectron
         /// <inheritdoc />
         public TMember Set<TMember>(Expression<Func<T, TMember>> memberExpr, TMember value)
         {
-            Guard.Against.Null(memberExpr, nameof(memberExpr));
+            ArgumentNullException.ThrowIfNull(memberExpr);
             var memberInfo = Reflectron.GetMemberInfo(memberExpr);
             if (memberInfo is PropertyInfo propInfo)
             {
@@ -133,28 +132,28 @@ namespace ActDim.Reflectron
         /// <inheritdoc />
         public TDelegate GetMethod<TDelegate>(string name)
         {
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentException.ThrowIfNullOrEmpty(name);
             return Reflectron.GetMethodCaller<TDelegate>(_targetType, name);
         }
 
         /// <inheritdoc />
         public TDelegate GetMethod<TDelegate>(Expression<Action<T>> methodExpr)
         {
-            Guard.Against.Null(methodExpr, nameof(methodExpr));
+            ArgumentNullException.ThrowIfNull(methodExpr);
             return GetMethod<TDelegate>((LambdaExpression)methodExpr);
         }
 
         /// <inheritdoc />
         public TDelegate GetMethod<TDelegate, TResult>(Expression<Func<T, TResult>> methodExpr)
         {
-            Guard.Against.Null(methodExpr, nameof(methodExpr));
+            ArgumentNullException.ThrowIfNull(methodExpr);
             return GetMethod<TDelegate>((LambdaExpression)methodExpr);
         }
 
         /// <inheritdoc />
         public TDelegate GetMethod<TDelegate>(LambdaExpression methodExpr)
         {
-            Guard.Against.Null(methodExpr, nameof(methodExpr));
+            ArgumentNullException.ThrowIfNull(methodExpr);
             var memberInfo = Reflectron.GetMemberInfo(methodExpr);
             if (memberInfo is MethodInfo methodInfo)
             {
@@ -225,7 +224,7 @@ namespace ActDim.Reflectron
 
         public static MethodInfo GetMethodInfo(Expression<Action<T>> expr)
         {
-            Guard.Against.Null(expr, nameof(expr));
+            ArgumentNullException.ThrowIfNull(expr);
             var bodyExpr = expr.Body;
             if (bodyExpr.NodeType != ExpressionType.Call)
             {

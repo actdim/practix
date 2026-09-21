@@ -22,9 +22,6 @@
 		<DefineConstants>TRACE</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Ardalis.GuardClauses" />
-	</ItemGroup>
-	<ItemGroup>
 		<ProjectReference Include="..\ActDim.Emitron\ActDim.Emitron.csproj" />
 	</ItemGroup>
 </Project>

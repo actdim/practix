@@ -1,5 +1,4 @@
 using ActDim.Practix.Collections.Concurrent;
-using Ardalis.GuardClauses;
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -23,7 +22,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled event adder delegate.</returns>
         public static Action<object, Delegate> GetEventAdder(EventInfo eventInfo)
         {
-            Guard.Against.Null(eventInfo, nameof(eventInfo));
+            ArgumentNullException.ThrowIfNull(eventInfo);
             return EventAdderCache.GetOrCreateValue(eventInfo);
         }
 
@@ -36,7 +35,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled event adder delegate.</returns>
         public static Action<TInstance, TDelegate> GetEventAdder<TInstance, TDelegate>(EventInfo eventInfo)
         {
-            Guard.Against.Null(eventInfo, nameof(eventInfo));
+            ArgumentNullException.ThrowIfNull(eventInfo);
             return GetEventDelegate<TInstance, TDelegate>(eventInfo.GetAddMethod(), eventInfo.EventHandlerType);
         }
 
@@ -47,7 +46,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled event remover delegate.</returns>
         public static Action<object, Delegate> GetEventRemover(EventInfo eventInfo)
         {
-            Guard.Against.Null(eventInfo, nameof(eventInfo));
+            ArgumentNullException.ThrowIfNull(eventInfo);
             return EventRemoverCache.GetOrCreateValue(eventInfo);
         }
 
@@ -60,7 +59,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled event remover delegate.</returns>
         public static Action<TInstance, TDelegate> GetEventRemover<TInstance, TDelegate>(EventInfo eventInfo)
         {
-            Guard.Against.Null(eventInfo, nameof(eventInfo));
+            ArgumentNullException.ThrowIfNull(eventInfo);
             return GetEventDelegate<TInstance, TDelegate>(eventInfo.GetRemoveMethod(), eventInfo.EventHandlerType);
         }
 

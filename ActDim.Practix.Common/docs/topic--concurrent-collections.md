@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.27"
 slug: concurrent-collections
 title: Specialized Concurrent Collections
 type: topic

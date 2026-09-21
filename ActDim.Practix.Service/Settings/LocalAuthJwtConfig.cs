@@ -20,5 +20,10 @@ namespace ActDim.Practix.Service.Settings
         public string[] ValidAlgorithms { get; set; } = ["HS256"]; // IReadOnlyList?
 
         public TokenValidationConfig Validation { get; set; }
+
+        /// <summary>
+        /// Configuration for refresh token issuance and rotation.
+        /// </summary>
+        public RefreshTokenConfig Refresh { get; set; }
     }
 }

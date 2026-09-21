@@ -1,5 +1,4 @@
 using ActDim.Practix.Collections.Concurrent;
-using Ardalis.GuardClauses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +46,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled method caller delegate.</returns>
         public static Delegate GetMethodCaller(MethodInfo method, Type delegateType)
         {
-            Guard.Against.Null(method, nameof(method));
+            ArgumentNullException.ThrowIfNull(method);
 
             if (!delegateType.IsSubclassOf(typeof(Delegate)))
             {
@@ -79,7 +78,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled method caller delegate.</returns>
         public static TDelegate GetStaticMethodCaller<TDelegate>(Type type, string name)
         {
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             var delegateType = typeof(TDelegate);
             if (!delegateType.IsSubclassOf(BaseDelegateType))
@@ -120,7 +119,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled method caller delegate.</returns>
         public static TDelegate GetMethodCaller<TDelegate>(Type type, string name)
         {
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             var delegateType = typeof(TDelegate);
             if (!delegateType.IsSubclassOf(BaseDelegateType))

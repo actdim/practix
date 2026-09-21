@@ -67,7 +67,7 @@ namespace ActDim.BytePath
             _connectionString = NormalizeConnectionString(connectionString);
             _defaultTimeout = defaultTimeout <= TimeSpan.Zero ? TimeSpan.FromSeconds(30) : defaultTimeout;
 
-            RepoDbBootstrapper.InitializeSqLite();
+            RepoDbSqLiteBootstrapper.Initialize();
             EnsureSchema();
         }
 

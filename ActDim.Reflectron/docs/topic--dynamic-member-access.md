@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.27"
 slug: dynamic-member-access
 title: Dynamic Member Access and Lifetime Management
 type: topic

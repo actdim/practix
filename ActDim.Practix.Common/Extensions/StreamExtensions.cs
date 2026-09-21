@@ -1,5 +1,4 @@
 using System.Text;
-using Ardalis.GuardClauses;
 using System.Buffers;
 using ActDim.Practix.Common.Memory;
 using System.IO;
@@ -68,7 +67,7 @@ namespace ActDim.Practix.Extensions
         /// <returns></returns>
         public static string GetString(this MemoryStream stream, Encoding encoding = null)
         {
-            Guard.Against.Null(stream, nameof(stream));
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
             encoding ??= Utf8NoBom;
 
             if (stream.Length > int.MaxValue)
@@ -113,7 +112,7 @@ namespace ActDim.Practix.Extensions
                 }
             }
 
-            Guard.Against.Null(stream, nameof(stream));
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
             encoding ??= Utf8NoBom;
 
             if (stream.CanSeek)
@@ -165,7 +164,7 @@ namespace ActDim.Practix.Extensions
                 }
             }
 
-            Guard.Against.Null(stream, nameof(stream));
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
             encoding ??= Utf8NoBom;
 
             if (stream.CanSeek)
@@ -209,7 +208,7 @@ namespace ActDim.Practix.Extensions
         /// <returns>Number of bytes written to <paramref name="stream"/>.</returns>
         public static int WriteString(this Stream stream, string str, Encoding encoding = null)
         {
-            Guard.Against.Null(stream, nameof(stream));
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
 
             if (string.IsNullOrEmpty(str))
             {
@@ -252,7 +251,7 @@ namespace ActDim.Practix.Extensions
         /// <returns>Number of bytes written to <paramref name="stream"/>.</returns>
         public static async Task<int> WriteStringAsync(this Stream stream, string str, Encoding encoding = null, CancellationToken ct = default)
         {
-            Guard.Against.Null(stream, nameof(stream));
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
 
             if (string.IsNullOrEmpty(str))
             {
@@ -289,8 +288,8 @@ namespace ActDim.Practix.Extensions
         /// <returns></returns>
         public static TStream ZeroAllocCopyTo<TStream>(this MemoryStream src, TStream dst, int bufferSize = BufferSize) where TStream : Stream
         {
-            Guard.Against.Null(src, nameof(src));
-            Guard.Against.Null(dst, nameof(dst));
+            ArgumentNullException.ThrowIfNull(src, nameof(src));
+            ArgumentNullException.ThrowIfNull(dst, nameof(dst));
 
             if (src.Length > int.MaxValue)
             {
@@ -335,8 +334,8 @@ namespace ActDim.Practix.Extensions
                 }
             }
 
-            Guard.Against.Null(src, nameof(src));
-            Guard.Against.Null(dst, nameof(dst));
+            ArgumentNullException.ThrowIfNull(src, nameof(src));
+            ArgumentNullException.ThrowIfNull(dst, nameof(dst));
 
             if (src.CanSeek)
             {
@@ -366,8 +365,8 @@ namespace ActDim.Practix.Extensions
         /// <returns></returns>
         public static async Task<TStream> ZeroAllocCopyToAsync<TStream>(this MemoryStream src, TStream dst, int bufferSize = BufferSize, CancellationToken ct = default) where TStream : Stream
         {
-            Guard.Against.Null(src, nameof(src));
-            Guard.Against.Null(dst, nameof(dst));
+            ArgumentNullException.ThrowIfNull(src, nameof(src));
+            ArgumentNullException.ThrowIfNull(dst, nameof(dst));
 
             if (src.Length > int.MaxValue)
             {
@@ -412,8 +411,8 @@ namespace ActDim.Practix.Extensions
                 }
             }
 
-            Guard.Against.Null(src, nameof(src));
-            Guard.Against.Null(dst, nameof(dst));
+            ArgumentNullException.ThrowIfNull(src, nameof(src));
+            ArgumentNullException.ThrowIfNull(dst, nameof(dst));
 
             if (src.CanSeek)
             {
@@ -437,7 +436,7 @@ namespace ActDim.Practix.Extensions
         /// <returns></returns>
         public static MemoryStream ToMemory(this Stream src) // int bufferSize = BufferSize
         {
-            Guard.Against.Null(src, nameof(src));
+            ArgumentNullException.ThrowIfNull(src, nameof(src));
             if (src.CanSeek)
             {
                 src.Seek(0, SeekOrigin.Begin);
@@ -460,7 +459,7 @@ namespace ActDim.Practix.Extensions
         /// <returns></returns>
         public static async Task<MemoryStream> ToMemoryAsync(this Stream src, CancellationToken ct = default) // int bufferSize = BufferSize
         {
-            Guard.Against.Null(src, nameof(src));
+            ArgumentNullException.ThrowIfNull(src, nameof(src));
             if (src.CanSeek)
             {
                 src.Seek(0, SeekOrigin.Begin);
@@ -496,7 +495,7 @@ namespace ActDim.Practix.Extensions
         /// <returns></returns>
         public static IBufferOwner<byte> ReadBytes(this MemoryStream src, Func<int, IBufferOwner<byte>> ownerFactory = null)
         {
-            Guard.Against.Null(src, nameof(src));
+            ArgumentNullException.ThrowIfNull(src, nameof(src));
 
             src.Position = 0L;
 
@@ -538,7 +537,7 @@ namespace ActDim.Practix.Extensions
         /// <exception cref="NotSupportedException"></exception>
         public static IBufferOwner<byte> ReadBytes(this Stream src, Func<int, IBufferOwner<byte>> ownerFactory = null)
         {
-            Guard.Against.Null(src, nameof(src));
+            ArgumentNullException.ThrowIfNull(src, nameof(src));
 
             if (!src.CanSeek)
             {
@@ -579,7 +578,7 @@ namespace ActDim.Practix.Extensions
         /// <exception cref="NotSupportedException"></exception>
         public static async Task<IBufferOwner<byte>> ReadBytesAsync(this Stream src, Func<int, IBufferOwner<byte>> ownerFactory = null, CancellationToken ct = default)
         {
-            Guard.Against.Null(src, nameof(src));
+            ArgumentNullException.ThrowIfNull(src, nameof(src));
 
             if (!src.CanSeek)
             {
@@ -620,9 +619,9 @@ namespace ActDim.Practix.Extensions
         /// </remarks>
         public static void WriteInChunks<TStream>(this TStream dst, byte[] data, int chunkSize = BufferSize) where TStream : Stream
         {
-            Guard.Against.Null(dst, nameof(dst));
-            Guard.Against.Null(data, nameof(data));
-            Guard.Against.NegativeOrZero(chunkSize, nameof(chunkSize));
+            ArgumentNullException.ThrowIfNull(dst, nameof(dst));
+            ArgumentNullException.ThrowIfNull(data, nameof(data));
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(chunkSize, nameof(chunkSize));
 
             for (var i = 0; i < data.Length; i += chunkSize)
             {
@@ -648,9 +647,9 @@ namespace ActDim.Practix.Extensions
         /// </remarks>
         public static async Task WriteInChunksAsync<TStream>(this TStream dst, byte[] data, int chunkSize = BufferSize, CancellationToken ct = default) where TStream : Stream
         {
-            Guard.Against.Null(dst, nameof(dst));
-            Guard.Against.Null(data, nameof(data));
-            Guard.Against.NegativeOrZero(chunkSize, nameof(chunkSize));
+            ArgumentNullException.ThrowIfNull(dst, nameof(dst));
+            ArgumentNullException.ThrowIfNull(data, nameof(data));
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(chunkSize, nameof(chunkSize));
 
             for (var i = 0; i < data.Length; i += chunkSize)
             {

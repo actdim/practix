@@ -11,7 +11,6 @@ using ActDim.Practix.Abstractions.Compression;
 using ActDim.Practix.Abstractions.Exceptions;
 using ActDim.Practix.Extensions;
 using ActDim.Practix.Common.Memory;
-using Ardalis.GuardClauses;
 
 namespace ActDim.Practix.Compression
 {
@@ -183,7 +182,7 @@ namespace ActDim.Practix.Compression
         /// </summary>
         private static int ReadSignature(Stream stream, Span<byte> header)
         {
-            Guard.Against.Null(stream, nameof(stream));
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
 
             if (!stream.CanSeek)
             {
@@ -392,7 +391,7 @@ namespace ActDim.Practix.Compression
         /// <returns>A pooled, rewound stream holding the compressed payload; the caller must dispose it.</returns>
         public async Task<Stream> CompressAsync(Stream stream, CompressionFormat compressionFormat, CancellationToken cancellationToken = default)
         {
-            Guard.Against.Null(stream, nameof(stream), "Invalid input");
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
 
             var outputStream = CreateTempStream();
             try
@@ -418,7 +417,7 @@ namespace ActDim.Practix.Compression
         /// <param name="cancellationToken"></param>
         public async Task CompressAsync(ReadOnlyMemory<byte> data, Stream outputStream, CompressionFormat compressionFormat, CancellationToken cancellationToken = default)
         {
-            Guard.Against.Null(outputStream, nameof(outputStream));
+            ArgumentNullException.ThrowIfNull(outputStream, nameof(outputStream));
 
             await using var compressionStream = CreateCompressionStream(outputStream, compressionFormat);
 
@@ -435,8 +434,8 @@ namespace ActDim.Practix.Compression
         /// <param name="cancellationToken"></param>
         public async Task CompressAsync(Stream stream, Stream outputStream, CompressionFormat compressionFormat, CancellationToken cancellationToken = default)
         {
-            Guard.Against.Null(stream, nameof(stream), "Invalid input");
-            Guard.Against.Null(outputStream, nameof(outputStream));
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
+            ArgumentNullException.ThrowIfNull(outputStream, nameof(outputStream));
 
             await using var compressionStream = CreateCompressionStream(outputStream, compressionFormat);
 
@@ -464,7 +463,7 @@ namespace ActDim.Practix.Compression
         /// <inheritdoc/>
         public async Task DecompressAsync(ReadOnlyMemory<byte> data, Stream outputStream, CompressionFormat? compressionFormat = null, CancellationToken cancellationToken = default)
         {
-            Guard.Against.Null(outputStream, nameof(outputStream));
+            ArgumentNullException.ThrowIfNull(outputStream, nameof(outputStream));
 
             // Sniff the span directly - no stream, no rewind, no copy.
             var format = compressionFormat ?? GetCompressionFormat(data);
@@ -477,8 +476,8 @@ namespace ActDim.Practix.Compression
         /// <inheritdoc/>
         public async Task DecompressAsync(Stream stream, Stream outputStream, CompressionFormat? compressionFormat = null, CancellationToken cancellationToken = default)
         {
-            Guard.Against.Null(stream, nameof(stream), "Invalid input");
-            Guard.Against.Null(outputStream, nameof(outputStream), "Invalid input");
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
+            ArgumentNullException.ThrowIfNull(outputStream, nameof(outputStream));
 
             if (compressionFormat == null && !stream.CanSeek)
             {
@@ -515,7 +514,7 @@ namespace ActDim.Practix.Compression
         /// </remarks>
         public async Task<byte[]> DecompressAsync(Stream stream, CompressionFormat? compressionFormat = null, CancellationToken cancellationToken = default)
         {
-            Guard.Against.Null(stream, nameof(stream), "Invalid input");
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
 
             using var outputStream = CreateTempStream();
 
@@ -639,8 +638,8 @@ namespace ActDim.Practix.Compression
         /// </remarks>
         public async Task DecompressArchiveAsync(Stream stream, ICompressionManager.ArchiveEntryReaderAsyncDelegate reader, ArchiveFormat? archiveFormat = null, CancellationToken cancellationToken = default)
         {
-            Guard.Against.Null(stream, nameof(stream), "Invalid input");
-            Guard.Against.Null(reader, nameof(reader));
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
+            ArgumentNullException.ThrowIfNull(reader, nameof(reader));
 
             // ZIP is read through its central directory (random access), and detection needs to rewind - only
             // an explicitly requested TAR can be consumed straight off a non-seekable stream.
@@ -828,7 +827,7 @@ namespace ActDim.Practix.Compression
         /// <inheritdoc/>
         public async Task<IList<IArchiveEntry>> GetArchiveEntriesAsync(Stream stream, ArchiveFormat? archiveFormat = null, CancellationToken cancellationToken = default)
         {
-            Guard.Against.Null(stream, nameof(stream), "Invalid input");
+            ArgumentNullException.ThrowIfNull(stream, nameof(stream));
 
             if (!stream.CanSeek && archiveFormat != ArchiveFormat.Tar)
             {
@@ -899,8 +898,8 @@ namespace ActDim.Practix.Compression
         /// </remarks>
         public async Task<Stream> CompressToArchiveAsync(Stream outputStream, IEnumerable<ArchiveEntrySource> sources, ArchiveFormat? archiveFormat = null, CancellationToken cancellationToken = default)
         {
-            Guard.Against.Null(outputStream, nameof(outputStream));
-            Guard.Against.Null(sources, nameof(sources));
+            ArgumentNullException.ThrowIfNull(outputStream, nameof(outputStream));
+            ArgumentNullException.ThrowIfNull(sources, nameof(sources));
 
             var format = archiveFormat ?? DefaultArchiveFormat;
 
@@ -931,9 +930,9 @@ namespace ActDim.Practix.Compression
         /// </remarks>
         public async Task<Stream> CompressToArchiveAsync(Stream outputStream, IEnumerable<ArchiveEntrySource> sources, ICompressionManager.ArchiveEntryWriterAsyncDelegate writer, ArchiveFormat? archiveFormat = null, CancellationToken cancellationToken = default)
         {
-            Guard.Against.Null(outputStream, nameof(outputStream));
-            Guard.Against.Null(sources, nameof(sources));
-            Guard.Against.Null(writer, nameof(writer));
+            ArgumentNullException.ThrowIfNull(outputStream, nameof(outputStream));
+            ArgumentNullException.ThrowIfNull(sources, nameof(sources));
+            ArgumentNullException.ThrowIfNull(writer, nameof(writer));
 
             var format = archiveFormat ?? DefaultArchiveFormat;
 
@@ -991,9 +990,9 @@ namespace ActDim.Practix.Compression
 
             foreach (var source in sources)
             {
-                Guard.Against.Null(source, nameof(source));
-                Guard.Against.NullOrWhiteSpace(source.FullName, nameof(source.FullName));
-                Guard.Against.Null(source.OpenReadAsync, nameof(source.OpenReadAsync));
+                ArgumentNullException.ThrowIfNull(source, nameof(source));
+                ArgumentException.ThrowIfNullOrWhiteSpace(source.FullName, nameof(source.FullName));
+                ArgumentNullException.ThrowIfNull(source.OpenReadAsync, nameof(source.OpenReadAsync));
 
                 var zipEntry = archive.CreateEntry(source.FullName, DefaultCompressionLevel);
 
@@ -1021,8 +1020,8 @@ namespace ActDim.Practix.Compression
 
             foreach (var source in sources)
             {
-                Guard.Against.Null(source, nameof(source));
-                Guard.Against.NullOrWhiteSpace(source.FullName, nameof(source.FullName));
+                ArgumentNullException.ThrowIfNull(source, nameof(source));
+                ArgumentException.ThrowIfNullOrWhiteSpace(source.FullName, nameof(source.FullName));
 
                 var entry = new ArchiveEntry
                 {
@@ -1064,9 +1063,9 @@ namespace ActDim.Practix.Compression
 
             foreach (var source in sources)
             {
-                Guard.Against.Null(source, nameof(source));
-                Guard.Against.NullOrWhiteSpace(source.FullName, nameof(source.FullName));
-                Guard.Against.Null(source.OpenReadAsync, nameof(source.OpenReadAsync));
+                ArgumentNullException.ThrowIfNull(source, nameof(source));
+                ArgumentException.ThrowIfNullOrWhiteSpace(source.FullName, nameof(source.FullName));
+                ArgumentNullException.ThrowIfNull(source.OpenReadAsync, nameof(source.OpenReadAsync));
 
                 // Scoped to the loop iteration: each source stream is released before the next one is opened.
                 await using var input = source.OpenReadAsync();
@@ -1088,8 +1087,8 @@ namespace ActDim.Practix.Compression
 
             foreach (var source in sources)
             {
-                Guard.Against.Null(source, nameof(source));
-                Guard.Against.NullOrWhiteSpace(source.FullName, nameof(source.FullName));
+                ArgumentNullException.ThrowIfNull(source, nameof(source));
+                ArgumentException.ThrowIfNullOrWhiteSpace(source.FullName, nameof(source.FullName));
 
                 var entry = new ArchiveEntry
                 {
@@ -1162,7 +1161,7 @@ namespace ActDim.Practix.Compression
         /// <inheritdoc/>
         public ArchiveFormat GetArchiveFormatByFileExtension(string ext)
         {
-            Guard.Against.NullOrWhiteSpace(ext, nameof(ext));
+            ArgumentException.ThrowIfNullOrWhiteSpace(ext, nameof(ext));
 
             // Span-based comparison: no ToLower/Trim/Substring allocation on any path.
             var extension = ext.AsSpan().Trim();
@@ -1226,7 +1225,7 @@ namespace ActDim.Practix.Compression
         /// </remarks>
         public string FixArchiveFileExtension(string fileName, ArchiveFormat? archiveFormat = null)
         {
-            Guard.Against.NullOrWhiteSpace(fileName, nameof(fileName));
+            ArgumentException.ThrowIfNullOrWhiteSpace(fileName, nameof(fileName));
 
             var format = archiveFormat ?? DefaultArchiveFormat;
             var expectedExtension = GetArchiveFileExtension(format);

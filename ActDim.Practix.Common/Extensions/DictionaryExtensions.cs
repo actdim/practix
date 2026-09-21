@@ -1,4 +1,3 @@
-using Ardalis.GuardClauses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -53,7 +52,7 @@ namespace ActDim.Practix.Extensions
         /// <returns>The existing or newly added value.</returns>
         public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
         {
-            Guard.Against.Null(key, nameof(key));
+            ArgumentNullException.ThrowIfNull(key, nameof(key));
             if (!dictionary.TryGetValue(key, out TValue local))
             {
                 local = value;
@@ -74,8 +73,8 @@ namespace ActDim.Practix.Extensions
         /// <returns>The existing or newly added value.</returns>
         public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
         {
-            Guard.Against.Null(key, nameof(key));
-            Guard.Against.Null(valueFactory, nameof(valueFactory));
+            ArgumentNullException.ThrowIfNull(key, nameof(key));
+            ArgumentNullException.ThrowIfNull(valueFactory, nameof(valueFactory));
 
             if (!dictionary.TryGetValue(key, out TValue value))
             {

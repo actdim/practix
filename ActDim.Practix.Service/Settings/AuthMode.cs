@@ -1,13 +1,9 @@
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using System.Net;
-using System.Security.Cryptography;
-
 namespace ActDim.Practix.Service.Settings
 {
     /// <summary>
-    /// Authentication scheme.
+    /// Authentication mode of the service pipeline.
     /// </summary>
-    public enum AuthSchemeType
+    public enum AuthMode
     {
         None = 0,
 
@@ -20,7 +16,7 @@ namespace ActDim.Practix.Service.Settings
         /// <summary>
         /// Local JWT authentication. Tokens are issued and validated by this application.
         /// </summary>
-        LocalJwt = 2, // StandaloneJwt
+        LocalJwt = 2,
 
         /// <summary>
         /// Cookie-based authentication with server-side session (stateful).
@@ -38,3 +34,4 @@ namespace ActDim.Practix.Service.Settings
         Basic = 5
     }
 }
+

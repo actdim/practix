@@ -1,5 +1,4 @@
 using ActDim.Practix.Collections.Concurrent;
-using Ardalis.GuardClauses;
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -25,7 +24,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled property getter delegate.</returns>
         public static Func<TInstance, TOutput> GetPropertyGetter<TInstance, TOutput>(PropertyInfo propInfo)
         {
-            Guard.Against.Null(propInfo, nameof(propInfo));
+            ArgumentNullException.ThrowIfNull(propInfo);
             var pair = (typeof(Func<TInstance, TOutput>), propInfo);
             return (Func<TInstance, TOutput>)TypedPropertyGetterCache.GetOrCreateValue(pair);
         }
@@ -37,7 +36,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled property getter delegate.</returns>
         public static Delegate GetPropertyGetter(PropertyInfo propInfo)
         {
-            Guard.Against.Null(propInfo, nameof(propInfo));
+            ArgumentNullException.ThrowIfNull(propInfo);
             var pair = (typeof(Delegate), propInfo);
             return TypedPropertyGetterCache.GetOrCreateValue(pair);
         }
@@ -50,11 +49,14 @@ namespace ActDim.Reflectron
         /// <returns>A compiled property getter delegate.</returns>
         public static Delegate GetPropertyGetter(Type type, string name)
         {
-            Guard.Against.Null(type, nameof(type));
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentNullException.ThrowIfNull(type);
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             var propInfo = type.GetProperty(name);
-            Guard.Against.Null(propInfo, nameof(name), $"Property '{name}' not found on type '{type.FullName}'.");
+            if (propInfo == null)
+            {
+                throw new ArgumentException($"Property '{name}' not found on type '{type.FullName}'.", nameof(name));
+            }
             return GetPropertyGetter(propInfo);
         }
 
@@ -79,7 +81,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled property getter delegate.</returns>
         public static Func<T, TProperty> GetPropertyGetter<T, TProperty>(Expression<Func<T, TProperty>> expr)
         {
-            Guard.Against.Null(expr, nameof(expr));
+            ArgumentNullException.ThrowIfNull(expr);
             var propInfo = GetPropertyInfo(expr);
             return GetPropertyGetter<T, TProperty>(propInfo);
         }
@@ -91,7 +93,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled property setter delegate.</returns>
         public static Delegate GetPropertySetter(PropertyInfo propInfo)
         {
-            Guard.Against.Null(propInfo, nameof(propInfo));
+            ArgumentNullException.ThrowIfNull(propInfo);
             var pair = (typeof(Delegate), propInfo);
             return TypedPropertySetterCache.GetOrCreateValue(pair);
         }
@@ -105,7 +107,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled property setter delegate.</returns>
         public static Action<TInstance, TValue> GetPropertySetter<TInstance, TValue>(PropertyInfo propInfo)
         {
-            Guard.Against.Null(propInfo, nameof(propInfo));
+            ArgumentNullException.ThrowIfNull(propInfo);
             var pair = (typeof(Action<TInstance, TValue>), propInfo);
             return (Action<TInstance, TValue>)TypedPropertySetterCache.GetOrCreateValue(pair);
         }
@@ -118,11 +120,14 @@ namespace ActDim.Reflectron
         /// <returns>A compiled property setter delegate.</returns>
         public static Delegate GetPropertySetter(Type type, string name)
         {
-            Guard.Against.Null(type, nameof(type));
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentNullException.ThrowIfNull(type);
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             var propInfo = type.GetProperty(name);
-            Guard.Against.Null(propInfo, nameof(name), $"Property '{name}' not found on type '{type.FullName}'.");
+            if (propInfo == null)
+            {
+                throw new ArgumentException($"Property '{name}' not found on type '{type.FullName}'.", nameof(name));
+            }
             return GetPropertySetter(propInfo);
         }
 
@@ -135,9 +140,12 @@ namespace ActDim.Reflectron
         /// <returns>A compiled property setter delegate.</returns>
         public static Action<T, TProperty> GetPropertySetter<T, TProperty>(string name)
         {
-            Guard.Against.NullOrEmpty(name, nameof(name));
+            ArgumentException.ThrowIfNullOrEmpty(name);
             var propInfo = typeof(T).GetProperty(name);
-            Guard.Against.Null(propInfo, nameof(name), $"Property '{name}' not found on type '{typeof(T).FullName}'.");
+            if (propInfo == null)
+            {
+                throw new ArgumentException($"Property '{name}' not found on type '{typeof(T).FullName}'.", nameof(name));
+            }
             return GetPropertySetter<T, TProperty>(propInfo);
         }
 
@@ -150,7 +158,7 @@ namespace ActDim.Reflectron
         /// <returns>A compiled property setter delegate.</returns>
         public static Action<T, TProperty> GetPropertySetter<T, TProperty>(Expression<Func<T, TProperty>> expr)
         {
-            Guard.Against.Null(expr, nameof(expr));
+            ArgumentNullException.ThrowIfNull(expr);
             var propInfo = GetPropertyInfo(expr);
             return GetPropertySetter<T, TProperty>(propInfo);
         }

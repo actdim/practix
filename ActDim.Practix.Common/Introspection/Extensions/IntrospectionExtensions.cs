@@ -1,4 +1,3 @@
-using Ardalis.GuardClauses;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -37,7 +36,7 @@ namespace ActDim.Practix.Common.Introspection
 
         private static bool UseShortName(TypeBaseIntrospectionInfo info)
         {
-            Guard.Against.Null(info, nameof(info));
+            ArgumentNullException.ThrowIfNull(info, nameof(info));
             return info.MemberId.AssemblyFullName.StartsWith("System.") && info.FullName.StartsWith("System.");
         }
 

@@ -1,5 +1,4 @@
 using ActDim.Practix.Collections.Concurrent;
-using Ardalis.GuardClauses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -184,8 +183,8 @@ namespace ActDim.Reflectron
         /// <returns>A compiled constructor delegate.</returns>
         public static Delegate GetConstructor(ConstructorInfo ctorInfo, Type delegateType)
         {
-            Guard.Against.Null(ctorInfo, nameof(ctorInfo));
-            Guard.Against.Null(delegateType, nameof(delegateType));
+            ArgumentNullException.ThrowIfNull(ctorInfo);
+            ArgumentNullException.ThrowIfNull(delegateType);
             var pair = (ctorInfo, delegateType);
             return TypedConstructorCache.GetOrCreateValue(pair);
         }
@@ -210,7 +209,7 @@ namespace ActDim.Reflectron
         /// <returns>A fast dynamic constructor delegate.</returns>
         public static FastDynamicDelegate GetConstructorEx(ConstructorInfo ctor)
         {
-            Guard.Against.Null(ctor, nameof(ctor));
+            ArgumentNullException.ThrowIfNull(ctor);
             return ConstructorCache.GetOrCreateValue(ctor);
         }
 

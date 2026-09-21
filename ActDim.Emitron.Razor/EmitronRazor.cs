@@ -1,5 +1,4 @@
 using System;
-using Ardalis.GuardClauses;
 
 namespace ActDim.Emitron.Razor
 {
@@ -20,7 +19,7 @@ namespace ActDim.Emitron.Razor
             string inputParameterName = Emitron.DefaultInputParameterName,
             EmitronOptions? options = null)
         {
-            Guard.Against.NullOrWhiteSpace(razorTemplate, nameof(razorTemplate));
+            ArgumentException.ThrowIfNullOrWhiteSpace(razorTemplate);
             var normParam = Emitron.NormalizeInputParameterName(inputParameterName);
             var code = RazorParser.Transpile(razorTemplate, normParam);
             return Emitron.Compile<string>(code, normParam, options);
@@ -52,7 +51,7 @@ namespace ActDim.Emitron.Razor
             string inputParameterName = Emitron.DefaultInputParameterName,
             EmitronOptions? options = null)
         {
-            Guard.Against.Null(model, nameof(model));
+            ArgumentNullException.ThrowIfNull(model);
             return Compile(razorTemplate, inputParameterName, options)(model);
         }
 

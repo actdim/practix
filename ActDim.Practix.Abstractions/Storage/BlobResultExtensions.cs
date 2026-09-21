@@ -16,12 +16,13 @@ namespace ActDim.BytePath
         /// <exception cref="InvalidOperationException">Thrown when the BLOB operation failed or the record is missing.</exception>
         public static BlobResult EnsureSuccess(this BlobResult blobResult)
         {
+            // BLOB is missing
             ArgumentNullException.ThrowIfNull(blobResult);
 
             if (!blobResult.IsSuccess)
-            {
+            {                
                 var keySuffix = blobResult.Record != null ? $" for key '{blobResult.Record.Key}'" : string.Empty;
-                throw new InvalidOperationException($"BLOB operation failed{keySuffix}. Error code: {blobResult.ErrorCode}");
+                throw new InvalidOperationException($"BLOB operation failed{keySuffix}. Error code: {blobResult.ErrorCode}, IsNew: {blobResult.IsNew}");
             }
 
             if (blobResult.Record == null)

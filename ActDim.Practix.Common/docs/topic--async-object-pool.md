@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.27"
 slug: async-object-pool
 title: Asynchronous Bounded Object Pool
 type: topic

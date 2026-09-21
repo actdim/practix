@@ -1,5 +1,4 @@
 using ActDim.Practix.Collections.Concurrent;
-using Ardalis.GuardClauses;
 using System;
 using System.Collections.Generic;
 
@@ -20,7 +19,7 @@ namespace ActDim.Practix.Extensions
         public static Func<TArg, TRetVal> Memoize<TArg, TRetVal>(this Func<TArg, TRetVal> f)
             where TArg : notnull
         {
-            Guard.Against.Null(f, nameof(f));
+            ArgumentNullException.ThrowIfNull(f, nameof(f));
             var cache = new ConcurrentFactoryDictionary<TArg, TRetVal>(f);
             return arg => cache.GetOrCreateValue(arg);
         }
@@ -36,8 +35,8 @@ namespace ActDim.Practix.Extensions
         public static Func<TArg, TRetVal> Memoize<TArg, TRetVal>(this Func<TArg, TRetVal> f, IEqualityComparer<TArg> comparer)
             where TArg : notnull
         {
-            Guard.Against.Null(f, nameof(f));
-            Guard.Against.Null(comparer, nameof(comparer));
+            ArgumentNullException.ThrowIfNull(f, nameof(f));
+            ArgumentNullException.ThrowIfNull(comparer, nameof(comparer));
             var cache = new ConcurrentFactoryDictionary<TArg, TRetVal>(f, comparer);
             return arg => cache.GetOrCreateValue(arg);
         }

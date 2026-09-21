@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using Ardalis.GuardClauses;
 
 namespace ActDim.Emitron
 {
@@ -53,7 +52,7 @@ namespace ActDim.Emitron
             string inputParameterName = Emitron.DefaultInputParameterName,
             EmitronOptions? options = null)
         {
-            Guard.Against.NullOrWhiteSpace(template, nameof(template));
+            ArgumentException.ThrowIfNullOrWhiteSpace(template);
             var normParam = Emitron.NormalizeInputParameterName(inputParameterName);
             var code = BuildCode(template, normParam);
             return Emitron.Compile<string>(code, normParam, options);
@@ -92,7 +91,7 @@ namespace ActDim.Emitron
             string inputParameterName = Emitron.DefaultInputParameterName,
             EmitronOptions? options = null)
         {
-            Guard.Against.Null(input, nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
             return Compile(template, inputParameterName, options)(input);
         }
 

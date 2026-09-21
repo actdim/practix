@@ -1,4 +1,3 @@
-using Ardalis.GuardClauses;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -18,7 +17,7 @@ namespace ActDim.Reflectron
         /// <returns>A factory delegate that creates an <see cref="IReflectron{T}"/> for a given instance.</returns>
         public static Func<T, IReflectron<T>> Reflect<T>(this Type type) where T : class
         {
-            Ardalis.GuardClauses.Guard.Against.Null(type, nameof(type));
+            ArgumentNullException.ThrowIfNull(type);
             return instance => new Reflectron<T>(instance);
         }
 
@@ -29,7 +28,7 @@ namespace ActDim.Reflectron
         /// <returns>A factory delegate that creates an <see cref="IReflectron{Object}"/> for a given instance.</returns>
         public static Func<object, IReflectron<object>> Reflect(this Type type)
         {
-            Ardalis.GuardClauses.Guard.Against.Null(type, nameof(type));
+            ArgumentNullException.ThrowIfNull(type);
             return instance => new Reflectron<object>(instance, type);
         }
 

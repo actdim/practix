@@ -1,6 +1,6 @@
 # ActDim.Practix.Json - Full Documentation Context
 
-> `ActDim.Practix.Json` is a high-performance JSON serialization subsystem for .NET built on top of `System.Text.Json` (STJ), enhanced with a rich suite of converters, resolvers, and declarative attributes designed to make migration from **Newtonsoft.Json (Json.NET)** completely painless.
+> `ActDim.Practix.Json` is a JSON serialization abstraction layer for .NET built on `System.Text.Json` (STJ). It implements `IJsonSerializer`, `IStringSerializer`, `IBinarySerializer`, and `IStreamSerializer` through a single `CoreJsonSerializer` with a rich API covering string/stream/byte serialization (sync and async), JSON merging, deep cloning, object population, and patching. The default options are tuned to match **Newtonsoft.Json (Json.NET)** behavior out of the box, making migration painless while retaining the speed and low allocation profile of modern STJ.
 
 ---
 
@@ -8,7 +8,7 @@
 
 # ActDim.Practix.Json
 
-`ActDim.Practix.Json` is a high-performance JSON serialization subsystem for .NET built on top of `System.Text.Json` (STJ), enhanced with a rich suite of converters, resolvers, and declarative attributes designed to make migration from **Newtonsoft.Json (Json.NET)** completely painless.
+`ActDim.Practix.Json` is a JSON serialization abstraction layer for .NET built on `System.Text.Json` (STJ). It implements `IJsonSerializer`, `IStringSerializer`, `IBinarySerializer`, and `IStreamSerializer` through a single `CoreJsonSerializer` with a rich API covering string/stream/byte serialization (sync and async), JSON merging, deep cloning, object population, and patching. The default options are tuned to match **Newtonsoft.Json (Json.NET)** behavior out of the box, making migration painless while retaining the speed and low allocation profile of modern STJ.
 
 ---
 
@@ -16,7 +16,38 @@
 
 Migrating legacy codebases from `Newtonsoft.Json` to standard `System.Text.Json` is notoriously difficult due to STJ's strict type rules, lack of permissive string parsing, handling of `object` as `JsonElement`, and missing declarative policies. 
 
-`ActDim.Practix.Json` bridges this gap by providing full behavioral compatibility with Newtonsoft.Json out of the box while retaining the extreme speed and low memory allocation of modern `System.Text.Json`.
+`ActDim.Practix.Json` bridges this gap by providing full behavioral compatibility with Newtonsoft.Json out of the box while retaining the speed and low memory allocation of modern `System.Text.Json`.
+
+### Default Options: STJ vs Newtonsoft.Json vs Practix.Json
+
+| Setting | Stock STJ | Newtonsoft.Json | Practix.Json | Why |
+| :--- | :--- | :--- | :--- | :--- |
+| Property name matching | Case-sensitive | Case-insensitive | Case-insensitive | JSON keys `"name"` / `"Name"` both map to `Name` |
+| Quoted number parsing | Throws | Parses `"42"` to int | `AllowReadingFromString` | Tolerates upstream APIs that quote numbers |
+| Named floats (`NaN`) | Throws | Parses `"NaN"` | `AllowNamedFloatingPointLiterals` | IEEE 754 specials survive round-trip |
+| Trailing commas | Throws | Allowed | Allowed | Tolerates hand-edited JSON |
+| Comments in JSON | Throws | Skipped | Skipped | Tolerates JSON with `//` comments |
+| Encoder | Escapes `<>&` and non-ASCII | Raw UTF-8 | `UnsafeRelaxedJsonEscaping` | Clean readable output, Cyrillic/CJK unescaped |
+| Public fields | Ignored | Serialized | `IncludeFields = true` | Fields participate in serialization |
+| Circular references | Throws | Throws | `IgnoreCycles` (writes `null`) | Prevents crashes on cyclic object graphs |
+| `object` deserialization | `JsonElement` | CLR primitives, JObject | `ExpandoObject`, `List<object>`, CLR primitives | Dynamic access and casting work naturally |
+| Float `.0` suffix | Strips (7.0 -> 7) | Preserves | Preserves via `FloatingPointConverterFactory` | Downstream consumers see correct float type |
+| Enum serialization | String names | Numeric | Numeric via `NumberEnumConverterFactory` | Matches wire format most APIs expect |
+| String coercion | Throws on non-string | Coerces | Coerces via `NewtonsoftCompatibleStringConverter` | Numbers/bools in string fields don't crash |
+
+### Full API Surface
+
+Beyond basic `Serialize`/`Deserialize`, `CoreJsonSerializer` provides operations commonly needed in production but missing from raw STJ:
+
+- **Stream serialization** (sync and async) - direct `Stream` I/O without intermediate string allocation
+- **Byte array serialization** - UTF-8 bytes with optional encoding transcoding
+- **JSON merging** (`MergeAndSerialize`) - merge multiple object graphs into a single JSON document with configurable array and null handling
+- **Deep cloning** (`Clone<T>`) - serialize-deserialize round-trip clone
+- **Object population** (`Populate<T>`) - mutate an existing instance from JSON using compiled Expression Tree property setters
+- **Patching** (`Patch<T>`) - apply a partial JSON string onto an existing object
+- **Property copying** (`Copy<T>`) - deep copy values from one instance into another via serialize + populate
+- **Options cloning** (`CopyOptions`) - copy all settings between `JsonSerializerOptions` instances via compiled delegates
+- **Property name formatting** (`FormatPropertyName`) - transform dot-separated property paths according to the active naming policy
 
 ---
 
@@ -68,8 +99,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 public void ConfigureServices(IServiceCollection services)
 {
-    // Registers IJsonSerializer and related contracts
-    services.AddPractixJson();
+    // Registers IJsonSerializer, IStringSerializer, IBinarySerializer, and IStreamSerializer
+    services.AddCoreJsonSerializer();
 }
 ```
 
@@ -157,14 +188,38 @@ This folder belongs to a repository that uses the ALONG structure. The full work
 guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
 read it there. This folder keeps its OWN `.along/` state; use the nearest one.
 Only this folder's specifics follow.
-<!-- END ALONG-PROTOCOL -->## Project specifics
+<!-- END ALONG-PROTOCOL -->
+
+## Project specifics
 
 <!-- BEGIN ALONG-RULES -->
 See the following engineering guidelines:
 - `[languages/csharp.md](.along/rules/languages/csharp.md)`
 <!-- END ALONG-RULES -->
 
-Autonomous JSON serialization subsystem (`CoreJsonSerializer`, custom converters, policies, attributes) using compiled Expression Trees for zero-allocation `CopyOptions` and property setters (`AddPractixJson()`).
+JSON serialization abstraction layer implementing `IJsonSerializer`, `IStringSerializer`, `IBinarySerializer`, and `IStreamSerializer` via `CoreJsonSerializer`, built on `System.Text.Json` with Newtonsoft.Json-familiar defaults configured out of the box.
+
+### Architecture
+
+- **Abstraction contracts** live in `ActDim.Practix.Abstractions` (`IJsonSerializer`, `IStringSerializer`, `IBinarySerializer`, `IStreamSerializer`).
+- **`CoreJsonSerializer`** is the single implementation providing: serialize/deserialize to string, `Stream` (sync + async), and `byte[]`; JSON document merging (`MergeAndSerialize`); deep cloning (`Clone<T>`); object population and patching (`Populate`, `Patch`, `Copy`); property name formatting via naming policies; and options cloning via compiled Expression Tree delegates.
+- **DI entry point:** `services.AddCoreJsonSerializer()` registers `CoreJsonSerializer` as shared singleton for `IJsonSerializer`, `IStringSerializer`, `IBinarySerializer`, and `IStreamSerializer`.
+
+### Newtonsoft.Json-Familiar Defaults
+
+`CreateDefaultOptions()` configures STJ to match common Newtonsoft.Json behaviors: case-insensitive property matching, lenient number/string coercion (`AllowReadingFromString`, `AllowNamedFloatingPointLiterals`), trailing commas, comment skipping, relaxed UTF-8 encoding (`UnsafeRelaxedJsonEscaping`), public field inclusion, and cycle-safe reference handling (`IgnoreCycles`).
+
+### Custom Converters and Resolvers
+
+- `ObjectJsonConverter` - deserializes `object` to CLR primitives / `ExpandoObject` / `List<object>` instead of `JsonElement`.
+- `NewtonsoftCompatibleStringConverter` - coerces non-string tokens (numbers, booleans, objects) into `string`.
+- `NumberEnumConverterFactory` - numeric enum serialization respecting type-level `[JsonConverter]` overrides.
+- `FloatingPointConverterFactory` - preserves `.0` suffix on whole floats; handles `NaN`/`Infinity` as string literals.
+- `ExceptionJsonConverter` - safe structured `Exception` serialization without circular references.
+- `ImplicitOperatorConverterFactory` - automatic value object serialization via `op_Implicit`/`op_Explicit` discovery.
+- `NamingPolicyResolver` - per-type naming policy via `[JsonNaming]` attribute.
+- `DefaultValueAwareResolver` - `[JsonIgnoreDefault]` and `[JsonDefaultValue]` attribute processing.
+- `EmptyCollectionIgnoreResolver` - `[JsonIgnoreEmpty]` attribute processing.
 
 ---
 

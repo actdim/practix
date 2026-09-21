@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.27"
 slug: domain-model
 title: Domain Model & Vocabulary
 type: domain-model

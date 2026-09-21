@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.27"
 slug: compression-and-archives
 title: Stream & Payload Compression and Archiving
 type: topic

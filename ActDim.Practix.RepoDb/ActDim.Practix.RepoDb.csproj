@@ -5,9 +5,9 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>annotations</Nullable>
-		<IsPackable>false</IsPackable>
+		<IsPackable>true</IsPackable>
 		<PackageId>ActDim.Practix.RepoDb</PackageId>
-		<Description>RepoDb extensions, lambda expression translators, and best practices for ActDim.Practix.</Description>
+		<Description>RepoDb extensions, lambda expression translators, and best practices.</Description>
 		<PackageTags>actdim;practix;repodb;orm;data;sql;expressions</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
@@ -17,20 +17,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Ardalis.GuardClauses" />
 		<PackageReference Include="RepoDb" />
-		<PackageReference Include="RepoDb.Sqlite.Microsoft" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
 			<_Parameter1>ActDim.Practix.RepoDb.Tests, PublicKey=$(ActDimPublicKey)</_Parameter1>
 		</AssemblyAttribute>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\ActDim.Practix.Abstractions\ActDim.Practix.Abstractions.csproj" />
-		<ProjectReference Include="..\ActDim.Practix.Common\ActDim.Practix.Common.csproj" />
 	</ItemGroup>
 
 </Project>

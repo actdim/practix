@@ -38,7 +38,7 @@ namespace ActDim.Practix.Abstractions.Context
         public const string CompressionManager = Prefix + "CompressionManager";
 
         /// <summary>
-        /// Key storing the active <see cref="Microsoft.IO.RecyclableMemoryStreamManager"/>.
+        /// Key storing the active recyclable memory stream manager.
         /// </summary>
         public const string MemoryManager = Prefix + "MemoryManager";
     }
