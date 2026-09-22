@@ -1,5 +1,9 @@
-using ActDim.BytePath;
+using ActDim.Practix.Abstractions.Compression;
 using ActDim.Practix.Abstractions.Context;
+using ActDim.Practix.Abstractions.Context.Extensions;
+using ActDim.Practix.Abstractions.Logging;
+using ActDim.Practix.Abstractions.Memory;
+using ActDim.Practix.Abstractions.Storage;
 using ActDim.Practix.Context;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -77,12 +81,9 @@ namespace ActDim.Practix.Common.Tests.Context
         }
 
         [Fact]
-        public void Services_ThrowsWhenNoServicesConfigured()
+        public void Services_ReturnsNullWhenNoServicesConfigured()
         {
-            Assert.Throws<InvalidOperationException>(() =>
-            {
-                _ = AmbientContext.Services;
-            });
+            Assert.Null(AmbientContext.Current.GetServices());
         }
 
         [Fact]
@@ -91,173 +92,156 @@ namespace ActDim.Practix.Common.Tests.Context
             var services1 = new ServiceCollection().BuildServiceProvider();
             var services2 = new ServiceCollection().BuildServiceProvider();
 
-            using (AmbientContext.WithServices(services1))
+            using (AmbientContext.Current.WithServices(services1))
             {
-                Assert.Same(services1, AmbientContext.Services);
+                Assert.Same(services1, AmbientContext.Current.GetServices());
 
-                using (AmbientContext.WithServices(services2))
+                using (AmbientContext.Current.WithServices(services2))
                 {
-                    Assert.Same(services2, AmbientContext.Services);
+                    Assert.Same(services2, AmbientContext.Current.GetServices());
                 }
 
-                Assert.Same(services1, AmbientContext.Services);
+                Assert.Same(services1, AmbientContext.Current.GetServices());
             }
 
-            Assert.Throws<InvalidOperationException>(() =>
-            {
-                _ = AmbientContext.Services;
-            });
+            Assert.Null(AmbientContext.Current.GetServices());
         }
 
         [Fact]
-        public void User_ResolvesAnonymousByDefault_AndSupportsScopedOverrides()
+        public void User_ResolvesNullByDefault_AndSupportsScopedOverrides()
         {
-            var defaultUser = AmbientContext.User;
-            Assert.NotNull(defaultUser);
-            Assert.False(defaultUser.Identity?.IsAuthenticated ?? false);
+            var defaultUser = AmbientContext.Current.GetUser();
+            Assert.Null(defaultUser);
 
             var user1 = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, "Alice")], "TestAuth"));
             var user2 = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, "Bob")], "TestAuth"));
 
-            using (AmbientContext.WithUser(user1))
+            using (AmbientContext.Current.WithUser(user1))
             {
-                Assert.Equal("Alice", AmbientContext.User.Identity?.Name);
+                Assert.Equal("Alice", AmbientContext.Current.GetUser()?.Identity?.Name);
 
-                using (AmbientContext.WithUser(user2))
+                using (AmbientContext.Current.WithUser(user2))
                 {
-                    Assert.Equal("Bob", AmbientContext.User.Identity?.Name);
+                    Assert.Equal("Bob", AmbientContext.Current.GetUser()?.Identity?.Name);
                 }
 
-                Assert.Equal("Alice", AmbientContext.User.Identity?.Name);
+                Assert.Equal("Alice", AmbientContext.Current.GetUser()?.Identity?.Name);
             }
 
-            Assert.False(AmbientContext.User.Identity?.IsAuthenticated ?? false);
+            Assert.Null(AmbientContext.Current.GetUser());
         }
 
         [Fact]
-        public void CancellationToken_ResolvesNoneByDefault_AndSupportsScopedOverrides()
+        public void CancellationToken_ResolvesNullByDefault_AndSupportsScopedOverrides()
         {
-            Assert.Equal(CancellationToken.None, AmbientContext.CancellationToken);
+            Assert.Null(AmbientContext.Current.GetCancellationToken());
 
             using var cts = new CancellationTokenSource();
-            using (AmbientContext.WithCancellationToken(cts.Token))
+            using (AmbientContext.Current.WithCancellationToken(cts.Token))
             {
-                Assert.Equal(cts.Token, AmbientContext.CancellationToken);
-                Assert.False(AmbientContext.CancellationToken.IsCancellationRequested);
+                Assert.Equal(cts.Token, AmbientContext.Current.GetCancellationToken());
+                Assert.False(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
 
                 cts.Cancel();
-                Assert.True(AmbientContext.CancellationToken.IsCancellationRequested);
+                Assert.True(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
             }
 
-            Assert.Equal(CancellationToken.None, AmbientContext.CancellationToken);
+            Assert.Null(AmbientContext.Current.GetCancellationToken());
         }
 
         [Fact]
         public async Task WithTimeout_CancelsTokenAfterDuration_AndDisposesCleanly()
         {
-            Assert.Equal(CancellationToken.None, AmbientContext.CancellationToken);
+            Assert.Null(AmbientContext.Current.GetCancellationToken());
 
             CancellationToken timeoutToken;
-            using (AmbientContext.WithTimeout(TimeSpan.FromMilliseconds(50), out timeoutToken))
+            using (AmbientContext.Current.WithTimeout(TimeSpan.FromMilliseconds(50), out timeoutToken))
             {
-                Assert.Equal(timeoutToken, AmbientContext.CancellationToken);
-                Assert.False(AmbientContext.CancellationToken.IsCancellationRequested);
+                Assert.Equal(timeoutToken, AmbientContext.Current.GetCancellationToken());
+                Assert.False(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
 
                 var sw = System.Diagnostics.Stopwatch.StartNew();
-                while (!AmbientContext.CancellationToken.IsCancellationRequested && sw.ElapsedMilliseconds < 2000)
+                while (!AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested && sw.ElapsedMilliseconds < 2000)
                 {
                     await Task.Delay(20);
                 }
-                Assert.True(AmbientContext.CancellationToken.IsCancellationRequested);
+                Assert.True(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
                 Assert.True(timeoutToken.IsCancellationRequested);
             }
 
-            Assert.Equal(CancellationToken.None, AmbientContext.CancellationToken);
+            Assert.Null(AmbientContext.Current.GetCancellationToken());
         }
 
         [Fact]
-        public void Blobs_ResolvesFromAmbientOverride_OrFromServices()
+        public void Blobs_ResolvesFromAmbientOverride()
         {
             var testBlobManager1 = new TestBlobManager();
             var testBlobManager2 = new TestBlobManager();
 
-            var services = new ServiceCollection()
-                .AddSingleton<IBlobManager>(testBlobManager1)
-                .BuildServiceProvider();
-
-            using (AmbientContext.WithServices(services))
+            using (AmbientContext.Current.WithBlobManager(testBlobManager1))
             {
-                Assert.Same(testBlobManager1, AmbientContext.Blobs);
+                Assert.Same(testBlobManager1, AmbientContext.Current.GetBlobManager());
 
-                using (AmbientContext.WithBlobManager(testBlobManager2))
+                using (AmbientContext.Current.WithBlobManager(testBlobManager2))
                 {
-                    Assert.Same(testBlobManager2, AmbientContext.Blobs);
+                    Assert.Same(testBlobManager2, AmbientContext.Current.GetBlobManager());
                 }
 
-                Assert.Same(testBlobManager1, AmbientContext.Blobs);
+                Assert.Same(testBlobManager1, AmbientContext.Current.GetBlobManager());
             }
+
+            Assert.Null(AmbientContext.Current.GetBlobManager());
         }
 
         [Fact]
-        public void Compression_ResolvesFromAmbientOverride_OrFromServices()
+        public void Compression_ResolvesFromAmbientOverride()
         {
             var testCompression1 = new TestCompressionManager();
             var testCompression2 = new TestCompressionManager();
 
-            var services = new ServiceCollection()
-                .AddSingleton<ActDim.Practix.Abstractions.Compression.ICompressionManager>(testCompression1)
-                .BuildServiceProvider();
-
-            using (AmbientContext.WithServices(services))
+            using (AmbientContext.Current.WithCompressionManager(testCompression1))
             {
-                Assert.Same(testCompression1, AmbientContext.Compression);
+                Assert.Same(testCompression1, AmbientContext.Current.GetCompressionManager());
 
-                using (AmbientContext.WithCompressionManager(testCompression2))
+                using (AmbientContext.Current.WithCompressionManager(testCompression2))
                 {
-                    Assert.Same(testCompression2, AmbientContext.Compression);
+                    Assert.Same(testCompression2, AmbientContext.Current.GetCompressionManager());
                 }
 
-                Assert.Same(testCompression1, AmbientContext.Compression);
+                Assert.Same(testCompression1, AmbientContext.Current.GetCompressionManager());
             }
+
+            Assert.Null(AmbientContext.Current.GetCompressionManager());
         }
 
         [Fact]
-        public void Memory_ResolvesFromAmbientOverride_OrDefaultsToProcessManager()
+        public void Memory_ResolvesFromAmbientOverride()
         {
-            var defaultMemory = AmbientContext.Memory;
-            Assert.NotNull(defaultMemory);
-            Assert.Same(ActDim.Practix.Common.Memory.MemoryManager.Default, defaultMemory);
+            Assert.Null(AmbientContext.Current.GetMemoryManager());
 
             var customManager = new Microsoft.IO.RecyclableMemoryStreamManager();
 
-            using (AmbientContext.WithMemoryManager(customManager))
+            using (AmbientContext.Current.WithMemoryManager(customManager))
             {
-                Assert.Same(customManager, AmbientContext.Memory);
                 Assert.Same(customManager, AmbientContext.Current.GetMemoryManager());
             }
 
-            Assert.Same(ActDim.Practix.Common.Memory.MemoryManager.Default, AmbientContext.Memory);
+            Assert.Null(AmbientContext.Current.GetMemoryManager());
         }
 
         [Fact]
         public void Logging_ResolvesLoggerFactory_AndSupportsScopedOverrides()
         {
-            var logger = AmbientContext.Log<AmbientContextTests>();
-            Assert.NotNull(logger);
+            Assert.Null(AmbientContext.Current.GetLoggerFactory());
 
             var customFactory = new TestLoggerFactory();
 
-            using (AmbientContext.WithLoggerFactory(customFactory))
+            using (AmbientContext.Current.WithLoggerFactory(customFactory))
             {
-                Assert.Same(customFactory, AmbientContext.LoggerFactory);
-
-                var logInstance = AmbientContext.Log(this);
-                Assert.NotNull(logInstance);
-                Assert.Same(customFactory.LastCreatedLogger, logInstance);
-
-                var logType = AmbientContext.Log(typeof(AmbientContextTests));
-                Assert.NotNull(logType);
+                Assert.Same(customFactory, AmbientContext.Current.GetLoggerFactory());
             }
+
+            Assert.Null(AmbientContext.Current.GetLoggerFactory());
         }
 
         [Fact]
@@ -296,41 +280,41 @@ namespace ActDim.Practix.Common.Tests.Context
             using var parentCts = new CancellationTokenSource();
             using var childCts = new CancellationTokenSource();
 
-            using (AmbientContext.WithCancellationToken(parentCts.Token))
+            using (AmbientContext.Current.WithCancellationToken(parentCts.Token))
             {
-                Assert.Equal(parentCts.Token, AmbientContext.CancellationToken);
-                Assert.False(AmbientContext.CancellationToken.IsCancellationRequested);
+                Assert.Equal(parentCts.Token, AmbientContext.Current.GetCancellationToken());
+                Assert.False(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
 
                 // Combine existing ambient token with child token via LinkedTokenSource
-                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(AmbientContext.CancellationToken, childCts.Token);
-                using (AmbientContext.WithCancellationToken(linkedCts.Token))
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(AmbientContext.Current.GetCancellationToken() ?? CancellationToken.None, childCts.Token);
+                using (AmbientContext.Current.WithCancellationToken(linkedCts.Token))
                 {
-                    Assert.Equal(linkedCts.Token, AmbientContext.CancellationToken);
-                    Assert.False(AmbientContext.CancellationToken.IsCancellationRequested);
+                    Assert.Equal(linkedCts.Token, AmbientContext.Current.GetCancellationToken());
+                    Assert.False(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
 
                     // Child cancellation propagates to ambient context
                     childCts.Cancel();
-                    Assert.True(AmbientContext.CancellationToken.IsCancellationRequested);
+                    Assert.True(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
                     Assert.False(parentCts.IsCancellationRequested);
                 }
 
                 // Exiting inner scope restores un-cancelled parent token
-                Assert.Equal(parentCts.Token, AmbientContext.CancellationToken);
-                Assert.False(AmbientContext.CancellationToken.IsCancellationRequested);
+                Assert.Equal(parentCts.Token, AmbientContext.Current.GetCancellationToken());
+                Assert.False(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
 
                 // Parent cancellation propagates to new linked scope
-                using var linkedCts2 = CancellationTokenSource.CreateLinkedTokenSource(AmbientContext.CancellationToken, CancellationToken.None);
-                using (AmbientContext.WithCancellationToken(linkedCts2.Token))
+                using var linkedCts2 = CancellationTokenSource.CreateLinkedTokenSource(AmbientContext.Current.GetCancellationToken() ?? CancellationToken.None, CancellationToken.None);
+                using (AmbientContext.Current.WithCancellationToken(linkedCts2.Token))
                 {
                     parentCts.Cancel();
-                    Assert.True(AmbientContext.CancellationToken.IsCancellationRequested);
+                    Assert.True(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
                 }
             }
         }
 
         private sealed class TestBlobManager : IBlobManager
         {
-            public IBlobDataStore DataStore => throw new NotImplementedException();
+            public IBlobDataStore this[string key] => throw new NotImplementedException();
             public IReadOnlyList<IBlobDataStore> DataStores => throw new NotImplementedException();
             public IBlobDataStore GetDataStore(string key) => throw new NotImplementedException();
             public Task<BlobResult> TryGetOrSetAsync(string key, CancellationToken ct) => throw new NotImplementedException();

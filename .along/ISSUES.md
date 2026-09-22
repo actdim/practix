@@ -7,9 +7,9 @@
 - [ ] `(feat)` [unified-configurable-authentication](ISSUES/feat--unified-configurable-authentication.md)
 
 ## Done (recent)
+- [x] `(task)` [release-version-1-2-0](ISSUES/done/task--release-version-1-2-0.md)
+- [x] `(docs)` [ambient-context-architecture-guide](ISSUES/done/docs--ambient-context-architecture-guide.md)
+- [x] `(debt)` [update-sqlitepclraw-vulnerability](ISSUES/done/debt--update-sqlitepclraw-vulnerability.md)
+- [x] `(debt)` [ambient-context-modular-extensions](ISSUES/done/debt--ambient-context-modular-extensions.md)
 - [x] `(task)` [release-version-1-1-0](ISSUES/done/task--release-version-1-1-0.md)
-- [x] `(task)` [clean-nuget-dependencies-and-pack-repodb](ISSUES/done/task--clean-nuget-dependencies-and-pack-repodb.md)
-- [x] `(debt)` [move-recyclable-memory-stream-extensions-to-common](ISSUES/done/debt--move-recyclable-memory-stream-extensions-to-common.md)
-- [x] `(task)` [set-system-data-npgsql-baseline-10-0-0](ISSUES/done/task--set-system-data-npgsql-baseline-10-0-0.md)
-- [x] `(task)` [set-microsoft-extensions-baseline-10-0-0](ISSUES/done/task--set-microsoft-extensions-baseline-10-0-0.md)
-<!-- 3 older completed issue(s) archived in .along/ISSUES/done/ -->
+<!-- 7 older completed issue(s) archived in .along/ISSUES/done/ -->

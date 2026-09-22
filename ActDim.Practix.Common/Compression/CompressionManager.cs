@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ActDim.Practix.Abstractions.Compression;
 using ActDim.Practix.Abstractions.Exceptions;
+using ActDim.Practix.Abstractions.Memory;
 using ActDim.Practix.Extensions;
 using ActDim.Practix.Common.Memory;
 

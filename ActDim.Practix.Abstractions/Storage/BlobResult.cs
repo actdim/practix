@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace ActDim.BytePath
+namespace ActDim.Practix.Abstractions.Storage
 {
     /// <summary>
     /// Represents the result of a blob acquisition or mutation operation, holding the lock handle and record.

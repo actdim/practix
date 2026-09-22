@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ActDim.BytePath;
+using ActDim.Practix.Abstractions.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -130,7 +131,7 @@ namespace ActDim.BytePath.Tests
             long written;
             await using (record)
             {
-                written = await env.Manager.DataStore.PutAsync(record, Content("hello-blob"), ct);
+                written = await env.Manager[record.Key].PutAsync(record, Content("hello-blob"), ct);
             }
 
             Assert.Equal(10, written);
@@ -148,7 +149,7 @@ namespace ActDim.BytePath.Tests
             var (_, writeRecord) = await env.Manager.TryGetForWritingAsync("write-trunc-key", ct);
             await using (writeRecord)
             {
-                Assert.Equal(3, await env.Manager.DataStore.PutAsync(writeRecord, Content("new"), ct));
+                Assert.Equal(3, await env.Manager[writeRecord.Key].PutAsync(writeRecord, Content("new"), ct));
             }
 
             Assert.Equal("new", await env.ReadTextAsync("write-trunc-key", ct));
@@ -165,7 +166,7 @@ namespace ActDim.BytePath.Tests
             var (_, record) = await env.Manager.TryGetForReadingAsync("loc-key.png", ct);
             await using (record)
             {
-                var location = await env.Manager.DataStore.ResolveLocationAsync(record, ct);
+                var location = await env.Manager[record.Key].ResolveLocationAsync(record, ct);
                 Assert.False(string.IsNullOrWhiteSpace(location));
                 Assert.EndsWith(".png", location, StringComparison.OrdinalIgnoreCase);
             }
@@ -188,7 +189,7 @@ namespace ActDim.BytePath.Tests
 
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
-                await env.Manager.DataStore.ReadAsync(record, ct);
+                await env.Manager[record.Key].ReadAsync(record, ct);
             });
         }
 
@@ -205,7 +206,7 @@ namespace ActDim.BytePath.Tests
             await using (record)
             {
                 // A write-only producer: it is handed a stream instead of supplying one.
-                written = await env.Manager.DataStore.PutAsync(record, async (stream, token) =>
+                written = await env.Manager[record.Key].PutAsync(record, async (stream, token) =>
                 {
                     await using var writer = new StreamWriter(stream, Utf8NoBom, 1024, true);
                     await writer.WriteAsync("produced".AsMemory(), token);
@@ -227,7 +228,7 @@ namespace ActDim.BytePath.Tests
             var (_, record) = await env.Manager.TryGetForWritingAsync("produce-append-key", ct);
             await using (record)
             {
-                var total = await env.Manager.DataStore.AppendAsync(record, async (stream, token) =>
+                var total = await env.Manager[record.Key].AppendAsync(record, async (stream, token) =>
                 {
                     await using var writer = new StreamWriter(stream, Utf8NoBom, 1024, true);
                     await writer.WriteAsync("-tail".AsMemory(), token);
@@ -251,7 +252,7 @@ namespace ActDim.BytePath.Tests
                 // The failure travels through the pipe: the store's read rethrows it, so the caller
                 // sees the producer's own exception rather than a pipe-level one.
                 await Assert.ThrowsAsync<InvalidTimeZoneException>(async () =>
-                    await env.Manager.DataStore.PutAsync(record, (stream, token) =>
+                    await env.Manager[record.Key].PutAsync(record, (stream, token) =>
                         throw new InvalidTimeZoneException("producer gave up"), ct));
             }
         }
@@ -271,7 +272,7 @@ namespace ActDim.BytePath.Tests
             long written;
             await using (record)
             {
-                written = await env.Manager.DataStore.PutAsync(record, async (stream, token) =>
+                written = await env.Manager[record.Key].PutAsync(record, async (stream, token) =>
                 {
                     await using var writer = new StreamWriter(stream, Utf8NoBom, 1024, true);
                     for (var i = 0; i < chunks; i++)
@@ -293,7 +294,7 @@ namespace ActDim.BytePath.Tests
             var (_, record) = await env.Manager.TryGetOrSetAsync("produce-direct-key", ct);
             await using (record)
             {
-                await env.Manager.DataStore.PutAsync(record, (stream, token) =>
+                await env.Manager[record.Key].PutAsync(record, (stream, token) =>
                 {
                     // Store-specific, NOT a contract guarantee: this store owns a real file stream and
                     // overrides the default, so no pipe is in the way. The pipe default would hand
@@ -314,7 +315,7 @@ namespace ActDim.BytePath.Tests
             long written;
             await using (record)
             {
-                written = await env.Manager.DataStore.PutAsync(record, async (stream, token) =>
+                written = await env.Manager[record.Key].PutAsync(record, async (stream, token) =>
                 {
                     var head = Encoding.UTF8.GetBytes("hello world");
                     await stream.WriteAsync(head, 0, head.Length, token);
@@ -342,7 +343,7 @@ namespace ActDim.BytePath.Tests
             var (_, record) = await env.Manager.TryGetForReadingAsync("seek-key", ct);
             await using (record)
             {
-                await using var stream = await env.Manager.DataStore.ReadAsync(record, ct);
+                await using var stream = await env.Manager[record.Key].ReadAsync(record, ct);
 
                 // Pinned promise: a range is read by seeking, so a forward-only backend must wrap.
                 Assert.True(stream.CanSeek);
@@ -362,7 +363,7 @@ namespace ActDim.BytePath.Tests
             var record = new BlobRecord { Key = "no-lock-write", Metadata = "file.txt", LockType = LockType.Read };
 
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                await env.Manager.DataStore.PutAsync(record, Content("nope"), ct));
+                await env.Manager[record.Key].PutAsync(record, Content("nope"), ct));
         }
 
         [Fact]
@@ -377,7 +378,7 @@ namespace ActDim.BytePath.Tests
             await using (writeRecord)
             {
                 // The returned size is the new total, not the appended length.
-                Assert.Equal(11, await env.Manager.DataStore.AppendAsync(writeRecord, Content("-world"), ct));
+                Assert.Equal(11, await env.Manager[writeRecord.Key].AppendAsync(writeRecord, Content("-world"), ct));
             }
 
             Assert.Equal("hello-world", await env.ReadTextAsync("append-key", ct));
@@ -392,7 +393,7 @@ namespace ActDim.BytePath.Tests
             var (_, record) = await env.Manager.TryGetOrSetAsync("append-new-key", ct);
             await using (record)
             {
-                Assert.Equal(12, await env.Manager.DataStore.AppendAsync(record, Content("from-scratch"), ct));
+                Assert.Equal(12, await env.Manager[record.Key].AppendAsync(record, Content("from-scratch"), ct));
             }
 
             Assert.Equal("from-scratch", await env.ReadTextAsync("append-new-key", ct));
@@ -415,7 +416,7 @@ namespace ActDim.BytePath.Tests
 
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
-                await env.Manager.DataStore.AppendAsync(record, Content("nope"), ct);
+                await env.Manager[record.Key].AppendAsync(record, Content("nope"), ct);
             });
         }
 
@@ -447,13 +448,13 @@ namespace ActDim.BytePath.Tests
             var (_, seeded) = await env.Manager.TryGetForReadingAsync("exists-key", ct);
             await using (seeded)
             {
-                Assert.True(await env.Manager.DataStore.ExistsAsync(seeded, ct));
+                Assert.True(await env.Manager[seeded.Key].ExistsAsync(seeded, ct));
             }
 
             // A record whose content was never written: GetSizeAsync yields null, so this is false.
             await using var reserved = await env.Manager.TryGetOrSetAsync("exists-missing-key", ct);
             Assert.Null(reserved.Record.Size);
-            Assert.False(await env.Manager.DataStore.ExistsAsync(reserved.Record, ct));
+            Assert.False(await env.Manager[reserved.Record.Key].ExistsAsync(reserved.Record, ct));
         }
 
         [Fact]
@@ -469,7 +470,7 @@ namespace ActDim.BytePath.Tests
             await using (record)
             {
                 Assert.Equal(0, record.Size);
-                Assert.True(await env.Manager.DataStore.ExistsAsync(record, ct));
+                Assert.True(await env.Manager[record.Key].ExistsAsync(record, ct));
             }
         }
 
@@ -498,7 +499,7 @@ namespace ActDim.BytePath.Tests
             {
                 Assert.Equal(16, writeRecord.Size);
 
-                await env.Manager.DataStore.PutAsync(writeRecord, Content("new"), ct);
+                await env.Manager[writeRecord.Key].PutAsync(writeRecord, Content("new"), ct);
 
                 // The store records the size as it writes, so the handle is current immediately.
                 Assert.Equal(3, writeRecord.Size);
@@ -520,7 +521,7 @@ namespace ActDim.BytePath.Tests
             var (_, record) = await env.Manager.TryGetOrSetAsync("size-persist-key", ct);
             await using (record)
             {
-                await env.Manager.DataStore.PutAsync(record, Content("persisted"), ct);
+                await env.Manager[record.Key].PutAsync(record, Content("persisted"), ct);
             }
 
             // Going through the registry directly bypasses the data-store reconciliation, so
@@ -984,7 +985,7 @@ namespace ActDim.BytePath.Tests
             var (_, probe) = await env.Manager.TryGetForReadingAsync("lost-content-key", ct);
             await using (probe)
             {
-                location = await env.Manager.DataStore.ResolveLocationAsync(probe, ct);
+                location = await env.Manager[probe.Key].ResolveLocationAsync(probe, ct);
             }
             File.Delete(location);
 
@@ -1335,7 +1336,7 @@ namespace ActDim.BytePath.Tests
                 var (_, record) = await Manager.TryGetForReadingAsync(key, ct);
                 await using (record)
                 {
-                    await using var stream = await Manager.DataStore.ReadAsync(record, ct);
+                    await using var stream = await Manager[record.Key].ReadAsync(record, ct);
                     using var reader = new StreamReader(stream, Encoding.UTF8, false, 1024, false);
                     return await reader.ReadToEndAsync(ct);
                 }
@@ -1350,7 +1351,7 @@ namespace ActDim.BytePath.Tests
                 var (_, record) = await Manager.TryGetForReadingAsync(key, ct);
                 await using (record)
                 {
-                    return await Manager.DataStore.ResolveLocationAsync(record, ct);
+                    return await Manager[record.Key].ResolveLocationAsync(record, ct);
                 }
             }
 
@@ -1382,7 +1383,7 @@ namespace ActDim.BytePath.Tests
 
                 await using (record)
                 {
-                    await Manager.DataStore.PutAsync(record, Content(content), ct);
+                    await Manager[record.Key].PutAsync(record, Content(content), ct);
                 }
             }
 
@@ -1825,6 +1826,96 @@ namespace ActDim.BytePath.Tests
 
                 Assert.Equal("fs:", manager.GetDataStore("fs:sample.txt").KeyPrefix);
                 Assert.Equal("cache:", manager.GetDataStore("cache:temp.dat").KeyPrefix);
+                Assert.Equal("fs:", manager["fs:sample.txt"].KeyPrefix);
+                Assert.Equal("cache:", manager["cache:temp.dat"].KeyPrefix);
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try { Directory.Delete(tempBase, true); } catch { }
+                }
+            }
+        }
+
+        [Fact]
+        public void MultiDataStore_Indexer_RoutesCorrectlyAndCaseInsensitive()
+        {
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_indexer_" + Guid.NewGuid().ToString("N"));
+            var dir1 = Path.Combine(tempBase, "dir1");
+            var dir2 = Path.Combine(tempBase, "dir2");
+            var dirDefault = Path.Combine(tempBase, "default");
+            var dbPath = Path.Combine(tempBase, "reg.db");
+
+            try
+            {
+                var store1 = new FileSystemBlobDataStore(dir1, "fs:");
+                var store2 = new FileSystemBlobDataStore(dir2, "cache:");
+                var storeDefault = new FileSystemBlobDataStore(dirDefault, string.Empty);
+                var registry = new SQLiteBlobRegistry(dbPath);
+                var manager = new BlobManager(new IBlobDataStore[] { store1, store2, storeDefault }, registry);
+
+                // Indexer matches prefix
+                Assert.Same(store1, manager["fs:file.txt"]);
+                // Indexer is case-insensitive
+                Assert.Same(store1, manager["FS:file.txt"]);
+                Assert.Same(store1, manager["Fs:FILE.TXT"]);
+                // Indexer matches second prefix
+                Assert.Same(store2, manager["CACHE:temp.bin"]);
+                // Indexer falls back to default catch-all store
+                Assert.Same(storeDefault, manager["unprefixed-key"]);
+                Assert.Same(storeDefault, manager[""]);
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try { Directory.Delete(tempBase, true); } catch { }
+                }
+            }
+        }
+
+        [Fact]
+        public void MultiDataStore_DuplicatePrefix_ThrowsArgumentException()
+        {
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_dup_" + Guid.NewGuid().ToString("N"));
+            var dir1 = Path.Combine(tempBase, "dir1");
+            var dir2 = Path.Combine(tempBase, "dir2");
+            var dbPath = Path.Combine(tempBase, "reg.db");
+
+            try
+            {
+                var store1 = new FileSystemBlobDataStore(dir1, "fs:");
+                var store2 = new FileSystemBlobDataStore(dir2, "FS:"); // duplicate prefix with different casing
+                var registry = new SQLiteBlobRegistry(dbPath);
+
+                var ex = Assert.Throws<ArgumentException>(() => new BlobManager(new IBlobDataStore[] { store1, store2 }, registry));
+                Assert.Contains("Duplicate KeyPrefix", ex.Message);
+            }
+            finally
+            {
+                if (Directory.Exists(tempBase))
+                {
+                    try { Directory.Delete(tempBase, true); } catch { }
+                }
+            }
+        }
+
+        [Fact]
+        public void MultiDataStore_Indexer_UnsupportedPrefix_ThrowsNotSupportedException()
+        {
+            var tempBase = Path.Combine(Path.GetTempPath(), "blob_unsupp_" + Guid.NewGuid().ToString("N"));
+            var dir1 = Path.Combine(tempBase, "dir1");
+            var dbPath = Path.Combine(tempBase, "reg.db");
+
+            try
+            {
+                var store1 = new FileSystemBlobDataStore(dir1, "fs:");
+                var registry = new SQLiteBlobRegistry(dbPath);
+                var manager = new BlobManager(new IBlobDataStore[] { store1 }, registry);
+
+                Assert.Throws<NotSupportedException>(() => manager["unknown:key"]);
+                Assert.Throws<NotSupportedException>(() => manager["no-default-store"]);
             }
             finally
             {

@@ -4,7 +4,7 @@
 <!-- No active issues -->
 
 ## Backlog
-<!-- Planned or deferred issues -->
+<!-- No backlog issues -->
 
 ## Done (recent)
 - [x] `(bug)` [fix-using-statement-false-positive](ISSUES/done/bug--fix-using-statement-false-positive.md)

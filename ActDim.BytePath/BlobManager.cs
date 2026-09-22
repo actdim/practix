@@ -1,3 +1,4 @@
+using ActDim.Practix.Abstractions.Storage;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -9,6 +10,8 @@ namespace ActDim.BytePath
     {
         private readonly List<IBlobDataStore> _dataStores;
         private readonly IBlobRegistry _registry;
+        private readonly IBlobDataStore _defaultStore;
+        private readonly IBlobDataStore[] _prefixedStores;
 
         public BlobManager(IBlobDataStore dataStore, IBlobRegistry registry)
             : this(dataStore != null ? new[] { dataStore } : null, registry)
@@ -17,10 +20,7 @@ namespace ActDim.BytePath
 
         public BlobManager(IEnumerable<IBlobDataStore> dataStores, IBlobRegistry registry)
         {
-            if (dataStores == null)
-            {
-                throw new ArgumentNullException(nameof(dataStores));
-            }
+            ArgumentNullException.ThrowIfNull(dataStores);
 
             _dataStores = new List<IBlobDataStore>(dataStores);
             if (_dataStores.Count == 0)
@@ -29,10 +29,38 @@ namespace ActDim.BytePath
             }
 
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
+
+            var prefixSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var prefixed = new List<IBlobDataStore>();
+            IBlobDataStore defaultStore = null;
+
+            for (var i = 0; i < _dataStores.Count; i++)
+            {
+                var store = _dataStores[i] ?? throw new ArgumentException("Data store instances cannot be null.", nameof(dataStores));
+                var prefix = store.KeyPrefix ?? string.Empty;
+                if (!prefixSet.Add(prefix))
+                {
+                    throw new ArgumentException($"Duplicate KeyPrefix '{prefix}' detected among registered data stores.", nameof(dataStores));
+                }
+
+                if (prefix.Length == 0)
+                {
+                    defaultStore = store;
+                }
+                else
+                {
+                    prefixed.Add(store);
+                }
+            }
+
+            // Sort prefixed stores descending by KeyPrefix length for deterministic longest prefix matching
+            prefixed.Sort((a, b) => b.KeyPrefix.Length.CompareTo(a.KeyPrefix.Length));
+            _prefixedStores = prefixed.ToArray();
+            _defaultStore = defaultStore;
         }
 
         /// <inheritdoc />
-        public IBlobDataStore DataStore => _dataStores[0];
+        public IBlobDataStore this[string key] => GetDataStore(key);
 
         /// <inheritdoc />
         public IReadOnlyList<IBlobDataStore> DataStores => _dataStores;
@@ -61,39 +89,22 @@ namespace ActDim.BytePath
                 return false;
             }
 
-            // 1. Longest non-empty prefix match first
-            IBlobDataStore bestMatch = null;
-            var bestPrefixLength = -1;
-
-            for (var i = 0; i < _dataStores.Count; i++)
+            // 1. Longest non-empty prefix match first (pre-sorted descending by prefix length)
+            for (var i = 0; i < _prefixedStores.Length; i++)
             {
-                var store = _dataStores[i];
-                var prefix = store.KeyPrefix;
-                if (!string.IsNullOrEmpty(prefix) && key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (prefix.Length > bestPrefixLength)
-                    {
-                        bestPrefixLength = prefix.Length;
-                        bestMatch = store;
-                    }
-                }
-            }
-
-            if (bestMatch != null)
-            {
-                dataStore = bestMatch;
-                return true;
-            }
-
-            // 2. Catch-all (empty or null KeyPrefix) fallback
-            for (var i = 0; i < _dataStores.Count; i++)
-            {
-                var store = _dataStores[i];
-                if (string.IsNullOrEmpty(store.KeyPrefix))
+                var store = _prefixedStores[i];
+                if (key.StartsWith(store.KeyPrefix, StringComparison.OrdinalIgnoreCase))
                 {
                     dataStore = store;
                     return true;
                 }
+            }
+
+            // 2. Catch-all (empty KeyPrefix) fallback
+            if (_defaultStore != null)
+            {
+                dataStore = _defaultStore;
+                return true;
             }
 
             dataStore = null;

@@ -138,7 +138,7 @@ bytes you appended.
 
 ```csharp
 await using var source = File.OpenRead(path);
-var size = await manager.DataStore.PutAsync(record, source, ct);
+var size = await manager[record.Key].PutAsync(record, source, ct);
 ```
 
 `PutAsync` is correct whether or not the key already existed, so you never inspect `IsNew` to decide
@@ -180,7 +180,7 @@ Plenty of producers can only write: `JsonSerializer.SerializeAsync`, `XmlWriter`
 carries an overload taking the producer instead of the content:
 
 ```csharp
-await manager.DataStore.PutAsync(record, (stream, token) =>
+await manager[record.Key].PutAsync(record, (stream, token) =>
     JsonSerializer.SerializeAsync(stream, dto, cancellationToken: token), ct);
 ```
 
@@ -211,7 +211,7 @@ Two things are still on you:
   those bytes never reach the pipe. This fails *silently*, so dispose it inside the delegate:
 
 ```csharp
-await manager.DataStore.PutAsync(record, async (stream, token) =>
+await manager[record.Key].PutAsync(record, async (stream, token) =>
 {
     // leaveOpen: the pipe is not yours to close. And note Encoding.UTF8 emits a BOM -
     // use a BOM-less encoding unless you actually want those three bytes in the blob.

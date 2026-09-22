@@ -1,4 +1,4 @@
-namespace ActDim.BytePath
+namespace ActDim.Practix.Abstractions.Storage
 {
     /// <summary>
     /// Specifies the lock concurrency mode held on a blob record.

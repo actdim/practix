@@ -1,6 +1,6 @@
 using System;
 
-namespace ActDim.Practix.Common.Memory
+namespace ActDim.Practix.Abstractions.Memory
 {
     /// <summary>
     /// Represents an owned memory buffer wrapper around a backing array slice.
@@ -24,3 +24,4 @@ namespace ActDim.Practix.Common.Memory
         int Length { get; }
     }
 }
+

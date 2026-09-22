@@ -4,7 +4,7 @@ using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ActDim.BytePath
+namespace ActDim.Practix.Abstractions.Storage
 {
     /// <summary>
     /// Turns a write-only producer into a readable stream, so a store that can only consume content

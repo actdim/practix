@@ -4,7 +4,7 @@ slug: INDEX
 title: ActDim.BytePath.SqliteRegistry - Knowledge Base Topic Index
 type: index
 created: 2026-09-09
-updated: 2026-09-21
+updated: 2026-09-22
 tags: [index, kb, topics, map]
 ---
 

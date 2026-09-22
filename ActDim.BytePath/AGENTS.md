@@ -147,7 +147,7 @@ For a producer whose API only writes (`JsonSerializer.SerializeAsync`, `XmlWrite
 compress mode), `IBlobDataStore` carries a producer-delegate overload:
 
 ```csharp
-await manager.DataStore.PutAsync(record, (stream, token) =>
+await manager[record.Key].PutAsync(record, (stream, token) =>
     JsonSerializer.SerializeAsync(stream, dto, cancellationToken: token), ct);
 ```
 
@@ -171,7 +171,7 @@ fork #005 killed.
 `ExistsAsync` is a **default interface implementation** derived from `GetSizeAsync`, so a store has
 one primitive to implement and the two can never disagree. Override it only for a backend with a
 genuinely cheaper existence probe. Being a default implementation it is reachable through
-`IBlobDataStore` (which is how `manager.DataStore` is typed), not through a concrete class.
+`IBlobDataStore` (which is how `manager[key]` is typed), not through a concrete class.
 
 `null` means no content; a size of `0` is a real, existing zero-byte blob. Conflating them would
 make `TryGetFor*` delete the record of a legitimately empty blob.
@@ -256,7 +256,7 @@ if (ec == BlobErrorCode.None)
     await using (record)
     {
         await using var source = File.OpenRead(path);
-        await manager.DataStore.PutAsync(record, source, ct);
+        await manager[record.Key].PutAsync(record, source, ct);
     }
 }
 ```

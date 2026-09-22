@@ -1,6 +1,6 @@
 using System;
 
-namespace ActDim.BytePath
+namespace ActDim.Practix.Abstractions.Storage
 {
     /// <summary>
     /// Extension methods for validating and manipulating <see cref="BlobResult"/> instances.

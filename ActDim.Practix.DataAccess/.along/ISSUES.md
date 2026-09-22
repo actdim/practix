@@ -4,7 +4,7 @@
 <!-- No active issues -->
 
 ## Backlog
-<!-- Planned or deferred issues -->
+<!-- No backlog issues -->
 
 ## Done (recent)
 <!-- No completed issues -->

@@ -146,7 +146,7 @@ bytes you appended.
 
 ```csharp
 await using var source = File.OpenRead(path);
-var size = await manager.DataStore.PutAsync(record, source, ct);
+var size = await manager[record.Key].PutAsync(record, source, ct);
 ```
 
 `PutAsync` is correct whether or not the key already existed, so you never inspect `IsNew` to decide
@@ -188,7 +188,7 @@ Plenty of producers can only write: `JsonSerializer.SerializeAsync`, `XmlWriter`
 carries an overload taking the producer instead of the content:
 
 ```csharp
-await manager.DataStore.PutAsync(record, (stream, token) =>
+await manager[record.Key].PutAsync(record, (stream, token) =>
     JsonSerializer.SerializeAsync(stream, dto, cancellationToken: token), ct);
 ```
 
@@ -219,7 +219,7 @@ Two things are still on you:
   those bytes never reach the pipe. This fails *silently*, so dispose it inside the delegate:
 
 ```csharp
-await manager.DataStore.PutAsync(record, async (stream, token) =>
+await manager[record.Key].PutAsync(record, async (stream, token) =>
 {
     // leaveOpen: the pipe is not yours to close. And note Encoding.UTF8 emits a BOM -
     // use a BOM-less encoding unless you actually want those three bytes in the blob.
@@ -521,7 +521,7 @@ For a producer whose API only writes (`JsonSerializer.SerializeAsync`, `XmlWrite
 compress mode), `IBlobDataStore` carries a producer-delegate overload:
 
 ```csharp
-await manager.DataStore.PutAsync(record, (stream, token) =>
+await manager[record.Key].PutAsync(record, (stream, token) =>
     JsonSerializer.SerializeAsync(stream, dto, cancellationToken: token), ct);
 ```
 
@@ -545,7 +545,7 @@ fork #005 killed.
 `ExistsAsync` is a **default interface implementation** derived from `GetSizeAsync`, so a store has
 one primitive to implement and the two can never disagree. Override it only for a backend with a
 genuinely cheaper existence probe. Being a default implementation it is reachable through
-`IBlobDataStore` (which is how `manager.DataStore` is typed), not through a concrete class.
+`IBlobDataStore` (which is how `manager[key]` is typed), not through a concrete class.
 
 `null` means no content; a size of `0` is a real, existing zero-byte blob. Conflating them would
 make `TryGetFor*` delete the record of a legitimately empty blob.
@@ -630,7 +630,7 @@ if (ec == BlobErrorCode.None)
     await using (record)
     {
         await using var source = File.OpenRead(path);
-        await manager.DataStore.PutAsync(record, source, ct);
+        await manager[record.Key].PutAsync(record, source, ct);
     }
 }
 ```

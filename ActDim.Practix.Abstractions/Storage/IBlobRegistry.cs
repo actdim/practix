@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ActDim.BytePath
+namespace ActDim.Practix.Abstractions.Storage
 {
     /// <summary>
     /// Metadata and lock registry contract for ActDim BytePath.

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ActDim.BytePath
+namespace ActDim.Practix.Abstractions.Storage
 {
     /// <summary>
     /// High-level concurrency-aware blob management interface providing lock-based read/write access, expiration, and lifecycle operations.
@@ -11,9 +11,12 @@ namespace ActDim.BytePath
     public interface IBlobManager
     {
         /// <summary>
-        /// Gets the primary or default underlying physical data store instance.
+        /// Resolves the matching <see cref="IBlobDataStore"/> for the specified <paramref name="key"/> based on prefix matching.
         /// </summary>
-        IBlobDataStore DataStore { get; }
+        /// <param name="key">The blob key.</param>
+        /// <returns>The matching data store instance.</returns>
+        /// <exception cref="NotSupportedException">Thrown when no data store is configured for the key's prefix.</exception>
+        IBlobDataStore this[string key] => GetDataStore(key);
 
         /// <summary>
         /// Gets all registered underlying physical data stores.

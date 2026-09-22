@@ -23,7 +23,7 @@ namespace ActDim.Practix.Abstractions.Context
         public const string CancellationToken = Prefix + "CancellationToken";
 
         /// <summary>
-        /// Key storing the active <see cref="ActDim.BytePath.IBlobManager"/> storage manager.
+        /// Key storing the active <see cref="ActDim.Practix.Abstractions.Storage.IBlobManager"/> storage manager.
         /// </summary>
         public const string BlobManager = Prefix + "BlobManager";
 

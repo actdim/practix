@@ -1,6 +1,6 @@
 using System;
 
-namespace ActDim.BytePath
+namespace ActDim.Practix.Abstractions.Storage
 {
     /// <summary>
     /// Configuration options and metadata instructions applied when storing or mutating a blob record.

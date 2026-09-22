@@ -1,3 +1,4 @@
+using ActDim.Practix.Abstractions.Context.Extensions;
 using ActDim.Practix.Context;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -30,8 +31,8 @@ namespace ActDim.Practix.Common.Tests.Context
             using var appCts = new CancellationTokenSource();
 
             // Entry point pattern: establish root AmbientContext for the host run lifetime
-            using (AmbientContext.WithServices(host.Services))
-            using (AmbientContext.WithCancellationToken(appCts.Token))
+            using (AmbientContext.Current.WithServices(host.Services))
+            using (AmbientContext.Current.WithCancellationToken(appCts.Token))
             {
                 await host.StartAsync(TestContext.Current.CancellationToken);
 
@@ -58,9 +59,9 @@ namespace ActDim.Practix.Common.Tests.Context
             // Middleware that initialises AmbientContext for the lifetime of each incoming HTTP request
             app.Use(async (context, next) =>
             {
-                using var _s = AmbientContext.WithServices(context.RequestServices);
-                using var _u = AmbientContext.WithUser(context.User);
-                using var _c = AmbientContext.WithCancellationToken(context.RequestAborted);
+                using var _s = AmbientContext.Current.WithServices(context.RequestServices);
+                using var _u = AmbientContext.Current.WithUser(context.User);
+                using var _c = AmbientContext.Current.WithCancellationToken(context.RequestAborted);
                 using var _t = AmbientContext.Push("RequestId", "req-12345");
 
                 await next();
@@ -69,7 +70,7 @@ namespace ActDim.Practix.Common.Tests.Context
             app.MapGet("/test-ambient", () =>
             {
                 // Business logic inside endpoint resolves dependencies and ambient state directly from AmbientContext
-                var orderService = AmbientContext.Services.GetRequiredService<ITestOrderService>();
+                var orderService = AmbientContext.Current.GetServices()!.GetRequiredService<ITestOrderService>();
                 var requestId = AmbientContext.Current.Properties["RequestId"]?.ToString();
 
                 return Results.Ok(new
@@ -106,9 +107,9 @@ namespace ActDim.Practix.Common.Tests.Context
             // Middleware establishing per-request scoped ambient overrides over root context
             app.Use(async (context, next) =>
             {
-                using var _s = AmbientContext.WithServices(context.RequestServices);
-                using var _u = AmbientContext.WithUser(context.User);
-                using var _c = AmbientContext.WithCancellationToken(context.RequestAborted);
+                using var _s = AmbientContext.Current.WithServices(context.RequestServices);
+                using var _u = AmbientContext.Current.WithUser(context.User);
+                using var _c = AmbientContext.Current.WithCancellationToken(context.RequestAborted);
                 using var _t = AmbientContext.Push("RequestId", "req-scoped-999");
 
                 await next();
@@ -117,8 +118,8 @@ namespace ActDim.Practix.Common.Tests.Context
             app.MapGet("/api/order", () =>
             {
                 // In endpoint handler: resolves scoped services AND root services from AmbientContext
-                var orderService = AmbientContext.Services.GetRequiredService<ITestOrderService>();
-                var rootConfig = AmbientContext.Services.GetRequiredService<IRootConfigService>();
+                var orderService = AmbientContext.Current.GetServices()!.GetRequiredService<ITestOrderService>();
+                var rootConfig = AmbientContext.Current.GetServices()!.GetRequiredService<IRootConfigService>();
                 var requestId = AmbientContext.Current.Properties["RequestId"]?.ToString();
 
                 return Results.Ok(new
@@ -130,13 +131,13 @@ namespace ActDim.Practix.Common.Tests.Context
             });
 
             // Root Application Level Scope (disposed before post-scope assertion)
-            using (AmbientContext.WithServices(app.Services))
-            using (AmbientContext.WithCancellationToken(app.Lifetime.ApplicationStopping))
+            using (AmbientContext.Current.WithServices(app.Services))
+            using (AmbientContext.Current.WithCancellationToken(app.Lifetime.ApplicationStopping))
             {
                 await app.StartAsync(TestContext.Current.CancellationToken);
 
                 // Verify root services are accessible at root level
-                var rootServiceAtRoot = AmbientContext.Services.GetRequiredService<IRootConfigService>();
+                var rootServiceAtRoot = AmbientContext.Current.GetServices()!.GetRequiredService<IRootConfigService>();
                 Assert.Equal("Production_Config", rootServiceAtRoot.ConfigName);
 
                 // Execute HTTP request
@@ -152,11 +153,8 @@ namespace ActDim.Practix.Common.Tests.Context
                 await app.StopAsync(TestContext.Current.CancellationToken);
             }
 
-            // Outside root scope: AmbientContext.Services throws
-            Assert.Throws<InvalidOperationException>(() =>
-            {
-                _ = AmbientContext.Services;
-            });
+            // Outside root scope: AmbientContext.Current.GetServices() is null
+            Assert.Null(AmbientContext.Current.GetServices());
         }
 
         private interface ITestWorkerService
@@ -183,7 +181,7 @@ namespace ActDim.Practix.Common.Tests.Context
             protected override async Task ExecuteAsync(CancellationToken stoppingToken)
             {
                 // Background worker resolves service from AmbientContext established at host root
-                if (AmbientContext.Services.GetService<ITestWorkerService>() is { } workerService)
+                if (AmbientContext.Current.GetServices()?.GetService<ITestWorkerService>() is { } workerService)
                 {
                     workerService.MarkExecuted("BackgroundWorker_Processed");
                 }

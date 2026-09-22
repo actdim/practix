@@ -1,4 +1,4 @@
-namespace ActDim.BytePath
+namespace ActDim.Practix.Abstractions.Storage
 {
     /// <summary>
     /// Represents the status error codes for blob retrieval or operation results.

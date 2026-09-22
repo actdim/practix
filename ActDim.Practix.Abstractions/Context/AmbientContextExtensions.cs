@@ -1,13 +1,11 @@
-using ActDim.BytePath;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Security.Claims;
 using System.Threading;
 
-namespace ActDim.Practix.Abstractions.Context
+namespace ActDim.Practix.Abstractions.Context.Extensions
 {
     /// <summary>
-    /// Extension methods providing typed access and scoped overrides on <see cref="IAmbientContext"/>.
+    /// Core execution flow extension methods providing typed access and scoped overrides on <see cref="IAmbientContext"/>.
     /// </summary>
     public static class AmbientContextExtensions
     {
@@ -68,60 +66,37 @@ namespace ActDim.Practix.Abstractions.Context
         }
 
         /// <summary>
-        /// Gets the scoped <see cref="IBlobManager"/> from the ambient context, or <c>null</c> if not set.
+        /// Applies a temporary linked timeout to the current ambient <see cref="CancellationToken"/> within a <see langword="using"/> scope.
         /// </summary>
-        public static IBlobManager? GetBlobManager(this IAmbientContext context)
+        public static IDisposable WithTimeout(this IAmbientContext context, TimeSpan timeout, out CancellationToken token)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
-            return context.Properties.TryGetValue(AmbientKeys.BlobManager, out var val) && val is IBlobManager bm ? bm : null;
+            var currentToken = context.GetCancellationToken() ?? CancellationToken.None;
+            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(currentToken);
+            linkedCts.CancelAfter(timeout);
+
+            token = linkedCts.Token;
+            var scope = context.WithCancellationToken(linkedCts.Token);
+
+            return new TimeoutScope(scope, linkedCts);
         }
 
-        /// <summary>
-        /// Temporarily sets the scoped <see cref="IBlobManager"/> for the duration of the returned disposable scope.
-        /// </summary>
-        public static IDisposable WithBlobManager(this IAmbientContext context, IBlobManager blobManager)
+        private sealed class TimeoutScope : IDisposable
         {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
-            ArgumentNullException.ThrowIfNull(blobManager, nameof(blobManager));
-            return context.PushProperty(AmbientKeys.BlobManager, blobManager);
-        }
+            private readonly IDisposable _scope;
+            private readonly CancellationTokenSource _cts;
 
-        /// <summary>
-        /// Gets the scoped <see cref="ILoggerFactory"/> from the ambient context, or <c>null</c> if not set.
-        /// </summary>
-        public static ILoggerFactory? GetLoggerFactory(this IAmbientContext context)
-        {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
-            return context.Properties.TryGetValue(AmbientKeys.LoggerFactory, out var val) && val is ILoggerFactory lf ? lf : null;
-        }
+            public TimeoutScope(IDisposable scope, CancellationTokenSource cts)
+            {
+                _scope = scope;
+                _cts = cts;
+            }
 
-        /// <summary>
-        /// Temporarily sets the scoped <see cref="ILoggerFactory"/> for the duration of the returned disposable scope.
-        /// </summary>
-        public static IDisposable WithLoggerFactory(this IAmbientContext context, ILoggerFactory loggerFactory)
-        {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
-            ArgumentNullException.ThrowIfNull(loggerFactory, nameof(loggerFactory));
-            return context.PushProperty(AmbientKeys.LoggerFactory, loggerFactory);
-        }
-
-        /// <summary>
-        /// Gets the scoped <see cref="ActDim.Practix.Abstractions.Compression.ICompressionManager"/> from the ambient context, or <c>null</c> if not set.
-        /// </summary>
-        public static ActDim.Practix.Abstractions.Compression.ICompressionManager? GetCompressionManager(this IAmbientContext context)
-        {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
-            return context.Properties.TryGetValue(AmbientKeys.CompressionManager, out var val) && val is ActDim.Practix.Abstractions.Compression.ICompressionManager cm ? cm : null;
-        }
-
-        /// <summary>
-        /// Temporarily sets the scoped <see cref="ActDim.Practix.Abstractions.Compression.ICompressionManager"/> for the duration of the returned disposable scope.
-        /// </summary>
-        public static IDisposable WithCompressionManager(this IAmbientContext context, ActDim.Practix.Abstractions.Compression.ICompressionManager compressionManager)
-        {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
-            ArgumentNullException.ThrowIfNull(compressionManager, nameof(compressionManager));
-            return context.PushProperty(AmbientKeys.CompressionManager, compressionManager);
+            public void Dispose()
+            {
+                _scope.Dispose();
+                _cts.Dispose();
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+using ActDim.Practix.Abstractions.Memory;
 using System;
 
 namespace ActDim.Practix.Common.Memory

@@ -4,7 +4,7 @@ slug: INDEX
 title: ActDim.Practix.Common - Knowledge Base Topic Index
 type: index
 created: 2026-09-09
-updated: 2026-09-21
+updated: 2026-09-22
 tags: [index, kb, topics, map]
 ---
 
@@ -50,7 +50,7 @@ flowchart TD
 
 ## Articles
 
-- **[Ambient Execution Context](./topic--ambient-context.md)** (topic) `context`, `ambient`, `async-local`, `logging`, `dependency-injection`
+- **[Ambient Execution Context](./topic--ambient-context.md)** (topic) `context`, `ambient`, `async-local`, `flow-state`, `dependency-injection`, `architecture`
 - **[System Architecture & Flow](./topic--architecture.md)** (architecture) `architecture`, `boundaries`, `subsystems`, `design-patterns`
 - **[Asynchronous Bounded Object Pool](./topic--async-object-pool.md)** (topic) `pooling`, `async`, `concurrency`, `object-pool`, `fault-tolerance`
 - **[Resilient Caching Proxies](./topic--caching-proxies.md)** (topic) `caching`, `memory-cache`, `distributed-cache`, `proxy`, `serialization`

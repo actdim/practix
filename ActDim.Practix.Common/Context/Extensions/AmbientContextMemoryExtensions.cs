@@ -2,7 +2,7 @@ using ActDim.Practix.Abstractions.Context;
 using Microsoft.IO;
 using System;
 
-namespace ActDim.Practix.Context
+namespace ActDim.Practix.Abstractions.Memory
 {
     /// <summary>
     /// Extension methods providing typed access and scoped overrides for <see cref="RecyclableMemoryStreamManager"/> on <see cref="IAmbientContext"/>.

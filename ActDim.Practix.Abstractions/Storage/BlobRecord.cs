@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace ActDim.BytePath
+namespace ActDim.Practix.Abstractions.Storage
 {
     /// <summary>
     /// Represents an active handle to a blob's metadata and content size under a concurrency lock.

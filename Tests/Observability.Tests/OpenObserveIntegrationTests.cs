@@ -1,4 +1,5 @@
 using ActDim.Observability.Tests.OpenObserve;
+using ActDim.Practix.Abstractions.Context.Extensions;
 using ActDim.Practix.Context;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -92,7 +93,7 @@ namespace ActDim.Observability.Tests
                 });
 
                 using var serviceProvider = services.BuildServiceProvider();
-                using var _ambientScope = AmbientContext.WithServices(serviceProvider);
+                using var _ambientScope = AmbientContext.Current.WithServices(serviceProvider);
                 using var _tenantScope = AmbientContext.Push("tenant.id", "tenant-oo-777");
 
                 var logger = serviceProvider.GetRequiredService<ILogger<OpenObserveIntegrationTests>>();
