@@ -81,7 +81,7 @@ var host = Host.CreateDefaultBuilder(args)
 
 using var appCts = new CancellationTokenSource();
 
-// ══ Application Root Scope ═════════════════════════════════════════════════
+// == Application Root Scope =================================================
 using (AmbientContext.WithServices(host.Services))
 using (AmbientContext.WithCancellationToken(appCts.Token))
 {
@@ -123,7 +123,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 
 await using var app = builder.Build();
 
-// ══ 1. Per-Request Ambient Middleware ══════════════════════════════════════
+// == 1. Per-Request Ambient Middleware ======================================
 app.Use(async (context, next) =>
 {
     using var _s = AmbientContext.WithServices(context.RequestServices);
@@ -134,7 +134,7 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// ══ 2. Endpoint Handler / Business Logic ═══════════════════════════════════
+// == 2. Endpoint Handler / Business Logic ===================================
 app.MapGet("/orders/current", () =>
 {
     // Resolves scoped service for the current HTTP request
@@ -146,7 +146,7 @@ app.MapGet("/orders/current", () =>
     return Results.Ok(order);
 });
 
-// ══ 3. Root Application Scope ══════════════════════════════════════════════
+// == 3. Root Application Scope ==============================================
 using var _rootServices = AmbientContext.WithServices(app.Services);
 using var _rootCt = AmbientContext.WithCancellationToken(app.Lifetime.ApplicationStopping);
 

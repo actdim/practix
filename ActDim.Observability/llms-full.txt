@@ -473,13 +473,13 @@ using (logger.BeginScope(new Dictionary<string, object> { ["tenant.id"] = "acme"
 
 #### Why Logger Categories Use Full Type Names (`type.FullName`) & Namespace Hierarchy
 
-When obtaining a logger via `ILogger<T>` or `LoggerFactory.CreateLogger(typeof(T))`, .NET assigns the category name using the **full type name with namespace** (e.g. `ActDim.Practix.Common.Context.AmbientContext`) rather than just the short class name (`AmbientContext`).
+When obtaining a logger via `ILogger<T>` or `LoggerFactory.CreateLogger(typeof(T))`, .NET assigns the category name using the **full type name with namespace** (e.g. `ActDim.Practix.Context.AmbientContext`) rather than just the short class name (`AmbientContext`).
 
 ```mermaid
 flowchart TD
-    Root["ActDim (Global Company/Solution Prefix)"] --> Module["ActDim.Practix.Common (Subsystem Prefix)"]
-    Module --> Class1["ActDim.Practix.Common.Context.AmbientContext (Specific Type)"]
-    Module --> Class2["ActDim.Practix.Common.Compression.CompressionManager (Specific Type)"]
+    Root["ActDim (Global Company/Solution Prefix)"] --> Module["ActDim.Practix (Subsystem Prefix)"]
+    Module --> Class1["ActDim.Practix.Context.AmbientContext (Specific Type)"]
+    Module --> Class2["ActDim.Practix.Compression.CompressionManager (Specific Type)"]
 
     style Root fill:#1f2937,stroke:#374151,color:#fff
     style Module fill:#1e3a8a,stroke:#3b82f6,color:#fff
@@ -509,7 +509,7 @@ Setting a rule for `"Microsoft"` automatically applies to all child namespaces u
       "Microsoft.EntityFrameworkCore.Database.Command": "Warning",
       "System.Net.Http.HttpClient": "Warning",
       "ActDim": "Debug",
-      "ActDim.Practix.Common.Context.AmbientContext": "Error"
+      "ActDim.Practix.Context.AmbientContext": "Error"
     }
   }
 }

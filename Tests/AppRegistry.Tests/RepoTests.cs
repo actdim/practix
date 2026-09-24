@@ -15,7 +15,7 @@ namespace ActDim.AppRegistry.Tests
             services.AddAppRegistryRepo();
 
             Assert.Contains(services, d => d.ServiceType == typeof(CommonRepo));
-            Assert.Contains(services, d => d.ServiceType == typeof(IProjectRepo) && d.ImplementationType == typeof(ProjectRepo));
+            Assert.Contains(services, d => d.ServiceType == typeof(ICollectionRepo) && d.ImplementationType == typeof(CollectionRepo));
             Assert.Contains(services, d => d.ServiceType == typeof(IRoleRepo) && d.ImplementationType == typeof(RoleRepo));
             Assert.Contains(services, d => d.ServiceType == typeof(IUserRepo) && d.ImplementationType == typeof(UserRepo));
         }

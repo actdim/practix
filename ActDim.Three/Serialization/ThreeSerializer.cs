@@ -5,13 +5,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using ActDim.Three.Serialization;
 
-namespace ActDim.Three
+namespace ActDim.Three.Serialization
 {
     /// <summary>
     /// Efficient System.Text.Json (de)serialization for any three.js object - a whole
-    /// <see cref="SceneDocument"/> or an individual <c>Object3D</c>/geometry/material/texture/… String and
+    /// <see cref="SceneDocument"/> or an individual <c>Object3D</c>/geometry/material/texture/... String and
     /// UTF-8 byte overloads; prefer the byte overloads (STJ works on UTF-8 natively, no UTF-16 round-trip).
     /// <para>
     /// The options apply the three.js field names (<see cref="DataContractResolver"/>) and the typed-buffer

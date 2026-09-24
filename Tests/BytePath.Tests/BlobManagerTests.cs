@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ActDim.BytePath;
+using ActDim.BytePath.FileSystemStore;
+using ActDim.BytePath.SqliteRegistry;
 using ActDim.Practix.Abstractions.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -193,7 +195,7 @@ namespace ActDim.BytePath.Tests
             });
         }
 
-        // ── Push-style writing (BlobDataStoreExtensions) ─────────────────────────
+        // -- Push-style writing (BlobDataStoreExtensions) -------------------------
 
         [Fact]
         public async Task DataStore_PutAsync_WithProducer_WritesContent()
@@ -420,7 +422,7 @@ namespace ActDim.BytePath.Tests
             });
         }
 
-        // ── Size ─────────────────────────────────────────────────────────────────
+        // -- Size -----------------------------------------------------------------
 
         [Fact]
         public async Task TryGetForReadingAsync_PopulatesSizeFromDataStore()
@@ -533,7 +535,7 @@ namespace ActDim.BytePath.Tests
             }
         }
 
-        // ── Key → path mapping ───────────────────────────────────────────────────
+        // -- Key -> path mapping ---------------------------------------------------
 
         [Theory]
         // Differ only in a character a file name cannot carry, so a lossy sanitiser would fold them together.
@@ -701,7 +703,7 @@ namespace ActDim.BytePath.Tests
             }
         }
 
-        // ── BlobRecord.Apply ─────────────────────────────────────────────────────
+        // -- BlobRecord.Apply -----------------------------------------------------
 
         [Fact]
         public async Task Apply_UnderWriteLock_PersistsMetadataOnDispose()
@@ -864,7 +866,7 @@ namespace ActDim.BytePath.Tests
             }
         }
 
-        // ── KeyNotFound ──────────────────────────────────────────────────────────
+        // -- KeyNotFound ----------------------------------------------------------
 
         [Fact]
         public async Task TryGetForReadingAsync_KeyNotFound_ReturnsKeyNotFound()
@@ -890,7 +892,7 @@ namespace ActDim.BytePath.Tests
             Assert.Null(record);
         }
 
-        // ── Lock semantics ───────────────────────────────────────────────────────
+        // -- Lock semantics -------------------------------------------------------
 
         [Fact]
         public async Task WriteLock_BlocksRead_UntilDisposed()
@@ -931,7 +933,7 @@ namespace ActDim.BytePath.Tests
             await using (read2) { }
         }
 
-        // ── IsNew ────────────────────────────────────────────────────────────────
+        // -- IsNew ----------------------------------------------------------------
 
         [Fact]
         public async Task TryGetOrSetAsync_NewKey_IsNew_True()
@@ -1011,7 +1013,7 @@ namespace ActDim.BytePath.Tests
             Assert.Empty(await env.Manager.QueryAsync("orphan-key", ct));
         }
 
-        // ── TryGetOrSetAsync with options ────────────────────────────────────────
+        // -- TryGetOrSetAsync with options ----------------------------------------
 
         [Fact]
         public async Task TryGetOrSetAsync_WithOptions_AppliesContentTypeAndMetadata()
@@ -1070,7 +1072,7 @@ namespace ActDim.BytePath.Tests
             }
         }
 
-        // ── DeleteAsync ──────────────────────────────────────────────────────────
+        // -- DeleteAsync ----------------------------------------------------------
 
         [Fact]
         public async Task DeleteAsync_RemovesRecord()
@@ -1142,7 +1144,7 @@ namespace ActDim.BytePath.Tests
             Assert.Empty(Directory.GetFileSystemEntries(env.DataPath));
         }
 
-        // ── DeleteExpiredAsync ───────────────────────────────────────────────────
+        // -- DeleteExpiredAsync ---------------------------------------------------
 
         [Fact]
         public async Task DeleteExpiredAsync_RemovesExpiredRecords()
@@ -1200,7 +1202,7 @@ namespace ActDim.BytePath.Tests
             Assert.False(File.Exists(location));
         }
 
-        // ── DeleteOlderThanAsync ─────────────────────────────────────────────────
+        // -- DeleteOlderThanAsync -------------------------------------------------
 
         [Fact]
         public async Task DeleteOlderThanAsync_RemovesMatchingRecords()
@@ -1286,7 +1288,7 @@ namespace ActDim.BytePath.Tests
             Assert.False(File.Exists(location));
         }
 
-        // ── QueryAsync ───────────────────────────────────────────────────────────
+        // -- QueryAsync -----------------------------------------------------------
 
         [Fact]
         public async Task QueryAsync_PatternMatch_ReturnsMatchingKeys()

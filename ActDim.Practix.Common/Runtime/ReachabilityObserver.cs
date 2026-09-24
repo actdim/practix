@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace ActDim.Practix.Common.Runtime
+namespace ActDim.Practix.Runtime
 {
     /// <summary>
     /// Observes when an object becomes unreachable by the garbage collector.

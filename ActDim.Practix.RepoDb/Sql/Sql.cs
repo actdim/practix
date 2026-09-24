@@ -1,8 +1,7 @@
 using System;
 using System.Linq.Expressions;
-using ActDim.Practix.RepoDb.Sql;
 
-namespace ActDim.Practix.RepoDb
+namespace ActDim.Practix.RepoDb.Sql
 {
     /// <summary>
     /// Static entry point and builder for defining standalone, dialect-aware SQL templates.

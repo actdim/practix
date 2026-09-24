@@ -434,7 +434,7 @@ namespace ActDim.Emitron
             {
                 switch (parametersObj)
                 {
-                    // ── 1. Dictionary / ExpandoObject ─────────────────────────────────────
+                    // -- 1. Dictionary / ExpandoObject -------------------------------------
                     case IDictionary<string, object?> dict:
                         {
                             foreach (var pair in dict)
@@ -445,7 +445,7 @@ namespace ActDim.Emitron
                             break;
                         }
 
-                    // ── 2. DynamicObject subclass ──────────────────────────────────────────
+                    // -- 2. DynamicObject subclass ------------------------------------------
                     case DynamicObject dynObj:
                         {
                             foreach (var name in dynObj.GetDynamicMemberNames())
@@ -467,7 +467,7 @@ namespace ActDim.Emitron
                             break;
                         }
 
-                    // ── 3. Anonymous type / POCO / record - reflected, cached per Type ────
+                    // -- 3. Anonymous type / POCO / record - reflected, cached per Type ----
                     default:
                         {
                             var props = _propertyCache.GetOrAdd(
@@ -513,9 +513,9 @@ namespace ActDim.Emitron
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------------------------
     // Shared types
-    // ─────────────────────────────────────────────────────────────────────────────────────────
+    // -----------------------------------------------------------------------------------------
 
     /// <summary>
     /// Globals type injected into every compiled Roslyn script.

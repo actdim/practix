@@ -83,7 +83,7 @@ namespace ActDim.Three.Core
         public DrawRange DrawRange { get; set; }
 
         /// <summary>
-        /// Bounding sphere is client-computed and is intentionally NOT serialized (see §10 of the plan).
+        /// Bounding sphere is client-computed and is intentionally NOT serialized (see section 10 of the plan).
         /// </summary>
         [IgnoreDataMember]
         internal BufferGeometryBoundingSphere BoundingSphere { get; set; }

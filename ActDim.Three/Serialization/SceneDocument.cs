@@ -1,15 +1,16 @@
 using System.Collections.Generic;
 using ActDim.Three.Core;
+using ActDim.Three.Scenes;
 
-namespace ActDim.Three
+namespace ActDim.Three.Serialization
 {
     /// <summary>
     /// The three.js "Object" document (JSON Object/Scene format 4): metadata + flat resource pools
     /// (referenced by uuid) + the node tree. This is the format-facing type; the core domain objects it
     /// wraps stay attribute-free and can be serialized on their own. All three.js rules (pools, uuid
-    /// references, dedup, field names) live in <see cref="Serialization.SceneDocumentStjConverter"/> (System.Text.Json).
+    /// references, dedup, field names) live in <see cref="SceneDocumentStjConverter"/> (System.Text.Json).
     /// </summary>
-    [System.Text.Json.Serialization.JsonConverter(typeof(Serialization.SceneDocumentStjConverter))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(SceneDocumentStjConverter))]
     public class SceneDocument
     {
         public Metadata Metadata { get; set; }

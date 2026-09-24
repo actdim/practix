@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace ActDim.Three
+namespace ActDim.Three.Scenes
 {
     /// <summary>
     /// Basic file metadata

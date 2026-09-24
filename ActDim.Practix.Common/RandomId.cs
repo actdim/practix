@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Security.Cryptography;
 
-namespace ActDim.Practix.Common
+namespace ActDim.Practix
 {
     /// <summary>
     /// Defines predefined character sets for generating identifiers.

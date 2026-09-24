@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ActDim.AppRegistry.Domain.Core;
+using ActDim.AppRegistry.Domain.Iam;
+using ActDim.AppRegistry.Domain.Registry;
 using ActDim.AppRegistry.Repo;
 using ActDim.AppRegistry.Service;
 using ActDim.Practix.Service;
@@ -19,10 +21,10 @@ namespace ActDim.AppRegistry.Tests
         {
             var userRepo = new UserRepo();
             var roleRepo = new RoleRepo();
-            var projectRepo = new ProjectRepo();
+            var collectionRepo = new CollectionRepo();
 
-            Assert.Throws<ArgumentNullException>(() => new AppRegistryService(null!, roleRepo, projectRepo));
-            Assert.Throws<ArgumentNullException>(() => new AppRegistryService(userRepo, null!, projectRepo));
+            Assert.Throws<ArgumentNullException>(() => new AppRegistryService(null!, roleRepo, collectionRepo));
+            Assert.Throws<ArgumentNullException>(() => new AppRegistryService(userRepo, null!, collectionRepo));
             Assert.Throws<ArgumentNullException>(() => new AppRegistryService(userRepo, roleRepo, null!));
         }
 
@@ -31,13 +33,13 @@ namespace ActDim.AppRegistry.Tests
         {
             var userRepo = new UserRepo();
             var roleRepo = new RoleRepo();
-            var projectRepo = new ProjectRepo();
+            var collectionRepo = new CollectionRepo();
 
-            var service = new AppRegistryService(userRepo, roleRepo, projectRepo);
+            var service = new AppRegistryService(userRepo, roleRepo, collectionRepo);
 
             Assert.Same(userRepo, service.Users);
             Assert.Same(roleRepo, service.Roles);
-            Assert.Same(projectRepo, service.Projects);
+            Assert.Same(collectionRepo, service.Collections);
         }
 
         [Fact]
@@ -46,7 +48,6 @@ namespace ActDim.AppRegistry.Tests
             var services = new ServiceCollection();
             services.AddAppRegistryService();
 
-            Assert.Contains(services, d => d.ServiceType == typeof(IProjectProvider) && d.ImplementationType == typeof(ProjectProvider));
             Assert.Contains(services, d => d.ServiceType == typeof(IAppRegistryService) && d.ImplementationType == typeof(AppRegistryService));
         }
 
@@ -58,38 +59,13 @@ namespace ActDim.AppRegistry.Tests
         }
 
         [Fact]
-        public void ProjectProvider_Constructor_ConfiguresSearchPath()
-        {
-            var configData = new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:Default"] = "Host=localhost;Database=mydb;Username=myuser;Password=mypass"
-            };
-
-            var configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(configData)
-                .Build();
-
-            var project = new Project
-            {
-                Id = Guid.NewGuid(),
-                Slug = "tenant_alpha",
-                Name = "Tenant Alpha"
-            };
-
-            var provider = new ProjectProvider(configuration, project);
-
-            Assert.Same(project, provider.Project);
-            Assert.Contains("actdim,tenant_alpha,public", provider.ConnectionString);
-        }
-
-        [Fact]
         public async Task AppContext_GetAccessTokenAsync_And_ValidateAccessTokenAsync_Roundtrip()
         {
             var knownId = "10b60d35-647a-4e3e-9e92-df1ea0f4eb49";
             var userRepo = new UserRepo();
             var roleRepo = new RoleRepo();
-            var projectRepo = new ProjectRepo();
-            var appRegService = new AppRegistryService(userRepo, roleRepo, projectRepo);
+            var collectionRepo = new CollectionRepo();
+            var appRegService = new AppRegistryService(userRepo, roleRepo, collectionRepo);
 
             var appContext = new ActDim.AppRegistry.Service.AppContext(appRegService);
 
@@ -124,7 +100,7 @@ namespace ActDim.AppRegistry.Tests
         [Fact]
         public async Task AppContext_GetAccessTokenAsync_ThrowsOnUnsupportedAuth()
         {
-            var appRegService = new AppRegistryService(new UserRepo(), new RoleRepo(), new ProjectRepo());
+            var appRegService = new AppRegistryService(new UserRepo(), new RoleRepo(), new CollectionRepo());
             var appContext = new ActDim.AppRegistry.Service.AppContext(appRegService);
 
             var authConfig = new AuthConfig { LocalJwt = null };

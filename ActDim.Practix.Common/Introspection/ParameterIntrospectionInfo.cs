@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace ActDim.Practix.Common.Introspection
+namespace ActDim.Practix.Introspection
 {
     /// <summary>
     /// Full introspection details DTO model for method parameters including enclosing member info.

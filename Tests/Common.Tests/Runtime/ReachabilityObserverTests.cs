@@ -1,4 +1,4 @@
-using ActDim.Practix.Common.Runtime;
+using ActDim.Practix.Runtime;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -70,7 +70,7 @@ namespace ActDim.Practix.Common.Tests.Runtime
             var source = """
                 using System;
                 using System.Runtime.CompilerServices;
-                using ActDim.Practix.Common.Runtime;
+                using ActDim.Practix.Runtime;
 
                 Subscription.Create();
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true);
@@ -101,7 +101,7 @@ namespace ActDim.Practix.Common.Tests.Runtime
             var source = """
                 using System;
                 using System.Runtime.CompilerServices;
-                using ActDim.Practix.Common.Runtime;
+                using ActDim.Practix.Runtime;
 
                 Subscription.Create();
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true);

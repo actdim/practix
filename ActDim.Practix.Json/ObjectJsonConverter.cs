@@ -8,8 +8,8 @@ namespace ActDim.Practix.Json
 {
     /// <summary>
     /// Deserializes object-typed properties to CLR primitives, mimicking Newtonsoft behavior:
-    /// JSON number → long or double, string → string, bool → bool,
-    /// object → ExpandoObject (supports dynamic access), array → List&lt;object&gt;.
+    /// JSON number -> long or double, string -> string, bool -> bool,
+    /// object -> ExpandoObject (supports dynamic access), array -> List&lt;object&gt;.
     /// </summary>
     public class ObjectJsonConverter : JsonConverter<object>
     {

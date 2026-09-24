@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ActDim.Practix.Common
+namespace ActDim.Practix
 {
         /// <summary>
         /// Provides utilities for extracting names or full property paths from Expression trees.

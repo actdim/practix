@@ -1,3 +1,4 @@
+using ActDim.Three.Serialization;
 using Newtonsoft.Json;
 
 namespace ActDim.Three.NewtonsoftJson

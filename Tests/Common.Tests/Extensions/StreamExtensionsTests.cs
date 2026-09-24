@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ActDim.Practix.Extensions;
-using ActDim.Practix.Common.Memory;
+using ActDim.Practix.Memory;
 using Xunit;
 
 namespace ActDim.Practix.Common.Tests.Extensions

@@ -7,7 +7,7 @@ namespace ActDim.Emitron.Tests
 	public class InterpolatorTests
 	{
 		// ------------------------------------------------------------------
-		// Compile → returns a reusable Func<object,string>
+		// Compile -> returns a reusable Func<object,string>
 		// ------------------------------------------------------------------
 
 		[Fact]

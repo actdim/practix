@@ -2,7 +2,7 @@ using ActDim.Practix.Abstractions.Patterns;
 using System.Collections.Concurrent;
 using System.Reflection;
 
-namespace ActDim.Practix.Common.Introspection
+namespace ActDim.Practix.Introspection
 {
     /// <summary>
     /// In-memory thread-safe dictionary storage provider for reflection member <see cref="IntrospectionInfo"/>.

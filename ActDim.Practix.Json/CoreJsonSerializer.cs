@@ -18,8 +18,10 @@ using System.Threading.Tasks;
 
 namespace ActDim.Practix.Json
 {
-    /// <inheritdoc />
-    internal class CoreJsonSerializer : IJsonSerializer, IStringSerializer, IBinarySerializer, IStreamSerializer
+    /// <summary>
+    /// High-performance System.Text.Json implementation of serialization abstractions supporting string, binary, stream, and polymorphic merge/patch operations.
+    /// </summary>
+    public class CoreJsonSerializer : IJsonSerializer, IStringSerializer, IBinarySerializer, IStreamSerializer
     {
         private JsonSerializerOptions _options;
         private JsonMergeOptions _mergeOptions;
@@ -68,18 +70,34 @@ namespace ActDim.Practix.Json
             };
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="CoreJsonSerializer"/> with default serialization and merge options.
+        /// </summary>
         public CoreJsonSerializer() : this(default, default)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="CoreJsonSerializer"/> with custom serialization options.
+        /// </summary>
+        /// <param name="options">The custom <see cref="JsonSerializerOptions"/>.</param>
         public CoreJsonSerializer(JsonSerializerOptions options = default) : this(options, default)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="CoreJsonSerializer"/> with custom merge options.
+        /// </summary>
+        /// <param name="mergeOptions">The custom <see cref="JsonMergeOptions"/>.</param>
         public CoreJsonSerializer(JsonMergeOptions mergeOptions = default) : this(default, mergeOptions)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="CoreJsonSerializer"/> with custom serialization and merge options.
+        /// </summary>
+        /// <param name="options">The custom <see cref="JsonSerializerOptions"/>.</param>
+        /// <param name="mergeOptions">The custom <see cref="JsonMergeOptions"/>.</param>
         public CoreJsonSerializer(JsonSerializerOptions options = default, JsonMergeOptions mergeOptions = default)
         {
             _options = options ?? CreateDefaultOptions();
@@ -694,7 +712,7 @@ namespace ActDim.Practix.Json
             }
         }
 
-        // ══ IStringSerializer ════════════════════════════════════════════════
+        // == IStringSerializer ================================================
 
         string IStringSerializer.Serialize(object value)
             => Serialize(value);
@@ -711,7 +729,7 @@ namespace ActDim.Practix.Json
         T IStringSerializer.Deserialize<T>(string data)
             => Deserialize<T>(data);
 
-        // ══ IBinarySerializer ════════════════════════════════════════════════
+        // == IBinarySerializer ================================================
         // UTF-8 goes through the fast JsonSerializer.SerializeToUtf8Bytes path;
         // any other encoding round-trips through the string representation.
 
@@ -750,7 +768,7 @@ namespace ActDim.Practix.Json
                 : Deserialize<T>(encoding.GetString(data));
         }
 
-        // ══ IStreamSerializer ════════════════════════════════════════════════
+        // == IStreamSerializer ================================================
         // UTF-8 uses the native stream (de)serialization; any other encoding
         // transcodes through the string representation.
 
@@ -872,12 +890,12 @@ namespace ActDim.Practix.Json
             }
         }
 
-        // ── Encoding helpers ─────────────────────────────────────────────────
+        // -- Encoding helpers -------------------------------------------------
 
         private static bool IsUtf8(Encoding encoding)
         {
             // Compare by code page so every UTF-8 instance (custom UTF8Encoding,
-            // Encoding.GetEncoding("utf-8"), …) takes the fast path, not just the
+            // Encoding.GetEncoding("utf-8"), ...) takes the fast path, not just the
             // Encoding.UTF8 singleton.
             return encoding == null || encoding.CodePage == 65001;
         }

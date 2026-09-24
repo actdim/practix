@@ -1,6 +1,6 @@
 using System;
 
-namespace ActDim.BytePath
+namespace ActDim.BytePath.FileSystemStore
 {
     /// <summary>
     /// Configuration options for <see cref="FileSystemBlobDataStore"/>.

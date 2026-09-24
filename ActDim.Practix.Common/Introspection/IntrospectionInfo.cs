@@ -2,7 +2,7 @@ using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace ActDim.Practix.Common.Introspection
+namespace ActDim.Practix.Introspection
 {
     /// <summary>
     /// Base introspection information DTO model for reflection members.

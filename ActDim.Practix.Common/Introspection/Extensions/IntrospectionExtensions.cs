@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace ActDim.Practix.Common.Introspection
+namespace ActDim.Practix.Introspection
 {
     /// <summary>
     /// Formatting depth options for introspection member names.

@@ -1,7 +1,7 @@
 using System.Text;
 using System.Buffers;
 using ActDim.Practix.Abstractions.Memory;
-using ActDim.Practix.Common.Memory;
+using ActDim.Practix.Memory;
 using System.IO;
 using System;
 using System.Threading.Tasks;

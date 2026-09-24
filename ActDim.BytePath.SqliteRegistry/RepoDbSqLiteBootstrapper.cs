@@ -1,7 +1,7 @@
 using System.Threading;
 using RepoDb;
 
-namespace ActDim.BytePath
+namespace ActDim.BytePath.SqliteRegistry
 {
     /// <summary>
     /// Thread-safe bootstrapper for RepoDb SQLite provider initialization in SQLiteBlobRegistry.

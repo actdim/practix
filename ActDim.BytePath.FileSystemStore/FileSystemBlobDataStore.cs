@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ActDim.BytePath
+namespace ActDim.BytePath.FileSystemStore
 {
     /// <summary>
     /// File-system based implementation of <see cref="IBlobDataStore"/> that stores blob contents in sharded directory structures.

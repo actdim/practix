@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-namespace ActDim.Practix.Common.Threading
+namespace ActDim.Practix.Threading
 {
     /// <summary>
     /// Encapsulates a thread-local resource created with a context object, ensuring all created thread instances are disposed when the resource is disposed.

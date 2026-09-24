@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace ActDim.Practix.Common.Tests.Json;
+namespace ActDim.Practix.Json.Tests;
 
 public class CoreJsonSerializerTests
 {
@@ -36,7 +36,7 @@ public class CoreJsonSerializerTests
         return [.. doc.RootElement.GetProperty("Items").EnumerateArray().Select(x => x.GetInt32())];
     }
 
-    // ── DefaultOptions ───────────────────────────────────────────────────────
+    // -- DefaultOptions -------------------------------------------------------
 
     [Fact]
     public void GetDefaultOptions_ReturnsNullNamingPolicy()
@@ -66,7 +66,7 @@ public class CoreJsonSerializerTests
         Assert.False(options.WriteIndented);
     }
 
-    // ── GetDefaultMergeOptions ───────────────────────────────────────────────
+    // -- GetDefaultMergeOptions -----------------------------------------------
 
     [Fact]
     public void GetDefaultMergeOptions_ReturnsReplaceArrayHandling()
@@ -89,7 +89,7 @@ public class CoreJsonSerializerTests
         Assert.NotNull(options.BaseOptions);
     }
 
-    // ── SerializeObject ──────────────────────────────────────────────────────
+    // -- SerializeObject ------------------------------------------------------
 
     [Fact]
     public void SerializeObject_ProducesValidJson()
@@ -164,7 +164,7 @@ public class CoreJsonSerializerTests
         Assert.Equal("{\"Name\":\"X\"}", result);
     }
 
-    // ── SerializeObject (stream) ─────────────────────────────────────────────
+    // -- SerializeObject (stream) ---------------------------------------------
 
     [Fact]
     public void SerializeObject_ToStream_WritesJson()
@@ -184,7 +184,7 @@ public class CoreJsonSerializerTests
         Assert.Equal("{\"Value\":99}", json);
     }
 
-    // ── DeserializeObject ────────────────────────────────────────────────────
+    // -- DeserializeObject ----------------------------------------------------
 
     private record PersonRecord(string Name, int Age);
 
@@ -252,7 +252,7 @@ public class CoreJsonSerializerTests
         Assert.Equal("Frank", result.Name);
     }
 
-    // ── String enums ─────────────────────────────────────────────────────────
+    // -- String enums ---------------------------------------------------------
 
     [Fact]
     public void StringEnum_Serialize_UsesEnumName()
@@ -284,7 +284,7 @@ public class CoreJsonSerializerTests
         Assert.Equal(JsonMergeArrayHandling.Union, restored.MergeArrayHandling);
     }
 
-    // ── Dictionary ───────────────────────────────────────────────────────────
+    // -- Dictionary -----------------------------------------------------------
 
     [Fact]
     public void Dictionary_Serialize_StringString()
@@ -371,7 +371,7 @@ public class CoreJsonSerializerTests
         Assert.Equal("v", original["k"]);
     }
 
-    // ── Anonymous types ──────────────────────────────────────────────────────
+    // -- Anonymous types ------------------------------------------------------
 
     [Fact]
     public void Anonymous_Serialize_KeepsPascalCase()
@@ -458,7 +458,7 @@ public class CoreJsonSerializerTests
         Assert.Equal(new[] { "a", "b", "c" }, tags);
     }
 
-    // ── Dynamic / object deserialization ─────────────────────────────────────
+    // -- Dynamic / object deserialization -------------------------------------
 
     [Fact]
     public void Dynamic_DeserializeToObject_ReturnsExpandoObject()
@@ -526,7 +526,7 @@ public class CoreJsonSerializerTests
         });
     }
 
-    // ── MergeAndSerializeObject ──────────────────────────────────────────────
+    // -- MergeAndSerializeObject ----------------------------------------------
 
     [Fact]
     public void MergeAndSerialize_EmptyList_ReturnsEmptyObject()
@@ -634,7 +634,7 @@ public class CoreJsonSerializerTests
         Assert.Equal("Alice", doc.RootElement.GetProperty("name").GetString());
     }
 
-    // ── PopulateObject ───────────────────────────────────────────────────────
+    // -- PopulateObject -------------------------------------------------------
 
     private class MutablePerson
     {
@@ -725,7 +725,7 @@ public class CoreJsonSerializerTests
         }
     }
 
-    // ── FormatPropertyName ───────────────────────────────────────────────────
+    // -- FormatPropertyName ---------------------------------------------------
 
     [Fact]
     public void FormatPropertyName_ReturnsPropertyNameUnchanged()
@@ -751,7 +751,7 @@ public class CoreJsonSerializerTests
         Assert.Equal(string.Empty, _ser.FormatPropertyName(string.Empty));
     }
 
-    // ── Clone / Copy / PatchObject ───────────────────────────────────────────
+    // -- Clone / Copy / PatchObject -------------------------------------------
 
     [Fact]
     public void Clone_ReturnsDeepCopy()
@@ -831,7 +831,7 @@ public class CoreJsonSerializerTests
         Assert.Equal("Alice", result.Name);
     }
 
-    // ── PopulateDefaultOptions ───────────────────────────────────────────────
+    // -- PopulateDefaultOptions -----------------------------------------------
 
     [Fact]
     public void PopulateDefaultOptions_CopiesConvertersToTarget()
@@ -881,7 +881,7 @@ public class CoreJsonSerializerTests
         Assert.True(target.AllowTrailingCommas);
     }
 
-    // ── Exception serialization ──────────────────────────────────────────────
+    // -- Exception serialization ----------------------------------------------
 
     [Fact]
     public void Exception_CanConvert_ReturnsTrueForExceptionAndSubclasses()

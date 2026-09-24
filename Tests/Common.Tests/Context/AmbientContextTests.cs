@@ -163,7 +163,7 @@ namespace ActDim.Practix.Common.Tests.Context
                 var sw = System.Diagnostics.Stopwatch.StartNew();
                 while (!AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested && sw.ElapsedMilliseconds < 2000)
                 {
-                    await Task.Delay(20);
+                    await Task.Delay(20, TestContext.Current.CancellationToken);
                 }
                 Assert.True(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
                 Assert.True(timeoutToken.IsCancellationRequested);

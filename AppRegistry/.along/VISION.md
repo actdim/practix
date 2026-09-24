@@ -28,10 +28,10 @@ Example:
 
 ```
 CRM Application
-└── crm_database
+\-- crm_database
 
 ERP Application
-└── erp_database
+\-- erp_database
 ```
 
 Applications do not share users, organizations, or permissions.
@@ -45,23 +45,23 @@ Example:
 
 ```
 crm
-│
-├── users
-├── organizations
-├── projects
-├── roles
-├── permissions
-├── org_users
-├── org_roles
-│
-├── acme__backend
-│   ├── tasks
-│   ├── documents
-│   └── events
-│
-└── acme__mobile
-    ├── screens
-    └── builds
+|
++-- users
++-- organizations
++-- projects
++-- roles
++-- permissions
++-- org_users
++-- org_roles
+|
++-- acme__backend
+|   +-- tasks
+|   +-- documents
+|   \-- events
+|
+\-- acme__mobile
+    +-- screens
+    \-- builds
 ```
 
 ---
@@ -84,9 +84,9 @@ Example:
 ApplicationSlug = crm
 
 crm
-├── users
-├── organizations
-└── projects
++-- users
++-- organizations
+\-- projects
 ```
 
 Custom configuration:
@@ -100,9 +100,9 @@ Result:
 
 ```
 platform
-├── users
-├── organizations
-└── projects
++-- users
++-- organizations
+\-- projects
 ```
 
 ---
@@ -214,8 +214,8 @@ Example:
 ```
 Ivan
 
- ├── ACME
- └── Example Corp
+ +-- ACME
+ \-- Example Corp
 ```
 
 ---

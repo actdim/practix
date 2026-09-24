@@ -1,5 +1,7 @@
 using System;
 using ActDim.AppRegistry.Domain.Core;
+using ActDim.AppRegistry.Domain.Iam;
+using ActDim.AppRegistry.Domain.Registry;
 using ActDim.AppRegistry.Domain.Security;
 using Xunit;
 
@@ -20,7 +22,7 @@ namespace ActDim.AppRegistry.Tests
         {
             var entityRef = new TestEntityRef();
             var key = entityRef.Key();
-            Assert.Equal("_user/11111111-1111-1111-1111-111111111111", key);
+            Assert.Equal("iam:user/11111111-1111-1111-1111-111111111111", key);
         }
 
         [Fact]
@@ -74,24 +76,25 @@ namespace ActDim.AppRegistry.Tests
             var user = new User
             {
                 Id = id,
-                Slug = "john-doe",
+                ExternalId = "zitadel-123",
+                DisplayName = "John Doe",
                 Email = "john@example.com",
-                GivenName = "John",
-                FamilyName = "Doe",
-                MiddleName = "M",
+                FirstName = "John",
+                LastName = "Doe",
                 CreatedAt = now,
                 UpdatedAt = now
             };
 
             Assert.Equal(id, user.Id);
-            Assert.Equal("john-doe", user.Username);
-            Assert.Equal("john-doe", user.Name);
+            Assert.Equal("zitadel-123", user.ExternalId);
+            Assert.Equal("zitadel-123", user.Username);
+            Assert.Equal("John Doe", user.Name);
             Assert.Equal("john@example.com", user.Email);
             Assert.Equal("John", user.GivenName);
             Assert.Equal("Doe", user.FamilyName);
             Assert.Equal(ActDim.AppRegistry.Domain.Core.EntityTypeCode.User, user.EntityTypeCode);
 
-            // Verify changing Username changes Slug
+            // Verify changing Username changes Slug/ExternalId
             user.Username = "jane-doe";
             Assert.Equal("jane-doe", user.Slug);
         }
@@ -104,37 +107,37 @@ namespace ActDim.AppRegistry.Tests
         }
 
         [Fact]
-        public void Project_Properties_CanBeAssigned()
+        public void Collection_Properties_CanBeAssigned()
         {
             var id = Guid.NewGuid();
-            var project = new Project
+            var collection = new Collection
             {
                 Id = id,
-                Slug = "core-project",
-                Name = "Core Project",
+                Slug = "core-collection",
+                Name = "Core Collection",
                 Description = "Core description"
             };
 
-            Assert.Equal(id, project.Id);
-            Assert.Equal("core-project", project.Slug);
-            Assert.Equal("Core Project", project.Name);
-            Assert.Equal("Core description", project.Description);
+            Assert.Equal(id, collection.Id);
+            Assert.Equal("core-collection", collection.Slug);
+            Assert.Equal("Core Collection", collection.Name);
+            Assert.Equal("Core description", collection.Description);
         }
 
         [Fact]
-        public void Org_Properties_CanBeAssigned()
+        public void Group_Properties_CanBeAssigned()
         {
             var id = Guid.NewGuid();
-            var org = new Org
+            var group = new Group
             {
                 Id = id,
-                Slug = "acme-corp",
-                Name = "Acme Corp"
+                Slug = "acme-community",
+                Name = "Acme Community"
             };
 
-            Assert.Equal(id, org.Id);
-            Assert.Equal("acme-corp", org.Slug);
-            Assert.Equal("Acme Corp", org.Name);
+            Assert.Equal(id, group.Id);
+            Assert.Equal("acme-community", group.Slug);
+            Assert.Equal("Acme Community", group.Name);
         }
     }
 }

@@ -1,6 +1,6 @@
 using System;
 
-namespace ActDim.Practix.Common.Introspection
+namespace ActDim.Practix.Introspection
 {
     /// <summary>
     /// Attribute specifying the provider type responsible for generating custom <see cref="IntrospectionInfo"/> metadata.

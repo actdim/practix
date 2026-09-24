@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace ActDim.Practix.Common.Introspection
+namespace ActDim.Practix.Introspection
 {
     /// <summary>
     /// Holds base introspection details for a CLR <see cref="Type"/>.

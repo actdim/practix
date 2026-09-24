@@ -1,6 +1,6 @@
 using System;
 
-namespace ActDim.BytePath
+namespace ActDim.BytePath.SqliteRegistry
 {
     /// <summary>
     /// Configuration options for <see cref="SQLiteBlobRegistry"/>.

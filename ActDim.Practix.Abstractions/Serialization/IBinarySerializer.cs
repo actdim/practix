@@ -8,7 +8,7 @@ namespace ActDim.Practix.Abstractions.Serialization
     /// <c>null</c> or UTF-8 the serializer uses the fast UTF-8 path.</remarks>
     public interface IBinarySerializer
     {
-        // ── Serialize to bytes ───────────────────────────────────────────────
+        // -- Serialize to bytes -----------------------------------------------
 
         byte[] Serialize(object value, Encoding encoding = default);
 
@@ -16,7 +16,7 @@ namespace ActDim.Practix.Abstractions.Serialization
 
         byte[] Serialize<T>(T value, Encoding encoding = default);
 
-        // ── Deserialize from bytes ───────────────────────────────────────────
+        // -- Deserialize from bytes -------------------------------------------
 
         object Deserialize(byte[] data, Type type, Encoding encoding = default);
 

@@ -1,7 +1,7 @@
 using ActDim.Practix.Abstractions.Memory;
 using System;
 
-namespace ActDim.Practix.Common.Memory
+namespace ActDim.Practix.Memory
 {
     /// <summary>
     /// Implements <see cref="IBufferOwner{T}"/> backed by a plain non-pooled managed heap array.

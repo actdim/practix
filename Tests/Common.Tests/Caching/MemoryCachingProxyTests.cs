@@ -24,7 +24,7 @@ namespace ActDim.Practix.Common.Tests.Caching
             public int Value { get; set; }
         }
 
-        // ── Constructor / argument guards ────────────────────────────────────────
+        // -- Constructor / argument guards ----------------------------------------
 
         [Fact]
         public void Ctor_NullCache_Throws() =>
@@ -34,7 +34,7 @@ namespace ActDim.Practix.Common.Tests.Caching
         public void Get_NullFunc_Throws() =>
             Assert.Throws<ArgumentNullException>(() => _proxy.Get<int>(null, _options));
 
-        // ── Synchronous memoization ──────────────────────────────────────────────
+        // -- Synchronous memoization ----------------------------------------------
 
         [Fact]
         public void Get_FirstCall_InvokesFuncAndReturnsValue()
@@ -88,7 +88,7 @@ namespace ActDim.Practix.Common.Tests.Caching
             Assert.Same(produced, second); // no serialization -> same reference
         }
 
-        // ── Asynchronous memoization (Task<T>) ───────────────────────────────────
+        // -- Asynchronous memoization (Task<T>) -----------------------------------
 
         [Fact]
         public async Task Get_AsyncTaskFunc_MemoizesResult()
@@ -134,7 +134,7 @@ namespace ActDim.Practix.Common.Tests.Caching
             Assert.Equal(2, calls);
         }
 
-        // ── Asynchronous memoization (ValueTask<T>) ──────────────────────────────
+        // -- Asynchronous memoization (ValueTask<T>) ------------------------------
 
         [Fact]
         public async Task Get_AsyncValueTaskFunc_MemoizesResult()

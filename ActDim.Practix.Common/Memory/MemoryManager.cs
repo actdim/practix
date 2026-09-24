@@ -1,6 +1,6 @@
 using Microsoft.IO;
 
-namespace ActDim.Practix.Common.Memory
+namespace ActDim.Practix.Memory
 {
     /// <summary>
     /// Holds process-wide default <see cref="RecyclableMemoryStreamManager"/> instance configured for optimal memory pooling.

@@ -3,7 +3,7 @@ using System;
 using System.Buffers;
 using System.Threading;
 
-namespace ActDim.Practix.Common.Memory
+namespace ActDim.Practix.Memory
 {
     /// <summary>
     /// Implements <see cref="IBufferOwner{T}"/> backed by an <see cref="ArrayPool{T}"/> rented array that returns to pool on disposal.

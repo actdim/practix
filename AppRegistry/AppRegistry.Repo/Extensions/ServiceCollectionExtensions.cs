@@ -15,7 +15,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             ArgumentNullException.ThrowIfNull(services);
             services.AddTransient<CommonRepo>();
-            services.AddTransient<IProjectRepo, ProjectRepo>();
+            services.AddTransient<ICollectionRepo, CollectionRepo>();
             services.AddTransient<IRoleRepo, RoleRepo>();
             services.AddTransient<IUserRepo, UserRepo>();
             return services;

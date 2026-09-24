@@ -22,7 +22,7 @@ namespace ActDim.Emitron
     /// // String template compilation
     /// var formatInvoice = Emitron.CompileTemplate("$\"Invoice #{InvoiceId:D6}: {ClientName} - ${Total:N2}\"");
     /// string summary = formatInvoice(new { InvoiceId = 42, ClientName = "Acme", Total = 1250.50 });
-    /// // → "Invoice #000042: Acme - $1,250.50"
+    /// // -> "Invoice #000042: Acme - $1,250.50"
     ///
     /// // Multi-statement business calculation
     /// var calcDiscount = Emitron.Compile&lt;decimal&gt;("""
@@ -30,7 +30,7 @@ namespace ActDim.Emitron
     ///     var isVip = (bool)@params.IsVip;
     ///     return isVip ? total * 0.15m : total * 0.05m;
     /// """);
-    /// decimal discount = calcDiscount(new { Total = 500m, IsVip = true }); // → 75.00
+    /// decimal discount = calcDiscount(new { Total = 500m, IsVip = true }); // -> 75.00
     /// </code>
     /// </para>
     /// <para>
@@ -406,9 +406,9 @@ namespace ActDim.Emitron
             return Interpolator.Format(template, input, DefaultInputParameterName, options);
         }
 
-        // ─────────────────────────────────────────────────────────────────────
+        // ---------------------------------------------------------------------
         // Private helpers
-        // ─────────────────────────────────────────────────────────────────────
+        // ---------------------------------------------------------------------
 
         internal static string NormalizeInputParameterName(string inputParameterName)
         {

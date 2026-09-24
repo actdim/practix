@@ -1,4 +1,4 @@
-using ActDim.AppRegistry.Domain.Core;
+using ActDim.AppRegistry.Domain.Iam;
 
 namespace ActDim.AppRegistry.Repo
 {

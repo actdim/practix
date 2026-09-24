@@ -1,5 +1,7 @@
 using ActDim.AppRegistry.Domain.Core;
+using ActDim.AppRegistry.Domain.Iam;
 using ActDim.Practix.Service;
+using ActDim.Practix.Service.Claims;
 using ActDim.Practix.Service.Settings;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;

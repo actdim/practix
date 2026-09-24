@@ -1,4 +1,4 @@
-namespace ActDim.Practix.Common.Introspection
+namespace ActDim.Practix.Introspection
 {
     /// <summary>
     /// Base class for all reflection introspection DTO models.

@@ -32,15 +32,6 @@ namespace ActDim.Practix.Abstractions.Memory
             ArgumentNullException.ThrowIfNull(memoryManager, nameof(memoryManager));
             return context.PushProperty(AmbientKeys.MemoryManager, memoryManager);
         }
-
-        /// <summary>
-        /// Temporarily sets the scoped <see cref="RecyclableMemoryStreamManager"/> for the duration of the returned disposable scope.
-        /// Alias for <see cref="WithMemoryManager(IAmbientContext, RecyclableMemoryStreamManager)"/>.
-        /// </summary>
-        public static IDisposable WithMemory(this IAmbientContext context, RecyclableMemoryStreamManager memoryManager)
-        {
-            return WithMemoryManager(context, memoryManager);
-        }
     }
 }
 

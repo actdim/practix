@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using ActDim.Three.Core;
+using ActDim.Three.Scenes;
+using ActDim.Three.Serialization;
 
 namespace ActDim.Three.Core
 {

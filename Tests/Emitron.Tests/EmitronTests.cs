@@ -8,7 +8,7 @@ namespace ActDim.Emitron.Tests
 	public class EmitronTests
 	{
 		// ------------------------------------------------------------------
-		// Compile → returns a reusable Func<object, T>
+		// Compile -> returns a reusable Func<object, T>
 		// ------------------------------------------------------------------
 
 		[Fact]

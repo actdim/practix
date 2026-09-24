@@ -1,7 +1,7 @@
 using System.Runtime.Serialization;
 using ActDim.Three.Core;
 
-namespace ActDim.Three
+namespace ActDim.Three.Scenes
 {
     /// <summary>
     /// Scenes allow you to set up what and where is to be rendered by three.js. This is where you place objects, lights and cameras.

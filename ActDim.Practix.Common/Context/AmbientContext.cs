@@ -44,7 +44,7 @@ namespace ActDim.Practix.Context
         /// <inheritdoc />
         public IReadOnlyDictionary<string, object> Properties => _current.Value ?? ImmutableDictionary<string, object>.Empty;
 
-        // ══ Static Convenience API (zero-DI ceremony) ═════════════════════════
+        // == Static Convenience API (zero-DI ceremony) =========================
 
         /// <summary>
         /// Gets the current ambient context instance for the calling async flow.

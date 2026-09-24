@@ -1,4 +1,4 @@
-namespace ActDim.Practix.Common.DataFormat
+namespace ActDim.Practix.DataFormat
 {
     /// <summary>
     /// Constants providing standardized ISO 8601 string formatting templates for <see cref="System.DateTime"/>.

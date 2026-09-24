@@ -40,6 +40,7 @@ Storing high-throughput logs and distributed traces in traditional relational da
 * **OpenObserve:** A single Rust binary that covers logs, traces, and metrics out of the box. It uses Apache Parquet for storage, natively accepts OpenTelemetry (OTLP) data, and provides a full-featured web UI with trace waterfalls, log exploration, and dashboards without requiring Docker, Java, or external databases.
 * **Seq (Datalust):** A developer-friendly, .NET-native observability server designed specifically for structured logs, distributed traces, and metrics. Seq offers a free single-user license for local development (`docker run -d -p 5341:80 -e ACCEPT_EULA=Y datalust/seq`), zero-setup OTLP ingestion out of the box (`http://localhost:5341/ingest/otlp`), and features an intuitive real-time Web UI with instant signals, log tailing, and trace waterfall views.
 * **ClickHouse:** An industry-standard, ultra-high-performance columnar analytical database engine for high-volume logs, metrics, and trace telemetry. While we do not maintain a dedicated integration test suite for ClickHouse in this repository, modern distributions and telemetry stacks bundle or integrate with **HyperDX** (an open-source APM & log exploration Web UI), providing a comprehensive out-of-the-box user experience for analyzing traces and logs.
+* **SigNoz:** An open-source, full-stack APM and observability platform natively built on top of ClickHouse and OpenTelemetry. It provides unified dashboards for traces, metrics, and logs with built-in service dependency graphs, RED metrics (Rate, Errors, Duration), trace waterfalls, and log aggregation. It accepts standard OTLP data directly (`http://localhost:4317` gRPC / `http://localhost:4318` HTTP). Note that running SigNoz locally requires Docker Compose with ClickHouse.
 
 ---
 
@@ -73,6 +74,7 @@ flowchart TD
         VL["VictoriaLogs (High-Perf Log Engine / LogsQL)"]
         OO["OpenObserve (All-in-One: Logs + Traces + Metrics UI)"]
         Seq["Seq (Datalust: .NET-Native Logs + Traces + Metrics UI)"]
+        SigNoz["SigNoz (Full-Stack APM: Traces + Metrics + Logs on ClickHouse)"]
         Grafana["Grafana Dashboards (Loki/VL Logs, Tempo Traces, Prom Metrics)"]
     end
 
@@ -91,10 +93,12 @@ flowchart TD
     Direct --> VL
     Direct --> OO
     Direct --> Seq
+    Direct --> SigNoz
     Collector --> Aspire
     Collector --> VL
     Collector --> OO
     Collector --> Seq
+    Collector --> SigNoz
     Collector --> Grafana
 ```
 
@@ -301,10 +305,10 @@ An **Exemplar** links a metric measurement (such as a 99th percentile request du
 
 ```
 Grafana Metric Chart: kestrel.request.duration [Histogram Bucket: > 500ms]
-                     │
-                     └── Exemplar Attached: [trace_id = 4bf92f3577b34da6a3ce929d0e0e4736]
-                                 │
-                                 └── (Click) -> Opens Trace Waterfall in OpenObserve / Tempo / Jaeger!
+                     |
+                     \-- Exemplar Attached: [trace_id = 4bf92f3577b34da6a3ce929d0e0e4736]
+                                 |
+                                 \-- (Click) -> Opens Trace Waterfall in OpenObserve / Tempo / Jaeger!
 ```
 
 #### Enabling Exemplars in .NET
@@ -324,6 +328,7 @@ flowchart LR
         Processors --> Exporters["Exporters (otlp, prometheus, victorialogs)"]
     end
     Exporters -->|Logs + Traces + Metrics| OO["OpenObserve (All-in-One APM UI)"]
+    Exporters -->|Logs + Traces + Metrics| SigNoz["SigNoz (Full-Stack APM UI)"]
     Exporters -->|Logs| VL["VictoriaLogs (LogsQL)"]
     Exporters -->|Traces| Tempo["Grafana Tempo / Jaeger"]
     Exporters -->|Metrics| Prom["Prometheus"]
@@ -333,6 +338,7 @@ flowchart LR
 1. **Process Offloading:** Offloads heavy batching, compression (GZip/Zstd), retries, and network TLS overhead out of the .NET application process.
 2. **Security & Credential Isolation:** API tokens, basic auth headers, and production credentials live in the Collector configuration rather than microservice environment variables.
 3. **Multi-Backend Routing:** Simultaneously forwards logs to **VictoriaLogs**, traces to **Tempo** or **OpenObserve**, and metrics to **Prometheus**.
+3. **Multi-Backend Routing:** Simultaneously forwards logs to **VictoriaLogs**, traces to **Tempo**, **OpenObserve**, or **SigNoz**, and metrics to **Prometheus**.
 4. **Tail Sampling:** Evaluates sampling rules *after* the entire distributed trace finishes.
 
 #### OpenTelemetry Collector Tail Sampling Configuration (`otel-collector-config.yaml`)
@@ -406,20 +412,28 @@ exporters:
     tls:
       insecure: true
 
+  otlp/signoz:
+    endpoint: "http://signoz-otel-collector:4317"
+    tls:
+      insecure: true
+
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, tail_sampling, batch]
       exporters: [otlp/openobserve, otlp/seq]
+      exporters: [otlp/openobserve, otlp/seq, otlp/signoz]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
       exporters: [otlp/victorialogs, otlp/openobserve, otlp/seq]
+      exporters: [otlp/victorialogs, otlp/openobserve, otlp/seq, otlp/signoz]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
       exporters: [otlp/openobserve, otlp/seq]
+      exporters: [otlp/openobserve, otlp/seq, otlp/signoz]
 ```
 
 ---
@@ -465,13 +479,13 @@ using (logger.BeginScope(new Dictionary<string, object> { ["tenant.id"] = "acme"
 
 #### Why Logger Categories Use Full Type Names (`type.FullName`) & Namespace Hierarchy
 
-When obtaining a logger via `ILogger<T>` or `LoggerFactory.CreateLogger(typeof(T))`, .NET assigns the category name using the **full type name with namespace** (e.g. `ActDim.Practix.Common.Context.AmbientContext`) rather than just the short class name (`AmbientContext`).
+When obtaining a logger via `ILogger<T>` or `LoggerFactory.CreateLogger(typeof(T))`, .NET assigns the category name using the **full type name with namespace** (e.g. `ActDim.Practix.Context.AmbientContext`) rather than just the short class name (`AmbientContext`).
 
 ```mermaid
 flowchart TD
-    Root["ActDim (Global Company/Solution Prefix)"] --> Module["ActDim.Practix.Common (Subsystem Prefix)"]
-    Module --> Class1["ActDim.Practix.Common.Context.AmbientContext (Specific Type)"]
-    Module --> Class2["ActDim.Practix.Common.Compression.CompressionManager (Specific Type)"]
+    Root["ActDim (Global Company/Solution Prefix)"] --> Module["ActDim.Practix (Subsystem Prefix)"]
+    Module --> Class1["ActDim.Practix.Context.AmbientContext (Specific Type)"]
+    Module --> Class2["ActDim.Practix.Compression.CompressionManager (Specific Type)"]
 
     style Root fill:#1f2937,stroke:#374151,color:#fff
     style Module fill:#1e3a8a,stroke:#3b82f6,color:#fff
@@ -501,7 +515,7 @@ Setting a rule for `"Microsoft"` automatically applies to all child namespaces u
       "Microsoft.EntityFrameworkCore.Database.Command": "Warning",
       "System.Net.Http.HttpClient": "Warning",
       "ActDim": "Debug",
-      "ActDim.Practix.Common.Context.AmbientContext": "Error"
+      "ActDim.Practix.Context.AmbientContext": "Error"
     }
   }
 }
@@ -645,6 +659,7 @@ using (observability.SuppressProviders("File", "Console"))
 ```
 
 ### 4. Integration Testing & Tooling (VictoriaLogs & OpenObserve)
+### 4. Integration Testing, Tooling & APM Backends
 
 `ActDim.Observability.Tests` includes integration test suites and developer scripts for validating telemetry ingestion and log search:
 
@@ -666,6 +681,20 @@ using (observability.SuppressProviders("File", "Console"))
     docker run --name aspire-dashboard -d --restart unless-stopped -p 18888:18888 -p 4317:18889 -p 4318:18890 mcr.microsoft.com/dotnet/aspire-dashboard:latest
     ```
   - Web UI auto-opens at [http://localhost:18888](http://localhost:18888) with OTLP gRPC endpoint on `http://localhost:4317` and HTTP endpoint on `http://localhost:4318`.
+
+- **SigNoz (ClickHouse APM) Setup:**
+  - Full-stack open-source APM providing service dependency maps, RED metrics (p50, p95, p99 latency), error rates, trace waterfalls, and log exploration in a single unified dashboard.
+  - Local deployment via Docker Compose:
+    ```bash
+    git clone -b main https://github.com/SigNoz/signoz.git
+    cd signoz/deploy
+    docker compose -f docker/clickhouse-setup/docker-compose.yaml up -d
+    ```
+  - Web UI: [http://localhost:3301](http://localhost:3301).
+  - Telemetry Ingestion Endpoints:
+    - OTLP gRPC: `http://localhost:4317`
+    - OTLP HTTP: `http://localhost:4318`
+  - In `appsettings.json`, set `Telemetry:OtlpEndpoint` to `http://localhost:4317` (gRPC) or `http://localhost:4318/v1/logs` (HTTP). SigNoz natively ingests all `ActDim.Observability` spans, logs, and metrics without any custom SDK packages or proprietary adapters.
 
 - **Process Auto-Launch:** Both integration tests automatically detect running local instances or auto-launch local binaries from `Tools/` into isolated temporary storage paths.
 

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using ActDim.Practix.Common.Runtime;
+using ActDim.Practix.Collections.Specialized;
 using Xunit;
 
-namespace ActDim.Practix.Common.Tests.Runtime
+namespace ActDim.Practix.Common.Tests.Collections.Specialized
 {
     public class StaticBiMapTests
     {

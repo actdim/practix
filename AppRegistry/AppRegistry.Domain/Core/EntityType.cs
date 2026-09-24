@@ -1,48 +1,46 @@
 using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
 
-namespace ActDim.AppRegistry.Domain.Core
+namespace ActDim.AppRegistry.Domain.Core;
+
+public static class EntityTypeCode
 {
-    // Registry (directory/catalog) texonomy
-    public class EntityTypeCode
-    {
-        public const string Org = "_org";
+    public const string User = "iam:user";
+    public const string Group = "iam:group";
+    public const string Role = "iam:role";
+    public const string Catalog = "registry:catalog";
+    public const string Collection = "registry:collection";
+    public const string VfsNode = "vfs:node";
 
-        public const string User = "_user";
-
-        public const string Role = "_role";
-
-        public const string Permission = "_permission";
-
-        public const string Project = "_project";
-
-        public static IReadOnlyDictionary<string, EntityType> Map = new ReadOnlyDictionary<string, EntityType>(
-          new Dictionary<string, EntityType>()
-          {
-              [Org] = EntityType.Org,
-              [User] = EntityType.User,
-              [Role] = EntityType.Role,
-              [Permission] = EntityType.Permission,
-              [Project] = EntityType.Project
-          });
-    }
-
-    public enum EntityType
-    {
-        [EnumMember(Value = EntityTypeCode.Org)]
-        Org,
-        [EnumMember(Value = EntityTypeCode.User)]
-        User,
-        [EnumMember(Value = EntityTypeCode.Role)]
-        Role,
-        [EnumMember(Value = EntityTypeCode.Permission)]
-        Permission,
-        [EnumMember(Value = EntityTypeCode.Project)]
-        Project
-    }
+    public static readonly IReadOnlyDictionary<string, EntityType> Map = new ReadOnlyDictionary<string, EntityType>(
+        new Dictionary<string, EntityType>()
+        {
+            [User] = EntityType.User,
+            [Group] = EntityType.Group,
+            [Role] = EntityType.Role,
+            [Catalog] = EntityType.Catalog,
+            [Collection] = EntityType.Collection,
+            [VfsNode] = EntityType.VfsNode
+        });
 }
 
-namespace ActDim.AppRegistry.Domain.Registry.Client
+public enum EntityType
 {
+    [EnumMember(Value = EntityTypeCode.User)]
+    User,
 
+    [EnumMember(Value = EntityTypeCode.Group)]
+    Group,
+
+    [EnumMember(Value = EntityTypeCode.Role)]
+    Role,
+
+    [EnumMember(Value = EntityTypeCode.Catalog)]
+    Catalog,
+
+    [EnumMember(Value = EntityTypeCode.Collection)]
+    Collection,
+
+    [EnumMember(Value = EntityTypeCode.VfsNode)]
+    VfsNode
 }

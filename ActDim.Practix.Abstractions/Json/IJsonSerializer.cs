@@ -54,7 +54,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <returns>A configured <see cref="JsonMergeOptions"/> instance.</returns>
         JsonMergeOptions CreateDefaultMergeOptions();
 
-        // ── Options helpers ──────────────────────────────────────────────────
+        // -- Options helpers --------------------------------------------------
 
         /// <summary>
         /// Copies serializer options, converter registrations, and resolver chains from <paramref name="source"/> into <paramref name="target"/>.
@@ -63,7 +63,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <param name="source">The source options instance. If <c>null</c>, uses <see cref="Options"/>.</param>
         void CopyOptions(JsonSerializerOptions target, JsonSerializerOptions source = null);
 
-        // ── Serialize to string ──────────────────────────────────────────────
+        // -- Serialize to string ----------------------------------------------
 
         /// <summary>
         /// Serializes the specified object value into a JSON string using default options.
@@ -80,7 +80,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <returns>The serialized JSON string.</returns>
         string Serialize(object value, JsonSerializerOptions options);
 
-        // ── Merge & serialize ────────────────────────────────────────────────
+        // -- Merge & serialize ------------------------------------------------
 
         /// <summary>
         /// Merges multiple objects into a single JSON representation and serializes it using default options.
@@ -114,7 +114,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <returns>The merged JSON string representation.</returns>
         string MergeAndSerialize(IList<object> values, JsonMergeOptions mergeOptions);
 
-        // ── Serialize to stream (sync) ───────────────────────────────────────
+        // -- Serialize to stream (sync) ---------------------------------------
 
         /// <summary>
         /// Synchronously serializes the specified object value to the provided stream using default options.
@@ -131,7 +131,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <param name="options">The serializer options to apply. If <c>null</c>, uses default options.</param>
         void Serialize(object value, Stream stream, JsonSerializerOptions options);
 
-        // ── Serialize to stream (async) ──────────────────────────────────────
+        // -- Serialize to stream (async) --------------------------------------
 
         /// <summary>
         /// Asynchronously serializes the specified object value to the provided stream using default options.
@@ -152,7 +152,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <returns>A task that represents the asynchronous serialization operation.</returns>
         Task SerializeAsync(object value, Stream stream, JsonSerializerOptions options, CancellationToken cancellationToken = default);
 
-        // ── Deserialize from string ──────────────────────────────────────────
+        // -- Deserialize from string ------------------------------------------
 
         /// <summary>
         /// Deserializes the JSON string to an instance of the specified runtime type using default options.
@@ -197,7 +197,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <returns>The deserialized instance of <typeparamref name="T"/>.</returns>
         T Deserialize<T>(string json, params JsonConverter[] customConverters);
 
-        // ── Deserialize from stream (sync) ───────────────────────────────────
+        // -- Deserialize from stream (sync) -----------------------------------
 
         /// <summary>
         /// Synchronously deserializes the stream content to an instance of the specified runtime type using default options.
@@ -233,7 +233,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <returns>The deserialized instance of <typeparamref name="T"/>.</returns>
         T Deserialize<T>(Stream stream, JsonSerializerOptions options);
 
-        // ── Deserialize from stream (async) ──────────────────────────────────
+        // -- Deserialize from stream (async) ----------------------------------
 
         /// <summary>
         /// Asynchronously deserializes the stream content to an instance of the specified runtime type using default options.
@@ -273,7 +273,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <returns>A value task representing the asynchronous operation with the deserialized instance of <typeparamref name="T"/>.</returns>
         ValueTask<T> DeserializeAsync<T>(Stream stream, JsonSerializerOptions options, CancellationToken cancellationToken = default);
 
-        // ── Populate ─────────────────────────────────────────────────────────
+        // -- Populate ---------------------------------------------------------
 
         /// <summary>
         /// Populates writable properties and fields of the existing <paramref name="target"/> object instance from JSON data.
@@ -292,7 +292,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <param name="options">The serializer options to apply. If <c>null</c>, uses default options.</param>
         void Populate<T>(string json, T target, JsonSerializerOptions options);
 
-        // ── Naming helpers ───────────────────────────────────────────────────
+        // -- Naming helpers ---------------------------------------------------
 
         /// <summary>
         /// Formats a full path property name according to the active property naming policy.
@@ -309,7 +309,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <returns>The policy-transformed property name.</returns>
         string FormatPropertyName(string fullPathPropertyName, JsonSerializerOptions options);
 
-        // ── Object utilities ─────────────────────────────────────────────────
+        // -- Object utilities -------------------------------------------------
 
         /// <summary>
         /// Creates a deep clone of the specified source object graph via JSON round-trip serialization.
@@ -346,7 +346,7 @@ namespace ActDim.Practix.Abstractions.Json
         /// <returns>The modified object instance with patch applied.</returns>
         T Patch<T>(T obj, string patch);
 
-        // ── Serialize to bytes ─────────────────────────────────────────────────
+        // -- Serialize to bytes -------------------------------------------------
 
         /// <summary>
         /// Serializes the specified object value directly to a UTF-8 byte array using default options.

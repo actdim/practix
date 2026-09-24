@@ -10,7 +10,7 @@ namespace ActDim.Three.Textures
     public class Image : Element
     {
         /// <summary>
-        /// Image url. This can be a path to the image resource (.jpg, .png, …) or a base64-encoded asset.
+        /// Image url. This can be a path to the image resource (.jpg, .png, ...) or a base64-encoded asset.
         /// </summary>
         [DataMember(Name = "url")]
         public string Url { get; set; }

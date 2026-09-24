@@ -1,5 +1,5 @@
 using System;
-using ActDim.Practix.Common;
+using ActDim.Practix;
 using Xunit;
 
 namespace ActDim.Practix.Common.Tests

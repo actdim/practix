@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace ActDim.Practix.Service;
+namespace ActDim.Practix.Service.Claims;
 
 [StructLayout(LayoutKind.Sequential, Size = 1)]
 public struct RegisteredClaimNames

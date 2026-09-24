@@ -12,7 +12,7 @@ namespace ActDim.Practix.Abstractions.Serialization
     /// UTF-8 path.</remarks>
     public interface IStreamSerializer
     {
-        // ── Serialize to stream (sync) ───────────────────────────────────────
+        // -- Serialize to stream (sync) ---------------------------------------
 
         void Serialize(object value, Stream stream, Encoding encoding = default);
 
@@ -20,7 +20,7 @@ namespace ActDim.Practix.Abstractions.Serialization
 
         void Serialize<T>(T value, Stream stream, Encoding encoding = default);
 
-        // ── Serialize to stream (async) ──────────────────────────────────────
+        // -- Serialize to stream (async) --------------------------------------
 
         Task SerializeAsync(object value, Stream stream, Encoding encoding = default, CancellationToken cancellationToken = default);
 
@@ -28,13 +28,13 @@ namespace ActDim.Practix.Abstractions.Serialization
 
         Task SerializeAsync<T>(T value, Stream stream, Encoding encoding = default, CancellationToken cancellationToken = default);
 
-        // ── Deserialize from stream (sync) ───────────────────────────────────
+        // -- Deserialize from stream (sync) -----------------------------------
 
         object Deserialize(Stream stream, Type type, Encoding encoding = default);
 
         T Deserialize<T>(Stream stream, Encoding encoding = default);
 
-        // ── Deserialize from stream (async) ──────────────────────────────────
+        // -- Deserialize from stream (async) ----------------------------------
 
         ValueTask<object> DeserializeAsync(Stream stream, Type type, Encoding encoding = default, CancellationToken cancellationToken = default);
 

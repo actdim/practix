@@ -10,18 +10,18 @@ Organize multi-platform repositories with strict layer separation:
 
 ```text
 my-monorepo/
-├── apps/                         # Concrete platform deployment heads
-│   ├── web/                      # Web SPA/SSR (React / Vite / Next.js)
-│   ├── desktop/                  # Desktop head (Tauri / Electron)
-│   ├── mobile/                   # Mobile head (React Native / Expo)
-│   └── api/                      # Backend API (Node / .NET / FastAPI)
-├── packages/                     # Reusable shared libraries & contracts
-│   ├── core-types/               # Pure domain interfaces, DTOs & schemas
-│   ├── api-client/               # Auto-generated API client & MSW mocks
-│   ├── ui-components/            # Platform-agnostic design system tokens
-│   └── utils/                    # Common pure utility functions
-├── pnpm-workspace.yaml           # (or root Cargo.toml, Directory.Packages.props, pyproject.toml)
-└── package.json                  # Root workspace definition
++-- apps/                         # Concrete platform deployment heads
+|   +-- web/                      # Web SPA/SSR (React / Vite / Next.js)
+|   +-- desktop/                  # Desktop head (Tauri / Electron)
+|   +-- mobile/                   # Mobile head (React Native / Expo)
+|   \-- api/                      # Backend API (Node / .NET / FastAPI)
++-- packages/                     # Reusable shared libraries & contracts
+|   +-- core-types/               # Pure domain interfaces, DTOs & schemas
+|   +-- api-client/               # Auto-generated API client & MSW mocks
+|   +-- ui-components/            # Platform-agnostic design system tokens
+|   \-- utils/                    # Common pure utility functions
++-- pnpm-workspace.yaml           # (or root Cargo.toml, Directory.Packages.props, pyproject.toml)
+\-- package.json                  # Root workspace definition
 ```
 
 ---

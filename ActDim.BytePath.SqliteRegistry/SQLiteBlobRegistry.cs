@@ -11,7 +11,7 @@ using Microsoft.Data.Sqlite;
 using RepoDb;
 using RepoDb.Attributes;
 
-namespace ActDim.BytePath
+namespace ActDim.BytePath.SqliteRegistry
 {
     [Map("blob_records")]
     internal class BlobRecordTransport

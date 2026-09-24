@@ -6,7 +6,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Threading.Tasks;
 using ActDim.Practix.Abstractions.Compression;
-using ActDim.Practix.Common.Memory;
+using ActDim.Practix.Memory;
 using ActDim.Practix.Compression;
 using ActDim.Practix.Abstractions.Exceptions;
 using Xunit;

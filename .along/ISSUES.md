@@ -7,9 +7,9 @@
 - [ ] `(feat)` [unified-configurable-authentication](ISSUES/feat--unified-configurable-authentication.md)
 
 ## Done (recent)
-- [x] `(task)` [release-version-1-2-0](ISSUES/done/task--release-version-1-2-0.md)
-- [x] `(docs)` [ambient-context-architecture-guide](ISSUES/done/docs--ambient-context-architecture-guide.md)
-- [x] `(debt)` [update-sqlitepclraw-vulnerability](ISSUES/done/debt--update-sqlitepclraw-vulnerability.md)
-- [x] `(debt)` [ambient-context-modular-extensions](ISSUES/done/debt--ambient-context-modular-extensions.md)
-- [x] `(task)` [release-version-1-1-0](ISSUES/done/task--release-version-1-1-0.md)
-<!-- 7 older completed issue(s) archived in .along/ISSUES/done/ -->
+- [x] `(task)` [bump-version-1-3-0](ISSUES/done/task--bump-version-1-3-0.md)
+- [x] `(feat)` [expose-blobmanager-and-corejsonserializer](ISSUES/done/feat--expose-blobmanager-and-corejsonserializer.md)
+- [x] `(docs)` [align-docs-and-tests-practix-namespaces](ISSUES/done/docs--align-docs-and-tests-practix-namespaces.md)
+- [x] `(debt)` [unify-practix-namespaces-and-refactor-staticmap](ISSUES/done/debt--unify-practix-namespaces-and-refactor-staticmap.md)
+- [x] `(debt)` [restore-compression-manager-obfuscation-attribute](ISSUES/done/debt--restore-compression-manager-obfuscation-attribute.md)
+<!-- 17 older completed issue(s) archived in .along/ISSUES/done/ -->

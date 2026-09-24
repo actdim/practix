@@ -9,6 +9,8 @@ using ActDim.Three.Lights;
 using ActDim.Three.Materials;
 using ActDim.Three.Math;
 using ActDim.Three.Objects;
+using ActDim.Three.Scenes;
+using ActDim.Three.Serialization;
 
 namespace ActDim.Three.Tests
 {

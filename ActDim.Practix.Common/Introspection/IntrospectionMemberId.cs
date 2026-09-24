@@ -1,6 +1,6 @@
 using System;
 
-namespace ActDim.Practix.Common.Introspection
+namespace ActDim.Practix.Introspection
 {
     /// <summary>
     /// Record identifying a metadata member across assembly, module version, and metadata token.

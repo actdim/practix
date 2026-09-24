@@ -1,4 +1,4 @@
-using ActDim.Practix.Common.DataFormat;
+using ActDim.Practix.DataFormat;
 using System;
 using System.Globalization;
 using System.Linq;

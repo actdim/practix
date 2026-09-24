@@ -1,4 +1,6 @@
 using ActDim.BytePath;
+using ActDim.BytePath.Extensions;
+using ActDim.BytePath.SqliteRegistry;
 using ActDim.Practix.Abstractions.Storage;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;

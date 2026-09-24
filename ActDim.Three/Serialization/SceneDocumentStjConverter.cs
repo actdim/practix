@@ -7,6 +7,7 @@ using ActDim.Three.Core;
 using ActDim.Three.Materials;
 using ActDim.Three.Math;
 using ActDim.Three.Objects;
+using ActDim.Three.Scenes;
 using ActDim.Three.Textures;
 
 namespace ActDim.Three.Serialization
@@ -221,7 +222,7 @@ namespace ActDim.Three.Serialization
                 node.Remove("children");
             }
 
-            // Scalars (light color/intensity, scene background, visible, userData, …) via reflection;
+            // Scalars (light color/intensity, scene background, visible, userData, ...) via reflection;
             // structure (matrix, refs, children) wired by hand below.
             var obj = (Object3D)node.Deserialize(DocumentGraph.NodeType(type), Inner);
             obj.Children.Clear();

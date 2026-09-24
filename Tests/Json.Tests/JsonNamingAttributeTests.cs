@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Xunit;
 
-namespace ActDim.Practix.Common.Tests.Json;
+namespace ActDim.Practix.Json.Tests;
 
 public class JsonNamingAttributeTests
 {
@@ -14,7 +14,7 @@ public class JsonNamingAttributeTests
         _ser = new CoreJsonSerializer();
     }
 
-    // ── Attribute construction ───────────────────────────────────────────────
+    // -- Attribute construction -----------------------------------------------
 
     [Fact]
     public void Constructor_WithPolicyType_CreatesPolicyInstance()
@@ -37,7 +37,7 @@ public class JsonNamingAttributeTests
         Assert.IsAssignableFrom<LowerCaseNamingPolicy>(attr.Policy);
     }
 
-    // ── Attribute target / metadata ──────────────────────────────────────────
+    // -- Attribute target / metadata ------------------------------------------
 
     [Fact]
     public void Attribute_CanBeAppliedToClass()
@@ -53,7 +53,7 @@ public class JsonNamingAttributeTests
         Assert.Single(attrs);
     }
 
-    // ── Integration: NamingPolicyResolver через BaseJsonSerializer ───────────
+    // -- Integration: NamingPolicyResolver via BaseJsonSerializer -----------
 
     [Fact]
     public void Serialize_UpperCasePolicy_ProducesUpperCaseKeys()
@@ -121,7 +121,7 @@ public class JsonNamingAttributeTests
         });
     }
 
-    // ── Test DTOs ────────────────────────────────────────────────────────────
+    // -- Test DTOs ------------------------------------------------------------
 
     [JsonNaming(typeof(UpperCaseNamingPolicy))]
     private class UpperCaseDto

@@ -6,6 +6,8 @@ using ActDim.Three.Core;
 using ActDim.Three.Materials;
 using ActDim.Three.NewtonsoftJson;
 using ActDim.Three.Objects;
+using ActDim.Three.Scenes;
+using ActDim.Three.Serialization;
 using ActDim.Three.Textures;
 
 namespace ActDim.Three.Tests

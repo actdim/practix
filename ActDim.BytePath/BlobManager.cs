@@ -6,18 +6,31 @@ using System.Threading.Tasks;
 
 namespace ActDim.BytePath
 {
-    internal class BlobManager : IBlobManager
+    /// <summary>
+    /// Default implementation of <see cref="IBlobManager"/> coordinating multi-store blob storage and ACID metadata registries.
+    /// </summary>
+    public class BlobManager : IBlobManager
     {
         private readonly List<IBlobDataStore> _dataStores;
         private readonly IBlobRegistry _registry;
         private readonly IBlobDataStore _defaultStore;
         private readonly IBlobDataStore[] _prefixedStores;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="BlobManager"/> with a single data store and registry.
+        /// </summary>
+        /// <param name="dataStore">The backing blob data store.</param>
+        /// <param name="registry">The metadata registry.</param>
         public BlobManager(IBlobDataStore dataStore, IBlobRegistry registry)
             : this(dataStore != null ? new[] { dataStore } : null, registry)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="BlobManager"/> with multiple data stores and a registry.
+        /// </summary>
+        /// <param name="dataStores">The backing blob data stores.</param>
+        /// <param name="registry">The metadata registry.</param>
         public BlobManager(IEnumerable<IBlobDataStore> dataStores, IBlobRegistry registry)
         {
             ArgumentNullException.ThrowIfNull(dataStores);

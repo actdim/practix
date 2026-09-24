@@ -2,8 +2,17 @@
 
 All notable changes to this project, newest first.
 
-## v1.1.0 - 2026-09-22
+## v1.3.0 - 2026-09-24
+
+- refactor: unify root namespaces under ActDim.Practix across core libraries
+- refactor: relocate StaticMap and StaticBiMap to ActDim.Practix.Collections.Specialized and remove legacy StaticStringDictionary
+- refactor: align product and test assembly namespaces to folder structure across BytePath, RepoDb, Service, and Three
+- feat: expose BlobManager, BlobManagerBuilder, and CoreJsonSerializer as public classes with XML documentation
+- fix: restore Obfuscation attribute on CompressionManager
+- chore: clean box-drawing glyphs and non-ASCII punctuation to standard ASCII across code, comments, and documentation
+
 ## v1.2.0 - 2026-09-22
+## v1.1.0 - 2026-09-22
 
 - docs: populate root LICENSE with MIT text and link from README
 - test: eliminate test debt across RepoDb, AppRegistry, DataAccess, Service, and upgrade to xunit.v3
