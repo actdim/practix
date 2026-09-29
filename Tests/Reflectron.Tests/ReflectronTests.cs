@@ -107,7 +107,12 @@ namespace ActDim.Reflectron.Tests
             Assert.Equal(obj1.RefProperty, p);
         }
 
+        /// <remarks>
+        /// Stopwatch-based micro-benchmark: timings are non-deterministic on shared CI runners,
+        /// so it is tagged <c>Category=Performance</c> and excluded from the CI test run.
+        /// </remarks>
         [Fact]
+        [Trait("Category", "Performance")]
         public void GetPropertyGetter_Performance_OutperformsFastMember()
         {
             var obj1 = new TestClass1(new TestClass2(), "test");

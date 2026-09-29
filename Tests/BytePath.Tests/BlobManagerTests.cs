@@ -685,8 +685,17 @@ namespace ActDim.BytePath.Tests
 
                 var location = await store.ResolveLocationAsync(record, ct);
                 Assert.NotNull(location);
-                // When hierarchy is disabled, "reports:2026:august.png" is treated as a flat key with ":" escaped into "%3A"
-                Assert.Contains("%3A", Path.GetFileName(location));
+                // When hierarchy is disabled, "reports:2026:august.png" is treated as a flat key.
+                // ":" is an invalid file-name char only on Windows, where it is escaped into "%3A"; other OSes keep it as-is.
+                var fileName = Path.GetFileName(location);
+                if (OperatingSystem.IsWindows())
+                {
+                    Assert.Contains("%3A", fileName);
+                }
+                else
+                {
+                    Assert.Contains("reports:2026:august.png", fileName);
+                }
             }
             finally
             {

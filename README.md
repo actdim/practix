@@ -1,5 +1,7 @@
 # ActDim (.NET)
 
+[![CI](https://github.com/actdim/practix/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/actdim/practix/actions/workflows/ci.yml)
+
 Modern, high-performance .NET libraries and application framework by Active Dimension.
 
 ## Solution Architecture

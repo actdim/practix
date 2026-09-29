@@ -76,6 +76,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Format_WithFormatSpecifier_FixedPointAndPercentage()
 		{
+			using var culture = new CultureScope("en-US");
 			var result = Interpolator.Format(
 				"$\"Price: {Price:F2}, Rate: {Discount:P0}\"",
 				new { Price = 19.999m, Discount = 0.15m });
@@ -93,6 +94,7 @@ namespace ActDim.Emitron.Tests
 		[Fact]
 		public void Interpolate_ExtensionMethod_WithCustomFormatSpecifiers()
 		{
+			using var culture = new CultureScope("en-US");
 			var data = new { CreatedAt = new DateTime(2026, 8, 17), Score = 0.9825 };
 			var template = "$\"Date: {CreatedAt:yyyy/MM/dd}, Score: {Score:P1}\"";
 
