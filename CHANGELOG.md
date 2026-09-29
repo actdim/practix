@@ -2,6 +2,10 @@
 
 All notable changes to this project, newest first.
 
+## v1.4.1 - 2026-09-29
+
+- fix: stabilize ci tests on linux runner and add ci badge to readme (refs #bug--ci-linux-test-failures)
+
 ## v1.4.0 - 2026-09-29
 
 - chore: align builtin role guids and upgrade along protocol to v4.4.1 (refs #chore--align-builtin-role-guids-and-upgrade-along-protocol)
