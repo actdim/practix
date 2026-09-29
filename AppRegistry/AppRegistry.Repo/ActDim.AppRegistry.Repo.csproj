@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AppRegistry.Domain\ActDim.AppRegistry.Domain.csproj" />
+    <ProjectReference Include="..\..\ActDim.Practix.RepoDb\ActDim.Practix.RepoDb.csproj" />
   </ItemGroup>
 
 </Project>

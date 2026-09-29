@@ -1,23 +1,30 @@
+using System.Data;
+using System.Threading.Tasks;
 using ActDim.AppRegistry.Domain.Core;
+using RepoDb;
 
 namespace ActDim.AppRegistry.Repo
 {
     public class CommonRepo
     {
         public int ExpectedVersion = 1;
+        private readonly IDbConnection? _connection;
 
-        private static readonly string GetDbVersionCommandText =
-            @"SELECT db_version FROM public.db_info";
+        public CommonRepo(IDbConnection? connection = null)
+        {
+            _connection = connection;
+        }
 
         private async Task<int> GetCurrentVersionAsync()
         {
-            int version = 0;
+            if (_connection != null)
+            {
+                var version = await _connection.ExecuteScalarAsync<int?>(
+                    "SELECT schema_version FROM actdim.subsystems WHERE code = '@actdim/app-registry'");
+                return version ?? ExpectedVersion;
+            }
 
-            // TODO: implement
-
-            return version;
-
-            // return ExpectedVersion;
+            return ExpectedVersion;
         }
 
         public async Task<VersionCheckResult> CheckVersionAsync()

@@ -1,14 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using ActDim.AppRegistry.Domain.Core;
-using ActDim.AppRegistry.Domain.Iam;
-using ActDim.AppRegistry.Domain.Registry;
 using ActDim.AppRegistry.Repo;
 using ActDim.AppRegistry.Service;
 using ActDim.Practix.Service;
 using ActDim.Practix.Service.Settings;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -21,11 +16,9 @@ namespace ActDim.AppRegistry.Tests
         {
             var userRepo = new UserRepo();
             var roleRepo = new RoleRepo();
-            var collectionRepo = new CollectionRepo();
 
-            Assert.Throws<ArgumentNullException>(() => new AppRegistryService(null!, roleRepo, collectionRepo));
-            Assert.Throws<ArgumentNullException>(() => new AppRegistryService(userRepo, null!, collectionRepo));
-            Assert.Throws<ArgumentNullException>(() => new AppRegistryService(userRepo, roleRepo, null!));
+            Assert.Throws<ArgumentNullException>(() => new AppRegistryService(null!, roleRepo));
+            Assert.Throws<ArgumentNullException>(() => new AppRegistryService(userRepo, null!));
         }
 
         [Fact]
@@ -33,13 +26,11 @@ namespace ActDim.AppRegistry.Tests
         {
             var userRepo = new UserRepo();
             var roleRepo = new RoleRepo();
-            var collectionRepo = new CollectionRepo();
 
-            var service = new AppRegistryService(userRepo, roleRepo, collectionRepo);
+            var service = new AppRegistryService(userRepo, roleRepo);
 
             Assert.Same(userRepo, service.Users);
             Assert.Same(roleRepo, service.Roles);
-            Assert.Same(collectionRepo, service.Collections);
         }
 
         [Fact]
@@ -64,8 +55,7 @@ namespace ActDim.AppRegistry.Tests
             var knownId = "10b60d35-647a-4e3e-9e92-df1ea0f4eb49";
             var userRepo = new UserRepo();
             var roleRepo = new RoleRepo();
-            var collectionRepo = new CollectionRepo();
-            var appRegService = new AppRegistryService(userRepo, roleRepo, collectionRepo);
+            var appRegService = new AppRegistryService(userRepo, roleRepo);
 
             var appContext = new ActDim.AppRegistry.Service.AppContext(appRegService);
 
@@ -100,7 +90,7 @@ namespace ActDim.AppRegistry.Tests
         [Fact]
         public async Task AppContext_GetAccessTokenAsync_ThrowsOnUnsupportedAuth()
         {
-            var appRegService = new AppRegistryService(new UserRepo(), new RoleRepo(), new CollectionRepo());
+            var appRegService = new AppRegistryService(new UserRepo(), new RoleRepo());
             var appContext = new ActDim.AppRegistry.Service.AppContext(appRegService);
 
             var authConfig = new AuthConfig { LocalJwt = null };

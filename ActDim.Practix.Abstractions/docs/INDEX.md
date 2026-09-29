@@ -4,7 +4,7 @@ slug: INDEX
 title: ActDim.Practix.Abstractions - Knowledge Base Topic Index
 type: index
 created: 2026-09-09
-updated: 2026-09-22
+updated: 2026-09-29
 tags: [index, kb, topics, map]
 ---
 

@@ -41,6 +41,13 @@ namespace ActDim.AppRegistry.Tests
         }
 
         [Fact]
+        public void EntityType_NewTypes_ResolveCorrectly()
+        {
+            Assert.Equal(EntityType.EntityPermission, EntityTypeCode.Map[EntityTypeCode.EntityPermission]);
+            Assert.Equal(EntityType.AuditLog, EntityTypeCode.Map[EntityTypeCode.AuditLog]);
+        }
+
+        [Fact]
         public void TokenInfo_Properties_CanBeAssignedAndRead()
         {
             var now = DateTimeOffset.UtcNow;
@@ -66,6 +73,9 @@ namespace ActDim.AppRegistry.Tests
         public void BuiltinRoles_Admin_IsDefined()
         {
             Assert.Equal(Guid.Parse("d413f443-1c49-4d84-82fc-054b9e063c21"), BuiltinRoles.Admin);
+            Assert.Equal(Guid.Parse("00000000-0000-0000-0000-000000000003"), BuiltinRoles.User);
+            Assert.Equal(Guid.Parse("00000000-0000-0000-0000-000000000001"), BuiltinRoles.SuperAdmin);
+            Assert.Equal(Guid.Parse("00000000-0000-0000-0000-000000000004"), BuiltinRoles.Guest);
         }
 
         [Fact]
@@ -107,24 +117,6 @@ namespace ActDim.AppRegistry.Tests
         }
 
         [Fact]
-        public void Collection_Properties_CanBeAssigned()
-        {
-            var id = Guid.NewGuid();
-            var collection = new Collection
-            {
-                Id = id,
-                Slug = "core-collection",
-                Name = "Core Collection",
-                Description = "Core description"
-            };
-
-            Assert.Equal(id, collection.Id);
-            Assert.Equal("core-collection", collection.Slug);
-            Assert.Equal("Core Collection", collection.Name);
-            Assert.Equal("Core description", collection.Description);
-        }
-
-        [Fact]
         public void Group_Properties_CanBeAssigned()
         {
             var id = Guid.NewGuid();
@@ -138,6 +130,131 @@ namespace ActDim.AppRegistry.Tests
             Assert.Equal(id, group.Id);
             Assert.Equal("acme-community", group.Slug);
             Assert.Equal("Acme Community", group.Name);
+        }
+
+        [Fact]
+        public void EntityPermission_Properties_CanBeAssigned()
+        {
+            var id = Guid.NewGuid();
+            var roleId = Guid.NewGuid();
+            var perm = new EntityPermission
+            {
+                Id = id,
+                RoleId = roleId,
+                EntityCode = "iam:user",
+                CanCreate = true,
+                CanRead = "all",
+                CanUpdate = "own",
+                CanDelete = "none",
+                CanExport = true
+            };
+
+            Assert.Equal(id, perm.Id);
+            Assert.Equal(roleId, perm.RoleId);
+            Assert.Equal("iam:user", perm.EntityCode);
+            Assert.True(perm.CanCreate);
+            Assert.Equal("all", perm.CanRead);
+            Assert.Equal("own", perm.CanUpdate);
+            Assert.Equal("none", perm.CanDelete);
+            Assert.True(perm.CanExport);
+        }
+
+        [Fact]
+        public void AuditLog_Properties_CanBeAssigned()
+        {
+            var id = Guid.NewGuid();
+            var actorId = Guid.NewGuid();
+            var now = DateTimeOffset.UtcNow;
+            var log = new AuditLog
+            {
+                Id = id,
+                EntityCode = "iam:user",
+                EntityId = "user-123",
+                Action = "UPDATE",
+                ActorUserId = actorId,
+                OldValues = "{}",
+                NewValues = "{\"name\":\"new\"}",
+                ChangedFields = new[] { "name" },
+                ActorIp = "127.0.0.1",
+                CreatedAt = now
+            };
+
+            Assert.Equal(id, log.Id);
+            Assert.Equal("iam:user", log.EntityCode);
+            Assert.Equal("user-123", log.EntityId);
+            Assert.Equal("UPDATE", log.Action);
+            Assert.Equal(actorId, log.ActorUserId);
+            Assert.Equal("{}", log.OldValues);
+            Assert.Equal("{\"name\":\"new\"}", log.NewValues);
+            Assert.NotNull(log.ChangedFields);
+            Assert.Single(log.ChangedFields);
+            Assert.Equal("name", log.ChangedFields[0]);
+            Assert.Equal("127.0.0.1", log.ActorIp);
+            Assert.Equal(now, log.CreatedAt);
+        }
+
+        [Fact]
+        public void EntityTypeDef_Properties_CanBeAssigned()
+        {
+            var def = new EntityTypeDef
+            {
+                Code = "iam:user",
+                Name = "User",
+                SchemaName = "iam",
+                TableName = "users",
+                OwnerColumn = "id",
+                IsAudited = true,
+                Icon = "tabler--user",
+                Category = "Identity",
+                IsNavVisible = true,
+                DefaultSortField = "created_at",
+                DefaultSortDir = "desc"
+            };
+
+            Assert.Equal("iam:user", def.Code);
+            Assert.Equal("User", def.Name);
+            Assert.Equal("iam", def.SchemaName);
+            Assert.Equal("users", def.TableName);
+            Assert.Equal("id", def.OwnerColumn);
+            Assert.True(def.IsAudited);
+            Assert.Equal("tabler--user", def.Icon);
+            Assert.Equal("Identity", def.Category);
+            Assert.True(def.IsNavVisible);
+            Assert.Equal("created_at", def.DefaultSortField);
+            Assert.Equal("desc", def.DefaultSortDir);
+        }
+
+        [Fact]
+        public void EntityFieldDef_Properties_CanBeAssigned()
+        {
+            var field = new EntityFieldDef
+            {
+                EntityTypeCode = "iam:user",
+                Name = "email",
+                ColumnName = "email",
+                DisplayTitle = "Email Address",
+                DataType = "character varying(255)",
+                ScalarType = "String",
+                InputType = "text",
+                IsNullable = false,
+                IsSearchable = true,
+                IsFilterable = true,
+                ShowInList = true,
+                ShowInForm = true,
+                Placeholder = "Enter email",
+                HelpText = "User primary email address"
+            };
+
+            Assert.Equal("iam:user", field.EntityTypeCode);
+            Assert.Equal("email", field.Name);
+            Assert.Equal("Email Address", field.DisplayTitle);
+            Assert.False(field.IsNullable);
+            Assert.True(field.IsSearchable);
+            Assert.True(field.IsFilterable);
+            Assert.True(field.ShowInList);
+            Assert.True(field.ShowInForm);
+            Assert.Equal("Enter email", field.Placeholder);
+            Assert.Equal("User primary email address", field.HelpText);
         }
     }
 }

@@ -6,5 +6,4 @@ public interface IAppRegistryService
 {
     IUserRepo Users { get; }
     IRoleRepo Roles { get; }
-    ICollectionRepo Collections { get; }
 }

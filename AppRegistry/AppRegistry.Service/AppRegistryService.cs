@@ -7,12 +7,10 @@ public class AppRegistryService : IAppRegistryService
 {
     public IUserRepo Users { get; }
     public IRoleRepo Roles { get; }
-    public ICollectionRepo Collections { get; }
 
-    public AppRegistryService(IUserRepo users, IRoleRepo roles, ICollectionRepo collections)
+    public AppRegistryService(IUserRepo users, IRoleRepo roles)
     {
         Users = users ?? throw new ArgumentNullException(nameof(users));
         Roles = roles ?? throw new ArgumentNullException(nameof(roles));
-        Collections = collections ?? throw new ArgumentNullException(nameof(collections));
     }
 }

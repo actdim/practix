@@ -17,6 +17,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="RepoDb.Sqlite.Microsoft" />
   </ItemGroup>
 
   <ItemGroup>
