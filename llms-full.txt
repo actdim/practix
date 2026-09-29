@@ -75,7 +75,7 @@ This project is licensed under the [MIT License](./LICENSE).
 ## Document: AGENTS.md (Agent Conventions & Protocol)
 
 <!-- BEGIN ALONG-PROTOCOL root (managed by along-init - do not edit by hand) -->
-# ALONG-PROTOCOL v4.0.0
+# ALONG-PROTOCOL v4.4.1
 
 This repo carries its own agent context, provider-agnostically. Follow it every session, whatever tool you are.
 
@@ -103,6 +103,7 @@ Also, when relevant: `.along/VISION.md`, `.along/GLOSSARY.md`. These reflect the
 - **No Code Without Issue** [gate: require-active-issue]: Before modifying source code, agents MUST identify or create an issue in `.along/ISSUES/<type>--<slug>.md` and set `status: in-progress`.
 - **Exemptions**: Read-only Q&A and 1-line micro-edits (typo fixes, comments) do not require issues.
 - **Commit Binding** [gate: commit-issue-binding]: Every commit via `/along-commit` MUST bind to the active issue slug.
+- **No AI Co-Authors** [gate: commit-no-ai-coauthor]: Commit messages MUST NOT carry `Co-Authored-By:` trailers naming an AI agent (GitHub lists the vendor as a contributor). `along hook install` turns runtime attribution off; opt out via `.along/config.json` `commits.allow_ai_coauthor: true`.
 
 ## Entity Ecosystem
 - **Entity types**: Issues (`feat`, `bug`, `debt`, `task`, `docs`), Decisions (ADRs), Milestones, Risks, Spikes, Checklists, Sessions. Full YAML schemas: `docs/topic--domain-model.md`.
@@ -115,20 +116,27 @@ Also, when relevant: `.along/VISION.md`, `.along/GLOSSARY.md`. These reflect the
 - **Stable Entry Point Rule**: Files outside `.along/` (`README.md`, `docs/`, manifests) MUST NOT link into `.along/`. Route references through `docs/INDEX.md` or `docs/topic--<slug>.md`.
 - **Portable Links**: All cross-references MUST use relative Markdown links (`[Title](./target.md)`), never `file://` or backslashes.
 - **Fact Grounding**: Agents MUST extract facts from actual code, `README.md`, `docs/`, and `package.json`. Generic LLM placeholders are strictly prohibited.
-- **Fast Retrieval**: Agents MUST query `/along-kb-search` before reading whole documentation files.
+- **Fast Retrieval** [gate: fast-retrieval]: Agents MUST query `/along-kb-search` before reading whole documentation files.
 - **Doc Blast Radius**: After non-trivial code changes, agents MUST map affected symbols to `docs/topic--*.md` articles and update them before completing the task.
+- **Manual Document Lock** [gate: doc-manual-lock]: Documents marked with `write_policy: manual` (or `locked: true`) are protected from automated agent modification during blast radius sweeps. Modifications require an explicit documentation issue (`docs--<slug>`).
+- **Documentation Routing Tree**:
+  - Architectural choice / trade-off -> `.along/DECISIONS/` (ADR)
+  - Public overview / pitch / landing page -> `README.md`
+  - Technical interface contract / CLI spec -> `docs/topic--<slug>.md` (`type: reference`)
+  - Conceptual explanation / comparison / philosophy -> `docs/topic--<slug>.md` (`type: explanation`, `write_policy: manual`)
+  - Procedural walkthrough / runbook -> `docs/topic--<slug>.md` (`type: guide`)
 
 ## While working
 - **Decisions**: Create new ADRs via `/along-decision-sync` or `along decision create <slug> --title "..."`. Add terms to `.along/GLOSSARY.md`.
 - **Token hygiene**: Use quiet flags (`pytest -q`, `dotnet test -v q`), filter outputs, inspect targeted line ranges.
 - **Lifecycle hooks first**: Agents MUST use `/along-test`, `/along-build`, `/along-dev` (or `.along/scripts/*.py`) before raw shell commands.
-- **Post-change review**: Agents MUST inspect diffs and evaluate blast radius via `code-review-graph` MCP (or static search fallback). Silent skips are forbidden.
+- **Post-change review**: Agents MUST inspect diffs and evaluate blast radius via `along graph-impact` (or static search fallback). Silent skips are forbidden.
 
 ## Stage & Session Completion Checklist
 When a stage or session completes, agents MUST execute in this order:
 1. [ ] **Tests** [gate: test_before_stop]: Run via `/along-test` with quiet flags. Zero failures.
 2. [ ] **File Integrity**: `git status -u` - all new/modified files non-zero size, no empty placeholders.
-3. [ ] **Code Review**: Inspect diff for side effects, verify REQ-N coverage, evaluate blast radius via `code-review-graph` (or static search), verify architectural decision compliance.
+3. [ ] **Code Review**: Inspect diff for side effects, verify REQ-N coverage, evaluate blast radius via `along graph-impact` (or static search), verify architectural decision compliance.
 4. [ ] **Entity Reconciliation**: Close issues (`done` + move to `done/`), update milestones, resolve risks, conclude spikes.
 5. [ ] **Doc Blast Radius**: Update affected `docs/topic--*.md` and run `/along-kb-sync`.
 6. [ ] **Session Log** [gate: wrap_before_stop]: Write `.along/SESSIONS/<YYYY>/<date>--<slug>.md`.
@@ -143,6 +151,7 @@ When a stage or session completes, agents MUST execute in this order:
   - In submodules, execute the hook from that subproject's own `.along/scripts/`.
 - **Environment Isolation**:
   - Agents MUST NOT install system-wide or global packages when a script fails. Fix the architecture (missing `bootstrap.ensure_deps()`, incorrect `uv` wrapper), not the environment.
+- **Runtimes Without Along Hooks** (Claude Cowork, Cursor, OpenCode, plain shells): gates are advisory there. Agents MUST self-apply every gate-tagged rule and use the `along` CLI for tests, commits, entity changes, and wrap instead of raw tools. `along doctor` reports the enforcement level.
 - **File Modification & Anti-Deletion**:
   - Never delete, truncate, or overwrite existing documentation, comments, or code unless explicitly instructed.
   - After batch edits or migrations, agents MUST run `git diff --stat` and inspect unexpected size reductions.

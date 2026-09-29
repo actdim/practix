@@ -12,6 +12,7 @@ agent: antigravity
 tags: [architecture, namespace-unification, collections, staticmap, technical-debt]
 milestone: v2.0.0-along-transition
 blocked_by: []
+related: []
 ---
 
 # Unify Practix Namespaces and Relocate StaticMap

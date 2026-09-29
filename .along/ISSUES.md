@@ -9,7 +9,7 @@
 ## Done (recent)
 - [x] `(task)` [github-actions-ci-workflow](ISSUES/done/task--github-actions-ci-workflow.md)
 - [x] `(feat)` [appregistry-repodb-repositories-and-test-alignment](ISSUES/done/feat--appregistry-repodb-repositories-and-test-alignment.md)
+- [x] `(chore)` [align-builtin-role-guids-and-upgrade-along-protocol](ISSUES/done/chore--align-builtin-role-guids-and-upgrade-along-protocol.md)
 - [x] `(task)` [bump-version-1-3-0](ISSUES/done/task--bump-version-1-3-0.md)
 - [x] `(feat)` [expose-blobmanager-and-corejsonserializer](ISSUES/done/feat--expose-blobmanager-and-corejsonserializer.md)
-- [x] `(docs)` [align-docs-and-tests-practix-namespaces](ISSUES/done/docs--align-docs-and-tests-practix-namespaces.md)
-<!-- 19 older completed issue(s) archived in .along/ISSUES/done/ -->
+<!-- 20 older completed issue(s) archived in .along/ISSUES/done/ -->

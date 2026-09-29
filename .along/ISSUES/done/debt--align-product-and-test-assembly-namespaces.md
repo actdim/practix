@@ -12,6 +12,7 @@ agent: antigravity
 tags: [architecture, namespace-alignment, bytepath, repodb, service, three, technical-debt]
 milestone: v2.0.0-along-transition
 blocked_by: []
+related: []
 ---
 
 # Align Product and Test Assembly Namespaces

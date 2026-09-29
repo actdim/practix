@@ -11,6 +11,8 @@ updated: 2026-09-29
 agent: antigravity
 tags: [ci, github-actions, test-automation]
 blocked_by: []
+milestone: v1.3.0-knowledge-base-and-graph
+related: []
 ---
 
 # Configure GitHub Actions CI Workflow for .NET 10 Test Suite

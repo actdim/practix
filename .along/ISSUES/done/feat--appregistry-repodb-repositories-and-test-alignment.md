@@ -12,6 +12,7 @@ agent: antigravity
 tags: [appregistry, repodb, tests, repositories, iam, postgresql]
 milestone: v2.0.0-along-transition
 blocked_by: []
+related: []
 ---
 
 # Feature: AppRegistry RepoDb Repositories and Test Alignment

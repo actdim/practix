@@ -12,6 +12,7 @@ agent: antigravity
 tags: [typography, cleanup, ascii, comments]
 milestone: v2.0.0-along-transition
 blocked_by: []
+related: []
 ---
 
 # Clean Box-Drawing and Non-ASCII Characters in Source Files

@@ -12,6 +12,7 @@ agent: antigravity
 tags: [compression, namespace-alignment, technical-debt]
 milestone: v2.0.0-along-transition
 blocked_by: []
+related: []
 ---
 
 # Fix Compression Namespace Alignment in ActDim.Practix.Common

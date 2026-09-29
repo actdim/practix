@@ -12,6 +12,7 @@ agent: antigravity
 tags: [api, visibility, bytepath, json, public-api]
 milestone: v2.0.0-along-transition
 blocked_by: []
+related: []
 ---
 
 # Expose BlobManager, BlobManagerBuilder, and CoreJsonSerializer as Public

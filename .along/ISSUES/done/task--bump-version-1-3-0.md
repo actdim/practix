@@ -12,6 +12,7 @@ agent: antigravity
 tags: [release, version-bump, namespace-refactoring]
 milestone: v2.0.0-along-transition
 blocked_by: []
+related: []
 ---
 
 # Bump Version to 1.3.0 and Release Reconciliation

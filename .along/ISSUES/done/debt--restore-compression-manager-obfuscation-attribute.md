@@ -12,6 +12,7 @@ agent: antigravity
 tags: [compression, obfuscation, refactoring-audit]
 milestone: v2.0.0-along-transition
 blocked_by: []
+related: []
 ---
 
 # Restore Obfuscation Attribute on CompressionManager
