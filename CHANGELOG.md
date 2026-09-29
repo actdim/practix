@@ -2,6 +2,12 @@
 
 All notable changes to this project, newest first.
 
+## v1.4.0 - 2026-09-29
+
+- chore: align builtin role guids and upgrade along protocol to v4.4.1 (refs #chore--align-builtin-role-guids-and-upgrade-along-protocol)
+- ci: add github actions test workflow for net10 (refs #task--github-actions-ci-workflow)
+- feat: align appregistry tests and implement repodb repositories (refs #feat--appregistry-repodb-repositories-and-test-alignment)
+
 ## v1.3.0 - 2026-09-24
 
 - refactor: unify root namespaces under ActDim.Practix across core libraries

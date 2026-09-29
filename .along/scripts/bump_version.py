@@ -38,7 +38,7 @@ def main():
     with open(props_path, "w", encoding="utf-8") as f:
         f.write(updated)
 
-    print(f"Bumped Directory.Build.props: v{cur_v} -> v{next_v}")
+    print(f"Bumped Directory.Build.props to v{next_v}")
 
 if __name__ == "__main__":
     main()
