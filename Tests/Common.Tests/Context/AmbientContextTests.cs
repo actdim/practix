@@ -160,10 +160,12 @@ namespace ActDim.Practix.Common.Tests.Context
                 Assert.Equal(timeoutToken, AmbientContext.Current.GetCancellationToken());
                 Assert.False(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
 
-                var sw = System.Diagnostics.Stopwatch.StartNew();
-                while (!AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested && sw.ElapsedMilliseconds < 2000)
+                // Await the cancellation itself instead of polling with a short wall-clock budget:
+                // on loaded CI runners the timer callback can be delayed well beyond the nominal timeout.
+                var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                using (timeoutToken.Register(() => cancelled.TrySetResult()))
                 {
-                    await Task.Delay(20, TestContext.Current.CancellationToken);
+                    await cancelled.Task.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
                 }
                 Assert.True(AmbientContext.Current.GetCancellationToken()!.Value.IsCancellationRequested);
                 Assert.True(timeoutToken.IsCancellationRequested);

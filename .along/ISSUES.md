@@ -7,6 +7,7 @@
 - [ ] `(feat)` [unified-configurable-authentication](ISSUES/feat--unified-configurable-authentication.md)
 
 ## Done (recent)
+- [x] `(bug)` [flaky-ambient-context-timeout-test](ISSUES/done/bug--flaky-ambient-context-timeout-test.md)
 - [x] `(bug)` [ci-linux-test-failures](ISSUES/done/bug--ci-linux-test-failures.md)
 - [x] `(task)` [github-actions-ci-workflow](ISSUES/done/task--github-actions-ci-workflow.md)
 - [x] `(task)` [bump-version-1-4-0](ISSUES/done/task--bump-version-1-4-0.md)
