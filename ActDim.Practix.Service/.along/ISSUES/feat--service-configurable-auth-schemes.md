@@ -3,7 +3,7 @@ protocol: along
 protocol_version: "2.2.26"
 slug: feat--service-configurable-auth-schemes
 type: feat
-status: in-progress
+status: open
 priority: high
 created: 2026-09-09
 updated: 2026-09-09

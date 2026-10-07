@@ -57,6 +57,34 @@ namespace ActDim.Practix.Common.Tests.Extensions
         }
 
         [Fact]
+        public void MinOrDefault_WithNaN_PropagatesNaNByDefault()
+        {
+            var leadingNan = new[] { double.NaN, 10.0, 5.0 };
+            var middleNan = new[] { 10.0, double.NaN, 5.0 };
+            var trailingNan = new[] { 10.0, 5.0, double.NaN };
+            var onlyNan = new[] { double.NaN };
+
+            Assert.True(double.IsNaN(leadingNan.MinOrDefault(x => x, 0.0)));
+            Assert.True(double.IsNaN(middleNan.MinOrDefault(x => x, 0.0)));
+            Assert.True(double.IsNaN(trailingNan.MinOrDefault(x => x, 0.0)));
+            Assert.True(double.IsNaN(onlyNan.MinOrDefault(x => x, 0.0)));
+        }
+
+        [Fact]
+        public void MinOrDefault_WithIgnoreNaN_IgnoresNaNAndComputesMinimum()
+        {
+            var leadingNan = new[] { double.NaN, 10.0, 5.0 };
+            var middleNan = new[] { 10.0, double.NaN, 5.0 };
+            var trailingNan = new[] { 10.0, 5.0, double.NaN };
+            var onlyNan = new[] { double.NaN, double.NaN };
+
+            Assert.Equal(5.0, leadingNan.MinOrDefault(x => x, 0.0, ignoreNaN: true));
+            Assert.Equal(5.0, middleNan.MinOrDefault(x => x, 0.0, ignoreNaN: true));
+            Assert.Equal(5.0, trailingNan.MinOrDefault(x => x, 0.0, ignoreNaN: true));
+            Assert.Equal(42.0, onlyNan.MinOrDefault(x => x, 42.0, ignoreNaN: true));
+        }
+
+        [Fact]
         public void MaxOrDefault_ComputesCorrectMaxOrFallback()
         {
             var empty = Enumerable.Empty<string>();
@@ -64,6 +92,38 @@ namespace ActDim.Practix.Common.Tests.Extensions
 
             var items = new[] { "apple", "cat", "banana" };
             Assert.Equal(6.0, items.MaxOrDefault(s => s.Length, 0.0));
+        }
+
+        [Fact]
+        public void MaxOrDefault_WithNaN_MatchesLinqSemantics()
+        {
+            var leadingNan = new[] { double.NaN, 2.0, 8.0 };
+            var middleNan = new[] { 2.0, double.NaN, 8.0 };
+            var trailingNan = new[] { 2.0, 8.0, double.NaN };
+            var singleNan = new[] { double.NaN };
+            var allNan = new[] { double.NaN, double.NaN };
+
+            // In LINQ total ordering, NaN is ordered smaller than any real number.
+            // Max returns the maximum real number if any exists, and returns NaN only when all elements are NaN.
+            Assert.Equal(8.0, leadingNan.MaxOrDefault(x => x, 0.0));
+            Assert.Equal(8.0, middleNan.MaxOrDefault(x => x, 0.0));
+            Assert.Equal(8.0, trailingNan.MaxOrDefault(x => x, 0.0));
+            Assert.True(double.IsNaN(singleNan.MaxOrDefault(x => x, 0.0)));
+            Assert.True(double.IsNaN(allNan.MaxOrDefault(x => x, 0.0)));
+        }
+
+        [Fact]
+        public void MaxOrDefault_WithIgnoreNaN_IgnoresNaNAndComputesMaximum()
+        {
+            var leadingNan = new[] { double.NaN, 2.0, 8.0 };
+            var middleNan = new[] { 2.0, double.NaN, 8.0 };
+            var trailingNan = new[] { 2.0, 8.0, double.NaN };
+            var onlyNan = new[] { double.NaN, double.NaN };
+
+            Assert.Equal(8.0, leadingNan.MaxOrDefault(x => x, 0.0, ignoreNaN: true));
+            Assert.Equal(8.0, middleNan.MaxOrDefault(x => x, 0.0, ignoreNaN: true));
+            Assert.Equal(8.0, trailingNan.MaxOrDefault(x => x, 0.0, ignoreNaN: true));
+            Assert.Equal(-1.0, onlyNan.MaxOrDefault(x => x, -1.0, ignoreNaN: true));
         }
 
         [Fact]

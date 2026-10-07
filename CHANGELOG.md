@@ -2,6 +2,16 @@
 
 All notable changes to this project, newest first.
 
+## v1.4.2 - 2026-10-07
+
+- fix: restrict AsyncObjectPool.DiscardAsync to internal and implement baton wake-up on disposal (refs #bug--async-object-pool-discard-and-disposed-semaphore-leak)
+- fix: reacquire write lock on externally lost content under read lock in BlobManager (refs #bug--read-lock-lost-content)
+- refactor: remove shadowed and redundant methods from StringExtensions (refs #debt--remove-shadowed-and-redundant-string-extensions)
+- fix: add uppercase U to RandomId Base58 alphabet (refs #bug--randomid-base58-missing-u)
+- fix: replace unbounded ToMemory buffering with direct pooled copy in ZeroAllocCopyTo and ZeroAllocCopyToAsync (refs #bug--zero-alloc-copy-nonseekable-buffering)
+- fix: handle NaN values with LINQ parity and ignoreNaN option in MinOrDefault and MaxOrDefault (refs #bug--min-max-nan-handling, #bug--max-linq-nan-parity)
+- refactor: simplify AmbientContext direct AsyncLocal storage (refs #debt--ambient-context-cleanup)
+
 ## v1.4.1 - 2026-09-29
 
 - fix: stabilize ci tests on linux runner and add ci badge to readme (refs #bug--ci-linux-test-failures)

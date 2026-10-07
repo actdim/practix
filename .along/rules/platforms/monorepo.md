@@ -1,3 +1,6 @@
+<!-- managed by along: do not edit. Project guidelines belong in docs/ and AGENTS.md -->
+<!-- template: platforms/monorepo.md sha256:f66ce92cfb7da0d3005dda7f6f3c6d897a9fb76ecb69af113f7f2408bc7899eb -->
+
 # Monorepo & Multi-Platform Workspace Engineering Guidelines
 
 Strict architectural and package orchestration standards for multi-package, multi-platform monorepositories.

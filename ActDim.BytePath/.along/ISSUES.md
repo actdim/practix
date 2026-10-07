@@ -16,9 +16,9 @@
 - [ ] `(task)` [read-lock-persists-mutations](ISSUES/task--read-lock-persists-mutations.md)
 
 ## Done (recent)
+- [x] `(bug)` [read-lock-lost-content](ISSUES/done/bug--read-lock-lost-content.md)
 - [x] `(feat)` [blob-manager-indexer-prefix-routing](ISSUES/done/feat--blob-manager-indexer-prefix-routing.md)
 - [x] `(bug)` [fix-lock-leak-on-io-failure](ISSUES/done/bug--fix-lock-leak-on-io-failure.md)
 - [x] `(task)` [url-safe-key-separator](ISSUES/done/task--url-safe-key-separator.md)
 - [x] `(task)` [delete-blob-content](ISSUES/done/task--delete-blob-content.md)
-- [x] `(task)` [multi-backend](ISSUES/done/task--multi-backend.md)
-<!-- 1 older completed issue(s) archived in .along/ISSUES/done/ -->
+<!-- 2 older completed issue(s) archived in .along/ISSUES/done/ -->

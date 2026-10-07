@@ -32,7 +32,7 @@ namespace ActDim.Practix
     public static class RandomId
     {
         private const string Base62Alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        private const string Base58Alphabet = "123456789ABCDEFGHJKLMNPQRSTVWXYZabcdefghijkmnopqrstuvwxyz";
+        private const string Base58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
         private const string CrockfordBase32Alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
         /// <summary>

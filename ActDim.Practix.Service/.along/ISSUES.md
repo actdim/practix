@@ -1,10 +1,10 @@
 # Active Issues
 
 ## Active
-- [ ] `(feat)` [service-configurable-auth-schemes](ISSUES/feat--service-configurable-auth-schemes.md)
+<!-- No active issues -->
 
 ## Backlog
-<!-- No backlog issues -->
+- [ ] `(feat)` [service-configurable-auth-schemes](ISSUES/feat--service-configurable-auth-schemes.md)
 
 ## Done (recent)
 - [x] `(bug)` [fix-service-tests](ISSUES/done/bug--fix-service-tests.md)

@@ -206,13 +206,13 @@ namespace ActDim.Observability.Tests
             var observability = _serviceProvider.GetRequiredService<IObservabilityContext>();
 
             // 1. Raw AmbientContext property (internal business state)
-            using (AmbientContext.Push("InternalLargePayload", "heavy_serialized_payload_123"))
+            using (AmbientContext.Current.PushProperty("InternalLargePayload", "heavy_serialized_payload_123"))
             // 2. ObservabilityContext property (explicit telemetry state)
             using (observability.Push("TelemetryMetric", "metric_value_456"))
             using (logger.BeginScope("SeparationScope"))
             {
                 // Raw ambient context property is accessible to code:
-                Assert.Equal("heavy_serialized_payload_123", AmbientContext.CurrentProperties["InternalLargePayload"]);
+                Assert.Equal("heavy_serialized_payload_123", AmbientContext.Current.Properties["InternalLargePayload"]);
 
                 // BUT it is NOT exported to Activity tags:
                 Assert.Null(scope.Activity.GetTagItem("internal.large.payload"));

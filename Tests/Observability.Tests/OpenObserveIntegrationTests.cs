@@ -94,7 +94,7 @@ namespace ActDim.Observability.Tests
 
                 using var serviceProvider = services.BuildServiceProvider();
                 using var _ambientScope = AmbientContext.Current.WithServices(serviceProvider);
-                using var _tenantScope = AmbientContext.Push("tenant.id", "tenant-oo-777");
+                using var _tenantScope = AmbientContext.Current.PushProperty("tenant.id", "tenant-oo-777");
 
                 var logger = serviceProvider.GetRequiredService<ILogger<OpenObserveIntegrationTests>>();
                 var provider = serviceProvider.GetServices<ILoggerProvider>().OfType<OpenObserveLoggerProvider>().Single();

@@ -351,6 +351,90 @@ namespace ActDim.Practix.Common.Tests.Pooling
         }
 
         [Fact]
+        public async Task DisposeAsync_WakesAllPendingWaiters_WithObjectDisposedException()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            const int waiterCount = 8;
+            var pool = new AsyncObjectPool<TestResource>(
+                () => Task.FromResult(new TestResource { Id = 1 }),
+                maxSize: 1);
+
+            var lease = await pool.GetAsync(ct);
+
+            var waiters = Enumerable.Range(0, waiterCount)
+                .Select(_ => pool.GetAsync(ct))
+                .ToArray();
+
+            Assert.All(waiters, w => Assert.False(w.IsCompleted));
+
+            await pool.DisposeAsync();
+
+            foreach (var waiter in waiters)
+            {
+                await Assert.ThrowsAsync<ObjectDisposedException>(
+                    async () => await waiter.WaitAsync(TimeSpan.FromSeconds(5), ct));
+            }
+
+            // A call arriving after the cascade must fail fast as well, not block.
+            await Assert.ThrowsAsync<ObjectDisposedException>(
+                async () => await pool.GetAsync(ct).WaitAsync(TimeSpan.FromSeconds(5), ct));
+
+            await lease.DisposeAsync();
+            Assert.Equal(0, pool.CreatedCount);
+        }
+
+        [Fact]
+        public async Task ReturnAfterDisposeAsync_InvokesDisposer()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var disposedItems = new ConcurrentBag<TestResource>();
+            var pool = new AsyncObjectPool<TestResource>(
+                () => Task.FromResult(new TestResource { Id = 7 }),
+                maxSize: 1,
+                disposer: item =>
+                {
+                    disposedItems.Add(item);
+                    return ValueTask.CompletedTask;
+                });
+
+            var lease = await pool.GetAsync(ct);
+            var item = lease.Item;
+
+            await pool.DisposeAsync();
+            Assert.Empty(disposedItems);
+
+            await lease.DisposeAsync();
+
+            Assert.Single(disposedItems);
+            Assert.Same(item, disposedItems.Single());
+            Assert.Equal(0, pool.CreatedCount);
+        }
+
+        [Fact]
+        public async Task DiscardAsync_WakesPendingWaiter_WithFreshInstance()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            var createdId = 0;
+            var pool = new AsyncObjectPool<TestResource>(
+                () => Task.FromResult(new TestResource { Id = Interlocked.Increment(ref createdId) }),
+                maxSize: 1);
+
+            var lease = await pool.GetAsync(ct);
+            var waiter = pool.GetAsync(ct);
+            Assert.False(waiter.IsCompleted);
+
+            await lease.DiscardAsync();
+
+            await using (var next = await waiter.WaitAsync(TimeSpan.FromSeconds(5), ct))
+            {
+                Assert.Equal(2, next.Item.Id);
+                Assert.Equal(1, pool.CreatedCount);
+            }
+
+            await pool.DisposeAsync();
+        }
+
+        [Fact]
         public async Task DisposeAsync_WithConcurrentReturns_CleansUpAllItemsWithoutException()
         {
             var ct = TestContext.Current.CancellationToken;

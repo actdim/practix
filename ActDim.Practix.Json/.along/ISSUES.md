@@ -1,7 +1,7 @@
 # Active Issues
 
 ## Active
-- [ ] `(bug)` [json-di-registration-missing-interfaces](ISSUES/bug--json-di-registration-missing-interfaces.md)
+<!-- No active issues -->
 
 ## Backlog
 - [ ] `(bug)` [core-json-serializer-contract-and-merge-flaws](ISSUES/bug--core-json-serializer-contract-and-merge-flaws.md)

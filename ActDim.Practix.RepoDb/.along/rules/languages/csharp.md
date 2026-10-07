@@ -1,3 +1,6 @@
+<!-- managed by along: do not edit. Project guidelines belong in docs/ and AGENTS.md -->
+<!-- template: languages/csharp.md sha256:c4145af1e97ef446c24fde9a7cd44b463e8397442c1555391e1e43979f384544 -->
+
 # C# / .NET Coding Standards & Best Practices
 
 Modern .NET 8+ and C# 12 engineering conventions based on Microsoft Framework Design Guidelines, Central Package Management, and high-performance patterns.

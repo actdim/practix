@@ -5,7 +5,6 @@
 
 ## Backlog
 - [ ] `(bug)` [ambient-context-push-property-stacking-and-timeout-leak](ISSUES/bug--ambient-context-push-property-stacking-and-timeout-leak.md)
-- [ ] `(bug)` [async-object-pool-discard-and-disposed-semaphore-leak](ISSUES/bug--async-object-pool-discard-and-disposed-semaphore-leak.md)
 - [ ] `(bug)` [cache-proxy-stampede-and-concurrency](ISSUES/bug--cache-proxy-stampede-and-concurrency.md)
 - [ ] `(bug)` [concurrent-factory-dictionary-contract-and-lazy-pitfalls](ISSUES/bug--concurrent-factory-dictionary-contract-and-lazy-pitfalls.md)
 - [ ] `(bug)` [weak-table-custom-comparer-hashcode-mismatch](ISSUES/bug--weak-table-custom-comparer-hashcode-mismatch.md)
@@ -25,9 +24,9 @@
 - [ ] `(task)` [compression-large-payload-spill](ISSUES/task--compression-large-payload-spill.md)
 
 ## Done (recent)
-- [x] `(task)` [move-ambient-context-memory-extensions](ISSUES/done/task--move-ambient-context-memory-extensions.md)
-- [x] `(bug)` [async-object-pool-disposal-race](ISSUES/done/bug--async-object-pool-disposal-race.md)
-- [x] `(docs)` [deepen-common-components](ISSUES/done/docs--deepen-common-components.md)
-- [x] `(docs)` [comprehensive-knowledge-base](ISSUES/done/docs--comprehensive-knowledge-base.md)
-- [x] `(feat)` [async-object-pool-discard](ISSUES/done/feat--async-object-pool-discard.md)
-<!-- 9 older completed issue(s) archived in .along/ISSUES/done/ -->
+- [x] `(debt)` [remove-shadowed-and-redundant-string-extensions](ISSUES/done/debt--remove-shadowed-and-redundant-string-extensions.md)
+- [x] `(bug)` [randomid-base58-missing-u](ISSUES/done/bug--randomid-base58-missing-u.md)
+- [x] `(bug)` [async-object-pool-discard-and-disposed-semaphore-leak](ISSUES/done/bug--async-object-pool-discard-and-disposed-semaphore-leak.md)
+- [x] `(bug)` [zero-alloc-copy-nonseekable-buffering](ISSUES/done/bug--zero-alloc-copy-nonseekable-buffering.md)
+- [x] `(bug)` [min-max-nan-handling](ISSUES/done/bug--min-max-nan-handling.md)
+<!-- 16 older completed issue(s) archived in .along/ISSUES/done/ -->

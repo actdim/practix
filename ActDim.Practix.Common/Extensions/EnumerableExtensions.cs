@@ -196,22 +196,37 @@ namespace ActDim.Practix.Extensions
         /// <param name="source">A sequence of values to determine the minimum value of.</param>
         /// <param name="selector">A transform function to apply to each element.</param>
         /// <param name="defaultValue">The default value.</param>
+        /// <param name="ignoreNaN">Whether to ignore <see cref="double.NaN"/> values. When <see langword="false"/> (default), matches LINQ behavior and returns <see cref="double.NaN"/> if any element produces NaN.</param>
         /// <returns>The minimum value in the sequence or default value if sequence is empty.</returns>
-        public static double MinOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector, double defaultValue)
+        public static double MinOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector, double defaultValue, bool ignoreNaN = false)
         {
             ArgumentNullException.ThrowIfNull(source, nameof(source));
             ArgumentNullException.ThrowIfNull(selector, nameof(selector));
 
             var hasValue = false;
-            var min = double.MaxValue;
+            var min = 0.0;
 
             foreach (var item in source)
             {
                 var val = selector(item);
-                if (!hasValue || val < min)
+                if (double.IsNaN(val))
+                {
+                    if (!ignoreNaN)
+                    {
+                        return double.NaN;
+                    }
+
+                    continue;
+                }
+
+                if (!hasValue)
                 {
                     min = val;
                     hasValue = true;
+                }
+                else if (val < min)
+                {
+                    min = val;
                 }
             }
 
@@ -226,26 +241,43 @@ namespace ActDim.Practix.Extensions
         /// <param name="source">A sequence of values to determine the maximum value of.</param>
         /// <param name="selector">A transform function to apply to each element.</param>
         /// <param name="defaultValue">The default value.</param>
+        /// <param name="ignoreNaN">Whether to ignore <see cref="double.NaN"/> values. When <see langword="false"/> (default), matches LINQ behavior where NaN is considered smaller than all other values, returning <see cref="double.NaN"/> only when all elements are NaN. When <see langword="true"/>, returns <paramref name="defaultValue"/> if all elements are NaN.</param>
         /// <returns>The maximum value in the sequence or default value if sequence is empty.</returns>
-        public static double MaxOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector, double defaultValue)
+        public static double MaxOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector, double defaultValue, bool ignoreNaN = false)
         {
             ArgumentNullException.ThrowIfNull(source, nameof(source));
             ArgumentNullException.ThrowIfNull(selector, nameof(selector));
 
             var hasValue = false;
-            var max = double.MinValue;
+            var hasAny = false;
+            var max = 0.0;
 
             foreach (var item in source)
             {
+                hasAny = true;
                 var val = selector(item);
-                if (!hasValue || val > max)
+                if (double.IsNaN(val))
+                {
+                    continue;
+                }
+
+                if (!hasValue)
                 {
                     max = val;
                     hasValue = true;
                 }
+                else if (val > max)
+                {
+                    max = val;
+                }
             }
 
-            return hasValue ? max : defaultValue;
+            if (hasValue)
+            {
+                return max;
+            }
+
+            return !ignoreNaN && hasAny ? double.NaN : defaultValue;
         }
 
         /// <summary>

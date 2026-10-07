@@ -327,12 +327,10 @@ namespace ActDim.Practix.Extensions
         /// <returns></returns>
         public static TStream ZeroAllocCopyTo<TStream>(this Stream src, TStream dst, int bufferSize = BufferSize) where TStream : Stream
         {
+            if (src is MemoryStream ms)
             {
-                if (src is MemoryStream ms)
-                {
-                    // Binds to the more specific MemoryStream overload (fast path).
-                    return ms.ZeroAllocCopyTo(dst, bufferSize);
-                }
+                // Binds to the more specific MemoryStream overload (fast path).
+                return ms.ZeroAllocCopyTo(dst, bufferSize);
             }
 
             ArgumentNullException.ThrowIfNull(src, nameof(src));
@@ -341,14 +339,10 @@ namespace ActDim.Practix.Extensions
             if (src.CanSeek)
             {
                 src.Seek(0, SeekOrigin.Begin);
-                PooledCopy(src, dst, bufferSize);
-                return dst;
             }
-            else
-            {
-                using var ms = src.ToMemory();
-                return ms.ZeroAllocCopyTo(dst, bufferSize);
-            }
+
+            PooledCopy(src, dst, bufferSize);
+            return dst;
 
         }
 
@@ -404,12 +398,10 @@ namespace ActDim.Practix.Extensions
         /// <returns></returns>
         public static async Task<TStream> ZeroAllocCopyToAsync<TStream>(this Stream src, TStream dst, int bufferSize = BufferSize, CancellationToken ct = default) where TStream : Stream
         {
+            if (src is MemoryStream ms)
             {
-                if (src is MemoryStream ms)
-                {
-                    // Binds to the more specific MemoryStream overload (fast path).
-                    return await ms.ZeroAllocCopyToAsync(dst, bufferSize, ct);
-                }
+                // Binds to the more specific MemoryStream overload (fast path).
+                return await ms.ZeroAllocCopyToAsync(dst, bufferSize, ct);
             }
 
             ArgumentNullException.ThrowIfNull(src, nameof(src));
@@ -418,14 +410,10 @@ namespace ActDim.Practix.Extensions
             if (src.CanSeek)
             {
                 src.Seek(0, SeekOrigin.Begin);
-                await PooledCopyAsync(src, dst, bufferSize, ct);
-                return dst;
             }
-            else
-            {
-                using var ms = await src.ToMemoryAsync(ct);
-                return await ms.ZeroAllocCopyToAsync(dst, bufferSize, ct);
-            }
+
+            await PooledCopyAsync(src, dst, bufferSize, ct);
+            return dst;
         }
 
         /// <summary>

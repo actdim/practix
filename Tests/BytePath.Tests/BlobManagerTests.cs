@@ -1007,6 +1007,79 @@ namespace ActDim.BytePath.Tests
         }
 
         [Fact]
+        public async Task TryGetOrSetAsync_ContentLostExternally_WithReadLockType_ReacquiresWriteLockAndAllowsWriting()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            await using var env = new TestEnvironment();
+
+            await env.SeedAsync("lost-readlock-key", ct, content: "initial");
+
+            string location;
+            var (_, probe) = await env.Manager.TryGetForReadingAsync("lost-readlock-key", ct);
+            await using (probe)
+            {
+                location = await env.Manager[probe.Key].ResolveLocationAsync(probe, ct);
+            }
+            File.Delete(location);
+
+            await using var result = await env.Manager.TryGetOrSetAsync("lost-readlock-key", null, LockType.Read, ct);
+
+            Assert.Equal(BlobErrorCode.None, result.ErrorCode);
+            Assert.True(result.IsNew);
+            Assert.Equal(LockType.Write, result.Record.LockType);
+
+            // Verifies that writing does not throw InvalidOperationException: EnsureWriteLock passes.
+            var written = await env.Manager[result.Record.Key].PutAsync(result.Record, Content("restored-cache"), ct);
+            Assert.Equal(14, written);
+
+            await result.DisposeAsync();
+
+            Assert.Equal("restored-cache", await env.ReadTextAsync("lost-readlock-key", ct));
+        }
+
+        [Fact]
+        public async Task TryGetOrSetAsync_ContentLostExternally_WithReadLockType_PreservesOptions()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            await using var env = new TestEnvironment();
+
+            await env.SeedAsync("lost-opts-key", ct, content: "initial");
+
+            string location;
+            var (_, probe) = await env.Manager.TryGetForReadingAsync("lost-opts-key", ct);
+            await using (probe)
+            {
+                location = await env.Manager[probe.Key].ResolveLocationAsync(probe, ct);
+            }
+            File.Delete(location);
+
+            var options = new BlobStoreOptions
+            {
+                ContentType = "application/json",
+                Metadata = "rebuilt-after-loss"
+            };
+
+            await using var result = await env.Manager.TryGetOrSetAsync("lost-opts-key", options, LockType.Read, ct);
+
+            Assert.Equal(BlobErrorCode.None, result.ErrorCode);
+            Assert.True(result.IsNew);
+            Assert.Equal(LockType.Write, result.Record.LockType);
+            Assert.Equal("application/json", result.Record.ContentType);
+            Assert.Equal("rebuilt-after-loss", result.Record.Metadata);
+
+            await env.Manager[result.Record.Key].PutAsync(result.Record, Content("""{"status":"ok"}"""), ct);
+            await result.DisposeAsync();
+
+            var (readEc, readRecord) = await env.Manager.TryGetForReadingAsync("lost-opts-key", ct);
+            await using (readRecord)
+            {
+                Assert.Equal(BlobErrorCode.None, readEc);
+                Assert.Equal("application/json", readRecord.ContentType);
+                Assert.Equal("rebuilt-after-loss", readRecord.Metadata);
+            }
+        }
+
+        [Fact]
         public async Task TryGetForReadingAsync_ContentMissing_ReturnsKeyNotFoundAndDropsRecord()
         {
             var ct = TestContext.Current.CancellationToken;
@@ -1070,8 +1143,7 @@ namespace ActDim.BytePath.Tests
             var ct = TestContext.Current.CancellationToken;
             await using var env = new TestEnvironment();
 
-            var (_, setup) = await env.Manager.TryGetOrSetAsync("readlock-downgrade-key", ct);
-            await using (setup) { }
+            await env.SeedAsync("readlock-downgrade-key", ct);
 
             var (ec, record) = await env.Manager.TryGetOrSetAsync("readlock-downgrade-key", null, LockType.Read, ct);
             await using (record)

@@ -82,8 +82,8 @@ var host = Host.CreateDefaultBuilder(args)
 using var appCts = new CancellationTokenSource();
 
 // == Application Root Scope =================================================
-using (AmbientContext.WithServices(host.Services))
-using (AmbientContext.WithCancellationToken(appCts.Token))
+using (AmbientContext.Current.WithServices(host.Services))
+using (AmbientContext.Current.WithCancellationToken(appCts.Token))
 {
     await host.RunAsync();
 }
@@ -126,10 +126,10 @@ await using var app = builder.Build();
 // == 1. Per-Request Ambient Middleware ======================================
 app.Use(async (context, next) =>
 {
-    using var _s = AmbientContext.WithServices(context.RequestServices);
-    using var _u = AmbientContext.WithUser(context.User);
-    using var _c = AmbientContext.WithCancellationToken(context.RequestAborted);
-    using var _t = AmbientContext.Push("TraceId", context.TraceIdentifier);
+    using var _s = AmbientContext.Current.WithServices(context.RequestServices);
+    using var _u = AmbientContext.Current.WithUser(context.User);
+    using var _c = AmbientContext.Current.WithCancellationToken(context.RequestAborted);
+    using var _t = AmbientContext.Current.PushProperty("TraceId", context.TraceIdentifier);
 
     await next();
 });
@@ -147,8 +147,8 @@ app.MapGet("/orders/current", () =>
 });
 
 // == 3. Root Application Scope ==============================================
-using var _rootServices = AmbientContext.WithServices(app.Services);
-using var _rootCt = AmbientContext.WithCancellationToken(app.Lifetime.ApplicationStopping);
+using var _rootServices = AmbientContext.Current.WithServices(app.Services);
+using var _rootCt = AmbientContext.Current.WithCancellationToken(app.Lifetime.ApplicationStopping);
 
 await app.RunAsync();
 ```
@@ -161,10 +161,10 @@ You can link nested cancellation tokens or apply scoped timeouts without modifyi
 
 ```csharp
 // Link existing ambient token with a child timeout token
-using var timeoutScope = AmbientContext.WithTimeout(TimeSpan.FromSeconds(5), out var timeoutToken);
+using var timeoutScope = AmbientContext.Current.WithTimeout(TimeSpan.FromSeconds(5), out var timeoutToken);
 
-// AmbientContext.CancellationToken is now linked to the 5-second timeout
-await httpClient.GetAsync("https://api.example.com/data", AmbientContext.CancellationToken);
+// AmbientContext.Current.GetCancellationToken() is now linked to the 5-second timeout
+await httpClient.GetAsync("https://api.example.com/data", AmbientContext.Current.GetCancellationToken() ?? CancellationToken.None);
 ```
 
 ---

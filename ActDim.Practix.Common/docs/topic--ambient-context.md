@@ -57,7 +57,7 @@ Parent Flow [FlowId="Main", Tenant="T1"]
     |
     +---> Task 1 (inherits [FlowId="Main", Tenant="T1"])
     |        |
-    |        +---> using(AmbientContext.Push("FlowId", "Branch_1"))
+    |        +---> using(AmbientContext.Current.PushProperty("FlowId", "Branch_1"))
     |                 Scoped Context: [FlowId="Branch_1", Tenant="T1"]
     |                 (CANNOT mutate Task 2, Task 3, or Parent)
     |
@@ -184,7 +184,7 @@ app.Use(async (context, next) =>
     using var _s = AmbientContext.Current.WithServices(context.RequestServices);
     using var _u = AmbientContext.Current.WithUser(context.User);
     using var _c = AmbientContext.Current.WithCancellationToken(context.RequestAborted);
-    using var _t = AmbientContext.Push("RequestId", context.TraceIdentifier);
+    using var _t = AmbientContext.Current.PushProperty("RequestId", context.TraceIdentifier);
 
     await next();
 });

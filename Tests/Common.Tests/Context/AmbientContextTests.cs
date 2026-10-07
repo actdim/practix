@@ -28,7 +28,7 @@ namespace ActDim.Practix.Common.Tests.Context
             using (context.PushProperty("TenantId", "Tenant_1"))
             {
                 Assert.Equal("Tenant_1", context.Properties["TenantId"]);
-                Assert.Equal("Tenant_1", AmbientContext.CurrentProperties["TenantId"]);
+                Assert.Equal("Tenant_1", AmbientContext.Current.Properties["TenantId"]);
 
                 using (context.PushProperty("TenantId", "Tenant_2"))
                 {
@@ -46,14 +46,14 @@ namespace ActDim.Practix.Common.Tests.Context
         {
             var context = AmbientContext.Current;
 
-            using (AmbientContext.Push("FlowId", "MainFlow"))
+            using (context.PushProperty("FlowId", "MainFlow"))
             {
                 Assert.Equal("MainFlow", context.Properties["FlowId"]);
 
                 var task1 = Task.Run(async () =>
                 {
                     Assert.Equal("MainFlow", context.Properties["FlowId"]);
-                    using (AmbientContext.Push("FlowId", "Branch_1"))
+                    using (context.PushProperty("FlowId", "Branch_1"))
                     {
                         await Task.Yield();
                         Assert.Equal("Branch_1", context.Properties["FlowId"]);
@@ -64,7 +64,7 @@ namespace ActDim.Practix.Common.Tests.Context
                 var task2 = Task.Run(async () =>
                 {
                     Assert.Equal("MainFlow", context.Properties["FlowId"]);
-                    using (AmbientContext.Push("FlowId", "Branch_2"))
+                    using (context.PushProperty("FlowId", "Branch_2"))
                     {
                         await Task.Yield();
                         Assert.Equal("Branch_2", context.Properties["FlowId"]);

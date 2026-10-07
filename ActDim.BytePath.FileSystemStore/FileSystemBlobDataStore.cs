@@ -42,10 +42,7 @@ namespace ActDim.BytePath.FileSystemStore
         /// <param name="options">The storage configuration options.</param>
         public FileSystemBlobDataStore(FileSystemBlobDataStoreOptions options)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
+            ArgumentNullException.ThrowIfNull(options);
 
             _basePath = options.BaseDirectory ?? throw new ArgumentNullException(nameof(options.BaseDirectory));
             KeyPrefix = options.KeyPrefix ?? string.Empty;

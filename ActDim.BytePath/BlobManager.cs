@@ -317,7 +317,7 @@ namespace ActDim.BytePath
                 return new BlobResult(BlobErrorCode.UnsupportedKeyPrefix);
             }
 
-            return await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, options, lockType, ct), dataStore, true, null, ct);
+            return await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, options, lockType, ct), dataStore, true, timeout: null, ct, options);
         }
 
         /// <inheritdoc />
@@ -328,10 +328,10 @@ namespace ActDim.BytePath
                 return new BlobResult(BlobErrorCode.UnsupportedKeyPrefix);
             }
 
-            return await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, options, lockType, timeout, ct), dataStore, true, timeout, ct);
+            return await ReconcileContentAsync(await _registry.TryGetOrSetAsync(key, options, lockType, timeout, ct), dataStore, true, timeout: timeout, ct, options);
         }
 
-        private async Task<BlobResult> ReconcileContentAsync(BlobResult blobResult, IBlobDataStore dataStore, bool allowNew, TimeSpan? timeout, CancellationToken ct)
+        private async Task<BlobResult> ReconcileContentAsync(BlobResult blobResult, IBlobDataStore dataStore, bool allowNew, TimeSpan? timeout, CancellationToken ct, BlobStoreOptions options = null)
         {
             if (!blobResult.IsSuccess)
             {
@@ -367,9 +367,49 @@ namespace ActDim.BytePath
 
             if (allowNew)
             {
+                if (blobResult.Record.LockType != LockType.Write)
+                {
+                    // The record outlived its content, but the registry downgraded to a read lock
+                    // assuming content was present. Under a read lock the caller cannot write to
+                    // produce content. Release the read lock and re-acquire under a write lock.
+                    var orphanKey = blobResult.Record.Key;
+                    await blobResult.DisposeAsync();
+
+                    var writeResult = timeout.HasValue
+                        ? await _registry.TryGetOrSetAsync(orphanKey, options, LockType.Write, timeout.Value, ct)
+                        : await _registry.TryGetOrSetAsync(orphanKey, options, LockType.Write, ct);
+
+                    if (!writeResult.IsSuccess)
+                    {
+                        return writeResult;
+                    }
+
+                    long? reacquiredSize;
+                    try
+                    {
+                        reacquiredSize = await dataStore.GetSizeAsync(writeResult.Record, ct);
+                    }
+                    catch
+                    {
+                        await writeResult.DisposeAsync();
+                        throw;
+                    }
+
+                    writeResult.Record.Size = reacquiredSize;
+
+                    if (reacquiredSize.HasValue)
+                    {
+                        // Another participant produced the content while we waited for the write lock.
+                        return TrackSizeOnDispose(writeResult, dataStore);
+                    }
+
+                    writeResult.IsNew = true;
+                    return TrackSizeOnDispose(writeResult, dataStore);
+                }
+
                 // Either a record the registry has just created, or one that outlived its
-                // content. Either way the caller has to produce the content, so report it as
-                // new; the lock we already hold stays untouched.
+                // content under a write lock. Either way the caller has to produce the content,
+                // so report it as new; the write lock we already hold stays untouched.
                 blobResult.IsNew = true;
                 return TrackSizeOnDispose(blobResult, dataStore);
             }

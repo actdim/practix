@@ -40,28 +40,6 @@ namespace ActDim.Practix.Extensions
         }
 
         /// <summary>
-        /// Determines whether a string contains a specified substring using the given comparison type.
-        /// </summary>
-        /// <param name="source">The source string.</param>
-        /// <param name="value">The substring to locate.</param>
-        /// <param name="comparisonType">The comparison rule.</param>
-        /// <returns>True if value is contained; otherwise, false.</returns>
-        public static bool Contains(this string source, string value, StringComparison comparisonType)
-        {
-            return source.IndexOf(value, comparisonType) >= 0;
-        }
-
-        /// <summary>
-        /// Indicates whether the specified string is null or an empty string ("").
-        /// </summary>
-        /// <param name="value">The string to test.</param>
-        /// <returns>True if value is null or empty; otherwise, false.</returns>
-        public static bool IsNullOrEmpty(this string value)
-        {
-            return string.IsNullOrEmpty(value);
-        }
-
-        /// <summary>
         /// Encodes a string asynchronously into a pre-sized pooled <see cref="MemoryStream"/>.
         /// </summary>
         /// <param name="value">The string value to encode.</param>
@@ -119,26 +97,15 @@ namespace ActDim.Practix.Extensions
         }
 
         /// <summary>
-        /// Splits a string by delimiter while respecting quoted qualifier boundaries.
+        /// Splits a string by delimiter while respecting quote qualifier boundaries.
         /// </summary>
         /// <param name="expression">The expression to split.</param>
         /// <param name="delimiter">The delimiter string.</param>
-        /// <param name="qualifier">The quote/qualifier string (defaults to quote).</param>
+        /// <param name="qualifier">The quote/qualifier string (defaults to double-quote).</param>
         /// <returns>An array of split tokens.</returns>
-        public static string[] Split(this string expression, string delimiter, string qualifier)
+        public static string[] SplitQuoted(this string expression, string delimiter, string qualifier = "\"")
         {
-            return Split(expression, delimiter, qualifier, true);
-        }
-
-        /// <summary>
-        /// Splits a string by delimiter while respecting double-quote qualifier boundaries.
-        /// </summary>
-        /// <param name="expression">The expression to split.</param>
-        /// <param name="delimiter">The delimiter string.</param>
-        /// <returns>An array of split tokens.</returns>
-        public static string[] Split(this string expression, string delimiter)
-        {
-            return Split(expression, delimiter, "\"", true);
+            return SplitQuoted(expression, delimiter, qualifier, true);
         }
 
         /// <summary>
@@ -146,14 +113,13 @@ namespace ActDim.Practix.Extensions
         /// </summary>
         /// <param name="expression">The expression to split.</param>
         /// <param name="delimiter">The delimiter string.</param>
-        /// <param name="qualifier">The quote/qualifier string.</param>
+        /// <param name="qualifier">The quote/qualifier string (defaults to double-quote).</param>
         /// <param name="ignoreCase">Whether to ignore case when matching delimiters.</param>
         /// <returns>An array of split tokens.</returns>
-        public static string[] Split(this string expression, string delimiter, string qualifier, bool ignoreCase)
+        public static string[] SplitQuoted(this string expression, string delimiter, string qualifier, bool ignoreCase)
         {
             qualifier ??= "\"";
             string statement = string.Format("{0}(?=(?:[^{1}]*{1}[^{1}]*{1})*(?![^{1}]*{1}))", Regex.Escape(delimiter), Regex.Escape(qualifier));
-            //\s+(?=(?:[^"]*"[^"]*")*(?![^"]*"))
 
             var options = RegexOptions.Multiline;
             if (ignoreCase)

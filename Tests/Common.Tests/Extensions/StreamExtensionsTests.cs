@@ -338,6 +338,54 @@ namespace ActDim.Practix.Common.Tests.Extensions
             Assert.Equal(data, dst.ToArray());
         }
 
+        [Fact]
+        public void ZeroAllocCopyTo_Stream_NonSeekable_PartiallyRead_CopiesRemaining()
+        {
+            var data = MakeBytes(20_000);
+            using Stream src = new WrapperStream(data, canSeek: false);
+            using var dst = new MemoryStream();
+
+            var firstChunk = new byte[500];
+            src.ReadExactly(firstChunk);
+
+            src.ZeroAllocCopyTo(dst);
+
+            var expected = data.AsSpan(500).ToArray();
+            Assert.Equal(expected, dst.ToArray());
+        }
+
+        [Fact]
+        public async Task ZeroAllocCopyToAsync_Stream_NonSeekable_PartiallyRead_CopiesRemaining()
+        {
+            var data = MakeBytes(20_000);
+            using Stream src = new WrapperStream(data, canSeek: false);
+            using var dst = new MemoryStream();
+
+            var firstChunk = new byte[500];
+            await src.ReadExactlyAsync(firstChunk, TestContext.Current.CancellationToken);
+
+            await src.ZeroAllocCopyToAsync(dst, ct: TestContext.Current.CancellationToken);
+
+            var expected = data.AsSpan(500).ToArray();
+            Assert.Equal(expected, dst.ToArray());
+        }
+
+        [Fact]
+        public async Task ZeroAllocCopyToAsync_Cancelled_ThrowsOperationCanceledException()
+        {
+            var data = MakeBytes(20_000);
+            using Stream src = new WrapperStream(data, canSeek: false);
+            using var dst = new MemoryStream();
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            {
+                await src.ZeroAllocCopyToAsync(dst, ct: cts.Token);
+            });
+        }
+
+
         // ToMemory ---------------------------------------------------------------------------------------
 
         // Note: ToMemory returns a RecyclableMemoryStream whose manager forbids ToArray(), so we read the

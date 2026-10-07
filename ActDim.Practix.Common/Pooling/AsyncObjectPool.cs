@@ -22,6 +22,22 @@ namespace ActDim.Practix.Pooling
     /// pool has been disposed. If no <c>disposer</c> is provided the pool does not touch the
     /// objects' lifecycle - ownership is an explicit, opt-in contract, never inferred.
     /// </summary>
+    /// <remarks>
+    /// Every permit acquired from the internal semaphore is released exactly once on every
+    /// path (return, discard, factory failure, disposal), so before disposal the semaphore count
+    /// never exceeds <c>maxSize</c>.
+    /// The semaphore itself is never disposed: disposing a <see cref="SemaphoreSlim"/> does not
+    /// complete pending <c>WaitAsync</c> calls, so waiters would hang forever. Instead
+    /// <see cref="DisposeAsync"/> releases a single "baton" permit; each awakened waiter observes
+    /// the disposed flag, passes the baton on by releasing one permit and throws
+    /// <see cref="ObjectDisposedException"/>. This wakes every pending waiter without per-call
+    /// <see cref="CancellationTokenSource"/> allocations or waiter counting, and late callers find
+    /// the baton immediately available. A waiter cancelled via its token never consumed a permit,
+    /// so the baton is never lost. The semaphore is created without a maximum count so that
+    /// post-disposal releases can never throw <see cref="SemaphoreFullException"/>.
+    /// Not disposing it is safe: <see cref="SemaphoreSlim"/> only owns an OS handle when
+    /// <see cref="SemaphoreSlim.AvailableWaitHandle"/> is accessed, which this pool never does.
+    /// </remarks>
     /// <typeparam name="T">The type of pooled objects.</typeparam>
     public sealed class AsyncObjectPool<T> : IAsyncDisposable where T : class
     {
@@ -48,7 +64,7 @@ namespace ActDim.Practix.Pooling
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _disposer = disposer;
             _maxSize = maxSize;
-            _semaphore = new SemaphoreSlim(maxSize, maxSize);
+            _semaphore = new SemaphoreSlim(maxSize);
         }
 
         /// <summary>
@@ -79,6 +95,8 @@ namespace ActDim.Practix.Pooling
 
             if (Volatile.Read(ref _disposed) != 0)
             {
+                // Pass the disposal baton on so the next pending waiter wakes up as well.
+                _semaphore.Release();
                 throw new ObjectDisposedException(nameof(AsyncObjectPool<T>));
             }
 
@@ -102,11 +120,8 @@ namespace ActDim.Practix.Pooling
             }
             catch
             {
-                if (Volatile.Read(ref _disposed) == 0)
-                {
-                    _semaphore.Release();
-                }
-
+                // Always release: before disposal it frees the slot, after disposal it passes the baton.
+                _semaphore.Release();
                 throw;
             }
         }
@@ -117,7 +132,7 @@ namespace ActDim.Practix.Pooling
         /// </summary>
         /// <param name="item">The item to discard.</param>
         /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-        public async ValueTask DiscardAsync(T item)
+        internal async ValueTask DiscardAsync(T item)
         {
             if (item == null)
             {
@@ -125,18 +140,7 @@ namespace ActDim.Practix.Pooling
             }
 
             Interlocked.Decrement(ref _createdCount);
-
-            if (Volatile.Read(ref _disposed) == 0)
-            {
-                try
-                {
-                    _semaphore.Release();
-                }
-                catch (ObjectDisposedException)
-                {
-                    // Pool was disposed concurrently, semaphore is already disposed
-                }
-            }
+            _semaphore.Release();
 
             await DisposeItemAsync(item).ConfigureAwait(false);
         }
@@ -151,34 +155,21 @@ namespace ActDim.Practix.Pooling
             if (Volatile.Read(ref _disposed) != 0)
             {
                 Interlocked.Decrement(ref _createdCount);
+                _semaphore.Release();
                 await DisposeItemAsync(item).ConfigureAwait(false);
                 return;
             }
 
             _items.Enqueue(item);
+            _semaphore.Release();
 
-            if (Volatile.Read(ref _disposed) != 0)
+            // DisposeAsync may have drained the queue between the check above and the enqueue:
+            // the disposed flag is published before the drain, so re-checking here guarantees
+            // the item is disposed either by the drain or by this branch.
+            if (Volatile.Read(ref _disposed) != 0 && _items.TryDequeue(out var queuedItem))
             {
-                if (_items.TryDequeue(out var queuedItem))
-                {
-                    Interlocked.Decrement(ref _createdCount);
-                    await DisposeItemAsync(queuedItem).ConfigureAwait(false);
-                }
-
-                return;
-            }
-
-            try
-            {
-                _semaphore.Release();
-            }
-            catch (ObjectDisposedException)
-            {
-                if (_items.TryDequeue(out var queuedItem))
-                {
-                    Interlocked.Decrement(ref _createdCount);
-                    await DisposeItemAsync(queuedItem).ConfigureAwait(false);
-                }
+                Interlocked.Decrement(ref _createdCount);
+                await DisposeItemAsync(queuedItem).ConfigureAwait(false);
             }
         }
 
@@ -195,31 +186,12 @@ namespace ActDim.Practix.Pooling
                 return;
             }
 
+            // Hand out the disposal baton first so pending waiters are not held up by slow disposers:
+            // it wakes the first pending waiter, which passes it on.
+            _semaphore.Release();
+
             List<Exception> exceptions = null;
 
-            while (_items.TryDequeue(out var item))
-            {
-                Interlocked.Decrement(ref _createdCount);
-                try
-                {
-                    await DisposeItemAsync(item).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    exceptions ??= new List<Exception>();
-                    exceptions.Add(ex);
-                }
-            }
-
-            try
-            {
-                _semaphore.Dispose();
-            }
-            catch (ObjectDisposedException)
-            {
-            }
-
-            // Drain any items that were enqueued concurrently during disposal
             while (_items.TryDequeue(out var item))
             {
                 Interlocked.Decrement(ref _createdCount);

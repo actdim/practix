@@ -62,7 +62,7 @@ namespace ActDim.Practix.Common.Tests.Context
                 using var _s = AmbientContext.Current.WithServices(context.RequestServices);
                 using var _u = AmbientContext.Current.WithUser(context.User);
                 using var _c = AmbientContext.Current.WithCancellationToken(context.RequestAborted);
-                using var _t = AmbientContext.Push("RequestId", "req-12345");
+                using var _t = AmbientContext.Current.PushProperty("RequestId", "req-12345");
 
                 await next();
             });
@@ -110,7 +110,7 @@ namespace ActDim.Practix.Common.Tests.Context
                 using var _s = AmbientContext.Current.WithServices(context.RequestServices);
                 using var _u = AmbientContext.Current.WithUser(context.User);
                 using var _c = AmbientContext.Current.WithCancellationToken(context.RequestAborted);
-                using var _t = AmbientContext.Push("RequestId", "req-scoped-999");
+                using var _t = AmbientContext.Current.PushProperty("RequestId", "req-scoped-999");
 
                 await next();
             });
