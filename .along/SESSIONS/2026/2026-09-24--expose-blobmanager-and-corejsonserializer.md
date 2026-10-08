@@ -1,3 +1,11 @@
+---
+protocol: along
+slug: expose-blobmanager-and-corejsonserializer
+date: 2026-09-24
+agent: antigravity
+summary: "Expose BlobManager, BlobManagerBuilder, and CoreJsonSerializer as Public"
+---
+
 # Session: Expose BlobManager, BlobManagerBuilder, and CoreJsonSerializer as Public
 Date: 2026-09-24
 Issue: `feat--expose-blobmanager-and-corejsonserializer`

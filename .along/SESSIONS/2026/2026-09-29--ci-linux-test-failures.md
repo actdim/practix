@@ -1,3 +1,11 @@
+---
+protocol: along
+slug: ci-linux-test-failures
+date: 2026-09-29
+agent: antigravity
+summary: "Fix CI Linux Test Failures and Add CI Badge"
+---
+
 # Session: Fix CI Linux Test Failures and Add CI Badge
 
 - Date: 2026-09-29

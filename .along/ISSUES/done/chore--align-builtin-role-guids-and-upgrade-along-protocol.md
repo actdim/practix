@@ -2,10 +2,10 @@
 protocol: along
 protocol_version: "4.4.1"
 slug: chore--align-builtin-role-guids-and-upgrade-along-protocol
-type: chore
+type: task
 status: done
 completed: 2026-09-29
-priority: normal
+priority: medium
 created: 2026-09-29
 updated: 2026-09-29
 agent: antigravity

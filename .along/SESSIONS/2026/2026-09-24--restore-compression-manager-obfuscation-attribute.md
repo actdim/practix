@@ -1,3 +1,11 @@
+---
+protocol: along
+slug: restore-compression-manager-obfuscation-attribute
+date: 2026-09-24
+agent: antigravity
+summary: "Restore Obfuscation Attribute on CompressionManager"
+---
+
 # Session: Restore Obfuscation Attribute on CompressionManager
 Date: 2026-09-24
 Issue: `debt--restore-compression-manager-obfuscation-attribute`

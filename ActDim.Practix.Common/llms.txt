@@ -4,7 +4,6 @@
 
 ## Documentation Links
 - [README.md](README.md): Overview, quick installation, and full skill list.
-- [AGENTS.md](AGENTS.md): Active ALONG-PROTOCOL conventions and instructions.
 - [docs/INDEX.md](docs/INDEX.md): Central Knowledge Base topic catalog.
 - [docs/topic--ambient-context.md](docs/topic--ambient-context.md): Ambient Execution Context.
 - [docs/topic--architecture.md](docs/topic--architecture.md): System Architecture & Flow.

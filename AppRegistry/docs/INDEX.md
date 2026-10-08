@@ -4,7 +4,7 @@ slug: INDEX
 title: AppRegistry - Knowledge Base Topic Index
 type: index
 created: 2026-09-09
-updated: 2026-10-07
+updated: 2026-10-08
 tags: [index, kb, topics, map]
 ---
 
@@ -25,6 +25,8 @@ flowchart TD
     INDEX --> T_DOMAIN_MODEL
     T_SETUP_AND_WORKFLOW["Setup & Developer Workflow"]
     INDEX --> T_SETUP_AND_WORKFLOW
+    T_VISION["Vision"]
+    INDEX --> T_VISION
 ```
 
 ---
@@ -35,11 +37,10 @@ flowchart TD
 - **[Dependencies & AI Documentation for src/apps/AppRegistry](./topic--dependencies.md)** (topic) `dependencies`, `subproject`, `ai-context`, `rules`
 - **[Domain Model & Entities](./topic--domain-model.md)** (domain-model) `domain-model`
 - **[Setup & Developer Workflow](./topic--setup-and-workflow.md)** (setup-workflow) `setup-workflow`
+- **[Vision](./topic--vision.md)** (topic) `vision`
 
 ---
 
 ## Related Context
 
-- [AGENTS.md](../AGENTS.md): Active protocol conventions and rules.
-- [.along/DECISIONS.md](../.along/DECISIONS.md): Architectural Decision Records.
 - [Domain Model & Entity Ecosystem](./topic--domain-model.md): Specifications for active issues and project history.

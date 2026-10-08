@@ -2,6 +2,10 @@
 
 All notable changes to this project, newest first.
 
+## v1.4.3 - 2026-10-08
+
+- chore: consolidate nested along installations into repository root and unify entities (refs #task--consolidate-along-contexts)
+
 ## v1.4.2 - 2026-10-07
 
 - fix: restrict AsyncObjectPool.DiscardAsync to internal and implement baton wake-up on disposal (refs #bug--async-object-pool-discard-and-disposed-semaphore-leak)

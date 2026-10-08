@@ -1,3 +1,11 @@
+---
+protocol: along
+slug: github-actions-ci-workflow
+date: 2026-09-29
+agent: antigravity
+summary: "Configure GitHub Actions CI Workflow for .NET 10"
+---
+
 # Session: Configure GitHub Actions CI Workflow for .NET 10
 Date: 2026-09-29
 Issue: `task--github-actions-ci-workflow`

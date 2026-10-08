@@ -9,7 +9,7 @@ priority: high
 created: 2026-10-06
 updated: 2026-10-06
 agent: antigravity
-tags: []
+tags: [stream, memory, zero-alloc, pkg-practix-common]
 milestone: v2.0.0-along-transition
 blocked_by: []
 related: []

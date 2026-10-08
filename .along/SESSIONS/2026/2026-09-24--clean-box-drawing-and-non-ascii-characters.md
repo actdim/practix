@@ -1,3 +1,11 @@
+---
+protocol: along
+slug: clean-box-drawing-and-non-ascii-characters
+date: 2026-09-24
+agent: antigravity
+summary: "Clean Box-Drawing and Non-ASCII Characters in Source Files"
+---
+
 # Session: Clean Box-Drawing and Non-ASCII Characters in Source Files
 Date: 2026-09-24
 Issue: `debt--clean-box-drawing-and-non-ascii-characters`

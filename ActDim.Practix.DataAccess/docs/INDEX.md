@@ -4,7 +4,7 @@ slug: INDEX
 title: ActDim.Practix.DataAccess - Knowledge Base Topic Index
 type: index
 created: 2026-09-09
-updated: 2026-10-07
+updated: 2026-10-08
 tags: [index, kb, topics, map]
 ---
 
@@ -37,6 +37,4 @@ flowchart TD
 
 ## Related Context
 
-- [AGENTS.md](../AGENTS.md): Active protocol conventions and rules.
-- [.along/DECISIONS.md](../.along/DECISIONS.md): Architectural Decision Records.
 - [Domain Model & Entity Ecosystem](./topic--domain-model.md): Specifications for active issues and project history.

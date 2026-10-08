@@ -1,3 +1,11 @@
+---
+protocol: along
+slug: appregistry-repodb-and-test-alignment
+date: 2026-09-29
+agent: antigravity
+summary: "AppRegistry RepoDb Repositories and Test Alignment"
+---
+
 # Session: AppRegistry RepoDb Repositories and Test Alignment
 Date: 2026-09-29
 Issue: `feat--appregistry-repodb-repositories-and-test-alignment`

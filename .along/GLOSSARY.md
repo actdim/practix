@@ -11,3 +11,27 @@ _Domain terms. Add a term when you introduce or clarify it._
 - **ActivitySource Registry**: thread-safe cache (`ActivitySourceRegistry`) ensuring long-lived singleton `ActivitySource` instances per unique source name to prevent memory and runtime listener registration leaks.
 - **CallContext ActivitySource Override**: ambient execution property (`callContext.PushActivitySourceName(...)`) allowing an async scope to declare the source name for automatically created `Activity` spans.
 
+### Subproject terms
+
+- **Record**: the metadata row for a key in `blob_records`. Exists independently of the content:
+- **Content**: the stored bytes, owned by `IBlobDataStore`. The registry never sees them.
+- **Orphaned record**: a record whose content is absent. A transient state by decision #001:
+- **Reconciliation**: `BlobManager.ReconcileContentAsync`: bringing a record and its actual content
+- **`IsNew`**: "there is no content yet". Covers both a record the registry has just created and
+- **Handle**: a successful `BlobResult` / `BlobRecord` pair that holds a lock until disposed. Its
+- **Shard directory**: the two subfolders `FileSystemBlobDataStore` derives from the key's
+- **Forced deletion**: `forceDeleteLocked`: break existing locks (`ForceUnlockAsync`) and delete
+- **Producer form**: the `WriteAsync`/`AppendAsync` overload taking
+- **Write-only producer**: an API that writes into a stream it is handed and offers no readable form
+- **Bridge**: `ProducerStreamBridge`: the default behind the producer form, pairing a `Pipe`'s write
+- **Compression format** (`CompressionFormat`): a codec applied to a single byte stream, with no file
+- **Archive format** (`ArchiveFormat`): a container holding multiple named entries: ZIP, TAR, 7z, RAR. The
+- **Archive entry** (`IArchiveEntry` / `ArchiveEntry`): one named item inside an archive: uncompressed size,
+- **Entry type** (`ArchiveEntryType`): what an entry represents: `RegularFile` / `Directory` / `SymbolicLink` /
+- **Buffer owner** (`IBufferOwner<T>`): a disposable handle over a rented buffer that carries the valid
+- **Temp / scratch stream**: a pooled `RecyclableMemoryStream` from `MemoryManager.Default`, used wherever a
+- **ScriptEngine**: Roslyn-based C# script compilation and evaluation engine.
+- **Interpolator**: Compiles C# interpolated string expressions (`$"Hello, {Name}!"`) into cached formatters.
+- **@params**: Collision-free C# script parameter variable binding caller properties in Roslyn script scope.
+- **RazorParser**: High-performance transpiler converting Razor syntax templates into executable C# Roslyn scripts.
+- **EmitronRazor**: Static facade for compiling and formatting Razor templates using `Emitron`.

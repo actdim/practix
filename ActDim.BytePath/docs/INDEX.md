@@ -4,7 +4,7 @@ slug: INDEX
 title: ActDim.BytePath - Knowledge Base Topic Index
 type: index
 created: 2026-09-09
-updated: 2026-10-07
+updated: 2026-10-08
 tags: [index, kb, topics, map]
 ---
 
@@ -23,6 +23,8 @@ flowchart TD
     INDEX --> T_DOMAIN_MODEL
     T_SETUP_AND_WORKFLOW["Setup & Workflow"]
     INDEX --> T_SETUP_AND_WORKFLOW
+    T_VISION["Vision"]
+    INDEX --> T_VISION
 ```
 
 ---
@@ -32,11 +34,11 @@ flowchart TD
 - **[System Architecture & Flow](./topic--architecture.md)** (architecture) `architecture`
 - **[Domain Model & Vocabulary](./topic--domain-model.md)** (domain-model) `domain`
 - **[Setup & Workflow](./topic--setup-and-workflow.md)** (setup-workflow) `workflow`, `setup`
+- **[Vision](./topic--vision.md)** (topic) `vision`
 
 ---
 
 ## Related Context
 
 - [AGENTS.md](../AGENTS.md): Active protocol conventions and rules.
-- [.along/DECISIONS.md](../.along/DECISIONS.md): Architectural Decision Records.
 - [Domain Model & Entity Ecosystem](./topic--domain-model.md): Specifications for active issues and project history.

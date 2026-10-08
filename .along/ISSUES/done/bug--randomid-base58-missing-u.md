@@ -9,7 +9,7 @@ priority: medium
 created: 2026-10-07
 updated: 2026-10-07
 agent: antigravity
-tags: [RandomId, Base58, bug]
+tags: [RandomId, Base58, bug, pkg-practix-common]
 milestone: v2.0.0-along-transition
 blocked_by: []
 related: []

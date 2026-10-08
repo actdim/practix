@@ -5,7 +5,7 @@ slug: task--github-actions-ci-workflow
 type: task
 status: done
 completed: 2026-09-29
-priority: normal
+priority: medium
 created: 2026-09-29
 updated: 2026-09-29
 agent: antigravity

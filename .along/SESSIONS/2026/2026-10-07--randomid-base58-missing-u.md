@@ -35,6 +35,12 @@ Execution mode: direct; plan revision 1; approved: true.
 | `ActDim.Practix.Common/.along/.session/randomid-base58-missing-u/plan.md` | state | 1 | 2026-10-07T11:02:39Z | antigravity--5461d159-4b52-46be-9874-90b06b6f9c01 |
 | `ActDim.Practix.Common/.along/ISSUES/bug--randomid-base58-missing-u.md` | state | 1 | 2026-10-07T11:01:27Z | antigravity--5461d159-4b52-46be-9874-90b06b6f9c01 |
 | `Tests/Common.Tests/RandomIdTests.cs` | source | 1 | 2026-10-07T11:01:46Z | antigravity--5461d159-4b52-46be-9874-90b06b6f9c01 |
+| `ActDim.Practix.Common/.along/ISSUES/bug--randomid-base58-missing-u.md` | state | 1 | 2026-10-07T11:00:14Z | antigravity--5461d159-4b52-46be-9874-90b06b6f9c01 |
+| `ActDim.Practix.Common/RandomId.cs` | source | 1 | 2026-10-07T11:00:27Z | antigravity--5461d159-4b52-46be-9874-90b06b6f9c01 |
+| `.along/ISSUES/bug--randomid-base58-missing-u.md` | state | 1 | 2026-10-07T11:01:33Z | antigravity--5461d159-4b52-46be-9874-90b06b6f9c01 |
+| `ActDim.Practix.Common/.along/.session/randomid-base58-missing-u/plan.md` | state | 1 | 2026-10-07T11:02:39Z | antigravity--5461d159-4b52-46be-9874-90b06b6f9c01 |
+| `ActDim.Practix.Common/.along/ISSUES/bug--randomid-base58-missing-u.md` | state | 1 | 2026-10-07T11:01:27Z | antigravity--5461d159-4b52-46be-9874-90b06b6f9c01 |
+| `Tests/Common.Tests/RandomIdTests.cs` | source | 1 | 2026-10-07T11:01:46Z | antigravity--5461d159-4b52-46be-9874-90b06b6f9c01 |
 
 ### Plan
 
@@ -50,6 +56,9 @@ Title: Fix missing uppercase U in RandomId Base58 alphabet
 ### Execution Trace
 
 #### Execution Trace: randomid-base58-missing-u
+- 2026-10-07T11:00:14Z edit ActDim.Practix.Common/.along/ISSUES/bug--randomid-base58-missing-u.md
+- 2026-10-07T11:00:27Z edit ActDim.Practix.Common/RandomId.cs
+- 2026-10-07T11:00:45Z denied [require_active_issue] replace_file_content: Mandatory Issue Anchoring Violation [gate: require-active-issue]: this session is bound to 'randomid-base58-missing-u' in 'ActDim.Practix.Common/.along/', an...
 - 2026-10-07T11:01:27Z edit ActDim.Practix.Common/.along/ISSUES/bug--randomid-base58-missing-u.md
 - 2026-10-07T11:01:33Z edit .along/ISSUES/bug--randomid-base58-missing-u.md
 - 2026-10-07T11:01:46Z edit Tests/Common.Tests/RandomIdTests.cs

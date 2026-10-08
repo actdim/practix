@@ -730,26 +730,6 @@ This project is licensed under the [MIT License](../LICENSE).
 
 ---
 
-## Document: AGENTS.md (Agent Conventions & Protocol)
-
-<!-- BEGIN ALONG-PROTOCOL ref=../AGENTS.md (managed by along-init - do not edit by hand) -->
-This folder belongs to a repository that uses the ALONG structure. The full working
-guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../AGENTS.md`) -
-read it there. This folder keeps its OWN `.along/` state; use the nearest one.
-Only this folder's specifics follow.
-<!-- END ALONG-PROTOCOL -->
-
-## Project specifics
-
-<!-- BEGIN ALONG-RULES -->
-See the following engineering guidelines:
-- `[languages/csharp.md](.along/rules/languages/csharp.md)`
-<!-- END ALONG-RULES -->
-
-<!-- Fill in: what this project is, how to build / test / run, architecture map, project-specific conventions. -->
-
----
-
 ## Document: docs/topic--architecture.md (System Architecture & Flow)
 
 # System Architecture & Flow
@@ -773,3 +753,23 @@ Core domain terminology, data models, and schema relationships.
 # Setup & Developer Workflow
 
 Build instructions, test suites, local development, and skill deployment guidelines.
+
+---
+
+## Document: docs/topic--vision.md (Vision)
+
+# Vision
+
+_North star: scope, boundaries, non-goals, roadmap. Evolves slowly; slims as features ship._
+
+## Scope
+- Centralized structured logging, Activity/tracing propagation, and metric reporting for Practix services.
+- Zero-allocation high-throughput spans, safe object flattening, diagnostic analyzers.
+
+## Non-goals
+- Storage backend implementations (provided by consumers / standard OpenTelemetry exporters).
+
+## Roadmap
+- Fix object cycle protection and collection tag serialization.
+- Message template analyzer for Roslyn.
+- Text log trace context enrichment.

@@ -1,3 +1,11 @@
+---
+protocol: along
+slug: align-builtin-roles-and-upgrade-along-protocol
+date: 2026-09-29
+agent: antigravity
+summary: "Align BuiltinRoles GUIDs and Upgrade Along Protocol to v4.4.1"
+---
+
 # Session: Align BuiltinRoles GUIDs and Upgrade Along Protocol to v4.4.1
 Date: 2026-09-29
 Issue: `chore--align-builtin-role-guids-and-upgrade-along-protocol`
