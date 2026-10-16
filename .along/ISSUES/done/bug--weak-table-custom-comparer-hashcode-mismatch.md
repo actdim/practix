@@ -2,15 +2,17 @@
 protocol: along
 slug: weak-table-custom-comparer-hashcode-mismatch
 type: bug
-status: open
+status: superseded
+completed: 2026-10-08
 priority: high
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-10-08
 agent: antigravity
 tags: [collections, weaktable, equalitycomparer, hashcode, bug, pkg-practix-common]
 milestone: v2.0.0-along-transition
 blocked_by: []
 related: []
+superseded_by: task--remove-staticmap-and-weaktable
 ---
 
 # WeakTable Breaks Custom IEqualityComparer HashCode Resolution

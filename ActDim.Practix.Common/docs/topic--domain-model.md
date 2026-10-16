@@ -25,7 +25,6 @@ Core domain concepts, resource ownership models, state transitions, and error ha
 | **Buffer Owner** | Owned buffer lease carrying valid length that returns rented memory to `ArrayPool` on disposal. | `IBufferOwner<T>`, `ArrayPoolBufferOwner<T>` |
 | **Atomic Disposal Action** | Thread-safe single-execution callback executed at most once upon `Dispose()` or `DisposeAsync()`. | `DisposableAction`, `DisposableAsyncAction` |
 | **Random ID Generator** | CSPRNG-backed uniform random token generator supporting Base62, Base58, and Crockford Base32. | `RandomId` |
-| **Weak Table** | Map holding weak references to keys, automatically cleaned up by GC finalization with custom equality support. | `WeakTable<K, V>` |
 | **Composite Key** | Immutable struct representing an ordered tuple of objects evaluated for element-wise value equality. | `CompositeKey` |
 
 ---

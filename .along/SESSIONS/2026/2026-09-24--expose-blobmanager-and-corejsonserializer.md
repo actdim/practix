@@ -4,6 +4,13 @@ slug: expose-blobmanager-and-corejsonserializer
 date: 2026-09-24
 agent: antigravity
 summary: "Expose BlobManager, BlobManagerBuilder, and CoreJsonSerializer as Public"
+branch: main
+commit: unknown
+issues_advanced: []
+issues_completed: []
+decisions: []
+risks_logged: []
+spikes_conducted: []
 ---
 
 # Session: Expose BlobManager, BlobManagerBuilder, and CoreJsonSerializer as Public

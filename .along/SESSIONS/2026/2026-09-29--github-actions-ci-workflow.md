@@ -4,6 +4,13 @@ slug: github-actions-ci-workflow
 date: 2026-09-29
 agent: antigravity
 summary: "Configure GitHub Actions CI Workflow for .NET 10"
+branch: main
+commit: unknown
+issues_advanced: []
+issues_completed: []
+decisions: []
+risks_logged: []
+spikes_conducted: []
 ---
 
 # Session: Configure GitHub Actions CI Workflow for .NET 10

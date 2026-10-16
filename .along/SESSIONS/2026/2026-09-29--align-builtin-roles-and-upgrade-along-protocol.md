@@ -4,6 +4,13 @@ slug: align-builtin-roles-and-upgrade-along-protocol
 date: 2026-09-29
 agent: antigravity
 summary: "Align BuiltinRoles GUIDs and Upgrade Along Protocol to v4.4.1"
+branch: main
+commit: unknown
+issues_advanced: []
+issues_completed: []
+decisions: []
+risks_logged: []
+spikes_conducted: []
 ---
 
 # Session: Align BuiltinRoles GUIDs and Upgrade Along Protocol to v4.4.1

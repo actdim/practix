@@ -1,0 +1,7 @@
+# AppRegistry.Domain
+
+> Knowledge Base and documentation index for AppRegistry.Domain.
+
+## Documentation Links
+- [docs/INDEX.md](docs/INDEX.md): Central Knowledge Base topic catalog.
+- [docs/topic--dependencies.md](docs/topic--dependencies.md): Dependencies & AI Documentation for ActDim.AppRegistry.Domain.

@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ActDim.Practix.Abstractions.Disposal;
 
 namespace ActDim.Practix.Disposal
 {
@@ -9,7 +10,7 @@ namespace ActDim.Practix.Disposal
     /// repeated <see cref="Dispose"/> calls run the action at most once, and the captured delegate is
     /// released afterwards.
     /// </summary>
-    public sealed class DisposableAction : IDisposable
+    public sealed class DisposableAction : IDisposable, IDisposedState
     {
         private Action _disposeAction;
 
@@ -21,6 +22,9 @@ namespace ActDim.Practix.Disposal
         {
             _disposeAction = disposeAction;
         }
+
+        /// <inheritdoc />
+        public bool IsDisposed => Volatile.Read(ref _disposeAction) == null;
 
         /// <inheritdoc />
         public void Dispose()
@@ -36,7 +40,7 @@ namespace ActDim.Practix.Disposal
     /// the delegate and the captured state are released once disposed, so nothing is retained.
     /// </summary>
     /// <typeparam name="T">The parameter type.</typeparam>
-    public sealed class DisposableAction<T> : IDisposable
+    public sealed class DisposableAction<T> : IDisposable, IDisposedState
     {
         private Action<T> _disposeAction;
         private T _data;
@@ -51,6 +55,9 @@ namespace ActDim.Practix.Disposal
             _disposeAction = disposeAction;
             _data = data;
         }
+
+        /// <inheritdoc />
+        public bool IsDisposed => Volatile.Read(ref _disposeAction) == null;
 
         /// <inheritdoc />
         public void Dispose()
@@ -68,7 +75,7 @@ namespace ActDim.Practix.Disposal
     /// Asynchronous counterpart of <see cref="DisposableAction"/>: runs an async action exactly once when
     /// disposed. Disposal is atomic and idempotent.
     /// </summary>
-    public sealed class DisposableAsyncAction : IAsyncDisposable
+    public sealed class DisposableAsyncAction : IAsyncDisposable, IDisposedState
     {
         private Func<ValueTask> _disposeAction;
 
@@ -80,6 +87,9 @@ namespace ActDim.Practix.Disposal
         {
             _disposeAction = disposeAction;
         }
+
+        /// <inheritdoc />
+        public bool IsDisposed => Volatile.Read(ref _disposeAction) == null;
 
         /// <inheritdoc />
         public ValueTask DisposeAsync()
@@ -94,7 +104,7 @@ namespace ActDim.Practix.Disposal
     /// parameter exactly once when disposed, releasing both the delegate and the captured state afterwards.
     /// </summary>
     /// <typeparam name="T">The parameter type.</typeparam>
-    public sealed class DisposableAsyncAction<T> : IAsyncDisposable
+    public sealed class DisposableAsyncAction<T> : IAsyncDisposable, IDisposedState
     {
         private Func<T, ValueTask> _disposeAction;
         private T _data;
@@ -109,6 +119,9 @@ namespace ActDim.Practix.Disposal
             _disposeAction = disposeAction;
             _data = data;
         }
+
+        /// <inheritdoc />
+        public bool IsDisposed => Volatile.Read(ref _disposeAction) == null;
 
         /// <inheritdoc />
         public ValueTask DisposeAsync()

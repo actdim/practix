@@ -61,6 +61,6 @@ dotnet test Tests/Common.Tests/ActDim.Practix.Common.Tests.csproj -v q
 - `Tests/Common.Tests/Pooling/`: `AsyncObjectPoolTests`, `DiscardAsyncTests`, `FaultTolerantDrainTests`.
 - `Tests/Common.Tests/Caching/`: `MemoryCachingProxyTests`, `DistributedCachingProxyTests`.
 - `Tests/Common.Tests/Compression/`: `CompressionManagerTests`, `ArchiveReaderTests`, `FormatSniffingTests`.
-- `Tests/Common.Tests/Collections/`: `ConcurrentFactoryDictionaryTests`, `WeakTableTests`, `CompositeKeyTests`.
+- `Tests/Common.Tests/Collections/`: `ConcurrentFactoryDictionaryTests`, `CompositeKeyTests`.
 - `Tests/Common.Tests/Extensions/`: `StreamExtensionsTests`, `StringExtensionsTests`, `TaskExtensionsTests`.
 - `Tests/Common.Tests/Runtime/`: `ReachabilityObserverTests`, `RandomIdTests`.

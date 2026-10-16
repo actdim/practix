@@ -38,27 +38,12 @@ In `Runtime/ReachabilityObserver.cs` (lines 68-71):
 ```
 The finalizer `~Observer()` synchronously invokes the registered user delegate `_handler`. Invoking arbitrary user code directly on the CLR finalizer thread is hazardous: any unhandled exception crashes the process immediately, and long-running or blocking operations block the single global finalizer queue, preventing garbage collection of other finalized objects.
 
-### 4. `Disposer.DisposeCollection` Aborts on First Exception and Skips Collection
-In `Disposal/Disposer.cs` (lines 29-44):
-```csharp
-public static void DisposeCollection<T>(ref T collectionOfDisposables)
-    where T: class, IEnumerable<IDisposable>
-{
-    var collection = collectionOfDisposables;
-    if (collection == null) return;
-
-    collectionOfDisposables = null;
-    foreach (var item in collection)
-    {
-        item.Dispose();
-    }
-}
-```
-If an item's `item.Dispose()` throws an exception, the loop terminates immediately and all subsequent items in the collection remain un-disposed. Additionally, if the collection itself implements `IDisposable`, it is never disposed.
+### 4. `Disposer.DisposeCollection` Aborts on First Exception and Skips Collection [Resolved / Removed]
+`Disposer.cs` and `DisposeCollection` were completely removed as redundant/obsolete under `task--disposal-abstractions-refactor`.
 
 ## Remediation Plan
 1. Clarify XML documentation for `RandomId`.
 2. Provide configurable memory thresholds for `MemoryManager.Default`.
 3. Dispatch `ReachabilityObserver` callbacks asynchronously to the thread pool (`ThreadPool.UnsafeQueueUserWorkItem` or `Task.Run`) instead of running on the finalizer thread, and protect against unhandled exceptions.
-4. Update `Disposer.DisposeCollection` to use aggregate exception collection and dispose the collection container if it implements `IDisposable`.
+4. `Disposer.DisposeCollection` removed in `task--disposal-abstractions-refactor`.
 

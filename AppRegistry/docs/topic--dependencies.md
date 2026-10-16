@@ -1,10 +1,11 @@
 ---
 protocol: along
+protocol_version: "4.4.15"
 slug: dependencies
 title: Dependencies & AI Documentation for src/apps/AppRegistry
 type: topic
-created: 2026-09-27
-updated: 2026-09-27
+created: 2026-10-16
+updated: 2026-10-16
 tags: [dependencies, subproject, ai-context, rules]
 ---
 

@@ -4,6 +4,13 @@ slug: clean-box-drawing-and-non-ascii-characters
 date: 2026-09-24
 agent: antigravity
 summary: "Clean Box-Drawing and Non-ASCII Characters in Source Files"
+branch: main
+commit: unknown
+issues_advanced: []
+issues_completed: []
+decisions: []
+risks_logged: []
+spikes_conducted: []
 ---
 
 # Session: Clean Box-Drawing and Non-ASCII Characters in Source Files

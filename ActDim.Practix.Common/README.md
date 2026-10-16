@@ -9,7 +9,7 @@
 - **Fast Zero-DI Logging:** `AmbientContext.Log<T>()` and `AmbientContext.Log(this)` resolving ambient/scoped logger factories with zero ceremony.
 - **Caching Proxies:** `MemoryCachingProxy` and `DistributedCachingProxy` offering simplified, resilient access to `IMemoryCache` and `IDistributedCache`.
 - **Stream & Payload Compression:** `CompressionManager` for `GZip`, `BZip2`, and `ZLib` buffer/stream compression.
-- **High-Performance Collections:** `ConcurrentFactoryDictionary` (thread-safe lock-free lookup/factory pattern), `WeakTable<K, V>`, and `CompositeKey`.
+- **High-Performance Collections:** `ConcurrentFactoryDictionary` (thread-safe lock-free lookup/factory pattern) and `CompositeKey`.
 - **Memory Buffer Pooling:** Zero-allocation buffer management with `ArrayPoolBufferOwner` and `MemoryManager`.
 - **Granular Microsoft DI Extensions:** Modular registration helpers (`AddAmbientContext()`, `AddCompressionManager()`, `AddMemoryCachingProxy()`, `AddDistributedCachingProxy()`).
 

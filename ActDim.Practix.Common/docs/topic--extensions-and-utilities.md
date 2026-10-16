@@ -95,5 +95,5 @@ string customId = RandomId.Generate(8, "ABCDEF123456");
 
 ## Type & Introspection Helpers (`Introspection`)
 
-Provides structured reflection metadata caching (`IntrospectionInfo`, `MethodIntrospectionInfo`, `FieldIntrospectionInfo`) and `NameHelper` for sanitized member/type name resolution.
+Provides structured reflection metadata caching (`IntrospectionInfo`, `TypeBaseIntrospectionInfo`, `TypeIntrospectionInfo`, `MethodIntrospectionInfo`, `PropertyIntrospectionInfo`, `FieldIntrospectionInfo`), thread-safe cycle breaking for open generic definitions and recursive type structures, and `InMemoryIntrospectionStorage` with distinct member signatures distinguishing closed generic instantiations.
 

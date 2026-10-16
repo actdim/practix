@@ -1,6 +1,7 @@
-using ActDim.Practix.Abstractions.Patterns;
+using System;
 using System.Collections.Concurrent;
 using System.Reflection;
+using ActDim.Practix.Abstractions.Patterns;
 
 namespace ActDim.Practix.Introspection
 {
@@ -14,7 +15,20 @@ namespace ActDim.Practix.Introspection
         /// <inheritdoc />
         public IntrospectionInfo Get(IntrospectionMemberId memberId)
         {
+            ArgumentNullException.ThrowIfNull(memberId, nameof(memberId));
             return _dictionary[memberId];
+        }
+
+        /// <summary>
+        /// Attempts to retrieve introspection information for the specified member identifier.
+        /// </summary>
+        /// <param name="memberId">The member identifier.</param>
+        /// <param name="info">The found introspection info, or null.</param>
+        /// <returns>True if found; otherwise, false.</returns>
+        public bool TryGet(IntrospectionMemberId memberId, out IntrospectionInfo info)
+        {
+            ArgumentNullException.ThrowIfNull(memberId, nameof(memberId));
+            return _dictionary.TryGetValue(memberId, out info);
         }
 
         /// <summary>
@@ -24,8 +38,9 @@ namespace ActDim.Practix.Introspection
         /// <returns>The cached or created <see cref="IntrospectionInfo"/> instance.</returns>
         public IntrospectionInfo GetOrAdd(MemberInfo m)
         {
+            ArgumentNullException.ThrowIfNull(m, nameof(m));
             var memberId = m.GetIntrospectionMemberId();
-            return _dictionary.GetOrAdd(memberId, memberId => m.GetIntrospectionInfo(false));
+            return _dictionary.GetOrAdd(memberId, _ => m.GetIntrospectionInfo(false));
         }
     }
 }

@@ -35,26 +35,11 @@ UserSession session = cache.GetOrCreateValue("session_981");
 
 ---
 
-## Weak Table (`WeakTable<K, V>`)
+## Deprecated & Removed Collections (`WeakTable<K, V>`, `StaticMap<K, V>`)
 
-A concurrent weak table supporting **non-identity equality comparers**, modeled after .NET's `ConditionalWeakTable<K, V>`:
-
-```csharp
-var weakMap = new WeakTable<Document, DocumentMetadata>(customComparer);
-
-weakMap.Add(doc, metadata);
-
-if (weakMap.TryGetValue(doc, out var meta))
-{
-    // Access metadata
-}
-// When 'doc' is garbage collected, weakMap cleans up the entry automatically
-```
-
-### Mechanics:
-- **Resurrection Tracking**: Uses `WeakReference<State>` to track keys through finalization.
-- **Custom Comparer**: Unlike `ConditionalWeakTable` (which strictly uses reference identity `RuntimeHelpers.GetHashCode`), `WeakTable` supports custom `IEqualityComparer<K>`.
-- **Cyclic Reference Safety**: Keys and values do not hold strong circular references, preventing memory leaks when a value holds a reference back to its key.
+Legacy collections `WeakTable<K, V>` and `StaticMap<K, V>` have been deprecated and retired:
+- **`WeakTable<K, V>`**: Removed to prevent memory leaks and custom comparer hashcode mismatches. Use the BCL `System.Runtime.CompilerServices.ConditionalWeakTable<K, V>` for GC-safe weak-key associations.
+- **`StaticMap<K, V>`**: Removed in favor of thread-safe BCL primitives like `ConcurrentDictionary<K, V>` or `FrozenDictionary<K, V>`.
 
 ---
 

@@ -50,6 +50,9 @@ namespace ActDim.Practix.Introspection
         /// <summary>Gets or sets whether the type is a generic definition.</summary>
         public bool IsGenericDefinition { get; set; }
 
+        /// <summary>Gets or sets whether the type is a generic parameter.</summary>
+        public bool IsGenericParameter { get; set; }
+
         /// <summary>Gets or sets whether the type is nested.</summary>
         public bool IsNested { get; set; }
 
@@ -80,13 +83,60 @@ namespace ActDim.Practix.Introspection
         /// <summary>Gets or sets generic argument introspection info array.</summary>
         public TypeBaseIntrospectionInfo[] GenericArguments { get; set; }
 
+        private readonly object _syncRoot = new();
+        private bool _isInitialized;
+        private int _initializingThreadId;
+
         /// <summary>Initializes a new instance of the <see cref="TypeBaseIntrospectionInfo"/> class.</summary>
         public TypeBaseIntrospectionInfo() { }
 
         /// <summary>Initializes a new instance of the <see cref="TypeBaseIntrospectionInfo"/> class from a runtime type.</summary>
         /// <param name="t">The runtime type.</param>
-        public TypeBaseIntrospectionInfo(Type t) : base(t)
+        public TypeBaseIntrospectionInfo(Type t)
         {
+            ArgumentNullException.ThrowIfNull(t, nameof(t));
+            EnsureInitialized(t);
+        }
+
+        internal void EnsureInitialized(Type t)
+        {
+            if (_isInitialized)
+            {
+                return;
+            }
+
+            lock (_syncRoot)
+            {
+                if (_isInitialized)
+                {
+                    return;
+                }
+
+                if (_initializingThreadId == Environment.CurrentManagedThreadId)
+                {
+                    return;
+                }
+
+                _initializingThreadId = Environment.CurrentManagedThreadId;
+                try
+                {
+                    Cache.AddOrUpdate(t, this);
+                    Initialize(t);
+                    _isInitialized = true;
+                }
+                finally
+                {
+                    _initializingThreadId = 0;
+                }
+            }
+        }
+
+        internal virtual void Initialize(Type t)
+        {
+            Name = t.Name;
+            DisplayName = t.Name;
+            MemberId = t.GetIntrospectionMemberId();
+            MemberType = t.MemberType;
             FullName = t.FullName ?? t.Name;
             Namespace = t.Namespace;
             AssemblyQualifiedName = t.AssemblyQualifiedName;
@@ -100,6 +150,7 @@ namespace ActDim.Practix.Introspection
             IsPrimitive = t.IsPrimitive;
             IsGeneric = t.IsGenericType;
             IsGenericDefinition = t.IsGenericTypeDefinition;
+            IsGenericParameter = t.IsGenericParameter;
             IsNested = t.IsNested;
             IsNotPublic = t.IsNotPublic;
             IsPublic = t.IsPublic;
@@ -107,21 +158,30 @@ namespace ActDim.Practix.Introspection
             IsPointer = t.IsPointer;
             IsByRef = t.IsByRef;
 
-            BaseType = t.BaseType != null ? (TypeBaseIntrospectionInfo)t.BaseType.GetIntrospectionInfo(false) : null;
-            ElementType = t.IsArray || t.IsPointer ? (TypeBaseIntrospectionInfo)t.GetElementType().GetIntrospectionInfo(false) : null;
+            DeclaringType = (TypeBaseIntrospectionInfo)t.DeclaringType?.GetIntrospectionInfo(false);
+            ReflectedType = (TypeBaseIntrospectionInfo)t.ReflectedType?.GetIntrospectionInfo(false);
 
-            GenericParameters = t.IsGenericTypeDefinition ? [.. t.GetGenericArguments().Select(x => (TypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))] : [];
-            GenericArguments = t.IsGenericType ? [.. t.GetGenericArguments().Select(x => (TypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))] : [];
+            BaseType = t.BaseType != null ? (TypeBaseIntrospectionInfo)t.BaseType.GetIntrospectionInfo(false) : null;
+            ElementType = t.IsArray || t.IsPointer || t.IsByRef ? (TypeBaseIntrospectionInfo)t.GetElementType()?.GetIntrospectionInfo(false) : null;
+
+            GenericParameters = t.IsGenericTypeDefinition
+                ? [.. t.GetGenericArguments().Select(x => (TypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))]
+                : [];
+            GenericArguments = t.IsGenericType && !t.IsGenericTypeDefinition
+                ? [.. t.GetGenericArguments().Select(x => (TypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))]
+                : [];
 
             if (string.IsNullOrEmpty(t.FullName))
             {
-                if (t.IsGenericTypeDefinition)
+                var prefix = string.IsNullOrEmpty(t.Namespace) ? string.Empty : $"{t.Namespace}.";
+                var baseName = t.Name.Split('`').First();
+                if (t.IsGenericTypeDefinition && GenericParameters.Length > 0)
                 {
-                    FullName = $"{t.Name.Split('`').First()}<{string.Join(", ", GenericParameters.Select(x => x.Name))}>";
+                    FullName = $"{prefix}{baseName}<{string.Join(", ", GenericParameters.Select(x => x.Name))}>";
                 }
-                else if (t.IsGenericType)
+                else if (t.IsGenericType && GenericArguments.Length > 0)
                 {
-                    FullName = $"{t.Name.Split('`').First()}<{string.Join(", ", GenericArguments.Select(x => x.Name))}>";
+                    FullName = $"{prefix}{baseName}<{string.Join(", ", GenericArguments.Select(x => x.Name))}>";
                 }
             }
         }

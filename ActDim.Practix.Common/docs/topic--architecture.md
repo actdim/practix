@@ -28,7 +28,7 @@ The library is organized into 8 distinct, decoupled functional subsystems:
 +--------------+ +---------------+ +----------+ +-------------+ +---------------+
 | Context/     | | Pooling/      | | Caching/ | | Compression | | Collections/  |
 | AsyncLocal   | | Bounded FIFO  | | Memory & | | GZip/Brotli | | Concurrent,   |
-| Ambient State| | Object Pool   | | Distrib  | | Tar/Zip BCL | | WeakTable,    |
+| Ambient State| | Object Pool   | | Distrib  | | Tar/Zip BCL | | FactoryDict,  |
 | Zero-DI Logs | | Discard/Drain | | Proxies  | | Codecs      | | CompositeKey  |
 +--------------+ +---------------+ +----------+ +-------------+ +---------------+
                                         |
@@ -64,7 +64,6 @@ The library is organized into 8 distinct, decoupled functional subsystems:
 
 5. **Specialized Collections ([`topic--concurrent-collections.md`](./topic--concurrent-collections.md))**:
    - `ConcurrentFactoryDictionary<TKey, TValue>`: Lock-free exactly-once factory execution with exception-retry guarantees.
-   - `WeakTable<K, V>`: Weak reference table supporting custom `IEqualityComparer<K>`.
    - `CompositeKey`: Structural value-equality composite key struct.
 
 6. **Memory & Disposal Lifecycle ([`topic--memory-and-disposal.md`](./topic--memory-and-disposal.md))**:

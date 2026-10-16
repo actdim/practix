@@ -4,6 +4,13 @@ slug: align-product-and-test-assembly-namespaces
 date: 2026-09-24
 agent: antigravity
 summary: "Align Product and Test Assembly Namespaces"
+branch: main
+commit: unknown
+issues_advanced: []
+issues_completed: []
+decisions: []
+risks_logged: []
+spikes_conducted: []
 ---
 
 # Session: Align Product and Test Assembly Namespaces

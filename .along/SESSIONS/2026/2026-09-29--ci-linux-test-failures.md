@@ -4,6 +4,13 @@ slug: ci-linux-test-failures
 date: 2026-09-29
 agent: antigravity
 summary: "Fix CI Linux Test Failures and Add CI Badge"
+branch: main
+commit: unknown
+issues_advanced: []
+issues_completed: []
+decisions: []
+risks_logged: []
+spikes_conducted: []
 ---
 
 # Session: Fix CI Linux Test Failures and Add CI Badge

@@ -37,7 +37,8 @@ namespace ActDim.Practix.Introspection
         private static bool UseShortName(TypeBaseIntrospectionInfo info)
         {
             ArgumentNullException.ThrowIfNull(info, nameof(info));
-            return info.MemberId.AssemblyFullName.StartsWith("System.") && info.FullName.StartsWith("System.");
+            return (info.MemberId?.AssemblyFullName?.StartsWith("System.") ?? false)
+                && (info.FullName?.StartsWith("System.") ?? false);
         }
 
         private static string FormatTypeName(TypeBaseIntrospectionInfo info, IntrospectionFormatType formatType, Func<TypeBaseIntrospectionInfo, bool> systemTypeFilter = null)
@@ -74,6 +75,11 @@ namespace ActDim.Practix.Introspection
                 {
                     name = $"@{name}";
                 }
+            }
+
+            if (info.DeclaringType == null)
+            {
+                return name;
             }
 
             return $"{info.DeclaringType.Format(formatType, systemTypeFilter)}{FormatSeparator}{name}";
@@ -126,7 +132,7 @@ namespace ActDim.Practix.Introspection
             {
                 if (info.Parameters?.Length > 0)
                 {
-                    argList = string.Join(", ", info.Parameters.Select(x => x.ParameterType.Format(formatType, systemTypeFilter)));
+                    argList = string.Join(", ", info.Parameters.Select(x => x.ParameterType?.Format(formatType, systemTypeFilter) ?? "unknown"));
                 }
 
                 if (info.IsGenericDefinition && info.GenericParameters != null)
@@ -140,7 +146,8 @@ namespace ActDim.Practix.Introspection
             }
 
             var name = FormatMethodName(info, formatType, systemTypeFilter);
-            return $"{info.ReturnType.Format(formatType, systemTypeFilter)} {name}{typeArgList}({argList})";
+            var returnTypeStr = info.ReturnType?.Format(formatType, systemTypeFilter) ?? "void";
+            return $"{returnTypeStr} {name}{typeArgList}({argList})";
         }
 
         private static string Format(this TypeBaseIntrospectionInfo info, IntrospectionFormatType formatType = IntrospectionFormatType.Compact, Func<TypeBaseIntrospectionInfo, bool> systemTypeFilter = null)
@@ -175,6 +182,35 @@ namespace ActDim.Practix.Introspection
                 : ParameterBaseIntrospectionInfo.Cache.GetValue(p, p => new ParameterBaseIntrospectionInfo(p));
         }
 
+        private static TypeBaseIntrospectionInfo GetTypeBaseIntrospectionInfo(Type t)
+        {
+            if (TypeBaseIntrospectionInfo.Cache.TryGetValue(t, out var cached))
+            {
+                cached.EnsureInitialized(t);
+                return cached;
+            }
+
+            var info = new TypeBaseIntrospectionInfo();
+            TypeBaseIntrospectionInfo.Cache.AddOrUpdate(t, info);
+            info.EnsureInitialized(t);
+            return info;
+        }
+
+        private static TypeIntrospectionInfo GetTypeIntrospectionInfo(Type t)
+        {
+            if (TypeIntrospectionInfo.Cache.TryGetValue(t, out var cached))
+            {
+                cached.EnsureFullInitialized(t);
+                return cached;
+            }
+
+            var info = new TypeIntrospectionInfo();
+            TypeIntrospectionInfo.Cache.AddOrUpdate(t, info);
+            TypeBaseIntrospectionInfo.Cache.AddOrUpdate(t, info);
+            info.EnsureFullInitialized(t);
+            return info;
+        }
+
         /// <summary>
         /// Retrieves cached introspection information for a member info object.
         /// </summary>
@@ -183,11 +219,13 @@ namespace ActDim.Practix.Introspection
         /// <returns>An <see cref="IntrospectionInfo"/> instance.</returns>
         public static IntrospectionInfo GetIntrospectionInfo(this MemberInfo m, bool fullIntrospection = false)
         {
+            ArgumentNullException.ThrowIfNull(m, nameof(m));
+
             return m switch
             {
                 Type t => fullIntrospection
-                    ? TypeIntrospectionInfo.Cache.GetValue(t, t => new TypeIntrospectionInfo(t))
-                    : TypeBaseIntrospectionInfo.Cache.GetValue(t, t => new TypeBaseIntrospectionInfo(t)),
+                    ? GetTypeIntrospectionInfo(t)
+                    : GetTypeBaseIntrospectionInfo(t),
                 MethodBase mb => MethodIntrospectionInfo.Cache.GetValue(mb, x => new MethodIntrospectionInfo(x)),
                 PropertyInfo p => PropertyIntrospectionInfo.Cache.GetValue(p, x => new PropertyIntrospectionInfo(x)),
                 FieldInfo f => FieldIntrospectionInfo.Cache.GetValue(f, x => new FieldIntrospectionInfo(x)),
@@ -199,11 +237,26 @@ namespace ActDim.Practix.Introspection
         /// Builds a unique member identifier for the specified member info.
         /// </summary>
         /// <param name="mi">The member info.</param>
-        /// <returns>An <see cref="IntrospectionMemberId"/> struct instance.</returns>
+        /// <returns>An <see cref="IntrospectionMemberId"/> record instance.</returns>
         public static IntrospectionMemberId GetIntrospectionMemberId(this MemberInfo mi)
         {
-            var t = mi.DeclaringType;
-            return new IntrospectionMemberId(t.Assembly.FullName, t.Module.ModuleVersionId, mi.MetadataToken);
+            ArgumentNullException.ThrowIfNull(mi, nameof(mi));
+
+            var type = mi as Type ?? mi.DeclaringType;
+            var assemblyFullName = type?.Assembly.FullName ?? mi.Module?.Assembly.FullName ?? string.Empty;
+            var moduleVersionId = type?.Module.ModuleVersionId ?? mi.Module?.ModuleVersionId ?? Guid.Empty;
+
+            var token = 0;
+            try
+            {
+                token = mi.MetadataToken;
+            }
+            catch (InvalidOperationException)
+            {
+                // Metadata token might not be supported on some runtime dynamic member reflections.
+            }
+
+            return new IntrospectionMemberId(assemblyFullName, moduleVersionId, token, mi.ToString());
         }
     }
 }

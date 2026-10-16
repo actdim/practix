@@ -30,10 +30,19 @@ namespace ActDim.Practix.Introspection
         /// <param name="t">The runtime type.</param>
         public TypeIntrospectionInfo(Type t) : base(t)
         {
-            Properties = [.. t.GetProperties().Select(x => (PropertyIntrospectionInfo)x.GetIntrospectionInfo(false))];
-            Fields = [.. t.GetFields().Select(x => (FieldIntrospectionInfo)x.GetIntrospectionInfo(false))];
-            Methods = [.. t.GetMethods().Select(x => (MethodIntrospectionInfo)x.GetIntrospectionInfo(false))];
-            Interfaces = [.. t.GetInterfaces().Select(x => (TypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))];
+            EnsureFullInitialized(t);
+        }
+
+        internal void EnsureFullInitialized(Type t)
+        {
+            EnsureInitialized(t);
+            Cache.AddOrUpdate(t, this);
+            TypeBaseIntrospectionInfo.Cache.AddOrUpdate(t, this);
+
+            Properties ??= [.. t.GetProperties().Select(x => (PropertyIntrospectionInfo)x.GetIntrospectionInfo(false))];
+            Fields ??= [.. t.GetFields().Select(x => (FieldIntrospectionInfo)x.GetIntrospectionInfo(false))];
+            Methods ??= [.. t.GetMethods().Select(x => (MethodIntrospectionInfo)x.GetIntrospectionInfo(false))];
+            Interfaces ??= [.. t.GetInterfaces().Select(x => (TypeBaseIntrospectionInfo)x.GetIntrospectionInfo(false))];
         }
     }
 }

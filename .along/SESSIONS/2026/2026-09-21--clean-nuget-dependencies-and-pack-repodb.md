@@ -4,6 +4,13 @@ slug: clean-nuget-dependencies-and-pack-repodb
 date: 2026-09-21
 agent: antigravity
 summary: "Clean NuGet Dependencies, Remove Ardalis.GuardClauses, and Pack ActDim.Practix.RepoDb"
+branch: main
+commit: unknown
+issues_advanced: []
+issues_completed: []
+decisions: []
+risks_logged: []
+spikes_conducted: []
 ---
 
 # Session: Clean NuGet Dependencies, Remove Ardalis.GuardClauses, and Pack ActDim.Practix.RepoDb

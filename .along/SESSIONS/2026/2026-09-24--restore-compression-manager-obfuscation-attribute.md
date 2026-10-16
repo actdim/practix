@@ -4,6 +4,13 @@ slug: restore-compression-manager-obfuscation-attribute
 date: 2026-09-24
 agent: antigravity
 summary: "Restore Obfuscation Attribute on CompressionManager"
+branch: main
+commit: unknown
+issues_advanced: []
+issues_completed: []
+decisions: []
+risks_logged: []
+spikes_conducted: []
 ---
 
 # Session: Restore Obfuscation Attribute on CompressionManager

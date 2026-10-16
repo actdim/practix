@@ -30,10 +30,11 @@ namespace ActDim.Practix.Introspection
         /// <param name="m">The target member info.</param>
         public IntrospectionInfo(MemberInfo m) : base()
         {
+            ArgumentNullException.ThrowIfNull(m, nameof(m));
+
             Name = m.Name;
             DisplayName = m.Name;
-            var type = m is Type t ? t : m.DeclaringType;
-            MemberId = new IntrospectionMemberId(type.Assembly.FullName, type.Module.ModuleVersionId, m.MetadataToken);
+            MemberId = m.GetIntrospectionMemberId();
             MemberType = m.MemberType;
             DeclaringType = (TypeBaseIntrospectionInfo)m.DeclaringType?.GetIntrospectionInfo(false);
             ReflectedType = (TypeBaseIntrospectionInfo)m.ReflectedType?.GetIntrospectionInfo(false);

@@ -17,7 +17,7 @@
 - **Fast Zero-DI Logging:** `AmbientContext.Log<T>()` and `AmbientContext.Log(this)` resolving ambient/scoped logger factories with zero ceremony.
 - **Caching Proxies:** `MemoryCachingProxy` and `DistributedCachingProxy` offering simplified, resilient access to `IMemoryCache` and `IDistributedCache`.
 - **Stream & Payload Compression:** `CompressionManager` for `GZip`, `BZip2`, and `ZLib` buffer/stream compression.
-- **High-Performance Collections:** `ConcurrentFactoryDictionary` (thread-safe lock-free lookup/factory pattern), `WeakTable<K, V>`, and `CompositeKey`.
+- **High-Performance Collections:** `ConcurrentFactoryDictionary` (thread-safe lock-free lookup/factory pattern) and `CompositeKey`.
 - **Memory Buffer Pooling:** Zero-allocation buffer management with `ArrayPoolBufferOwner` and `MemoryManager`.
 - **Granular Microsoft DI Extensions:** Modular registration helpers (`AddAmbientContext()`, `AddCompressionManager()`, `AddMemoryCachingProxy()`, `AddDistributedCachingProxy()`).
 
@@ -547,7 +547,7 @@ The library is organized into 8 distinct, decoupled functional subsystems:
 +--------------+ +---------------+ +----------+ +-------------+ +---------------+
 | Context/     | | Pooling/      | | Caching/ | | Compression | | Collections/  |
 | AsyncLocal   | | Bounded FIFO  | | Memory & | | GZip/Brotli | | Concurrent,   |
-| Ambient State| | Object Pool   | | Distrib  | | Tar/Zip BCL | | WeakTable,    |
+| Ambient State| | Object Pool   | | Distrib  | | Tar/Zip BCL | | FactoryDict,  |
 | Zero-DI Logs | | Discard/Drain | | Proxies  | | Codecs      | | CompositeKey  |
 +--------------+ +---------------+ +----------+ +-------------+ +---------------+
                                         |
@@ -583,7 +583,6 @@ The library is organized into 8 distinct, decoupled functional subsystems:
 
 5. **Specialized Collections ([`topic--concurrent-collections.md`](./topic--concurrent-collections.md))**:
    - `ConcurrentFactoryDictionary<TKey, TValue>`: Lock-free exactly-once factory execution with exception-retry guarantees.
-   - `WeakTable<K, V>`: Weak reference table supporting custom `IEqualityComparer<K>`.
    - `CompositeKey`: Structural value-equality composite key struct.
 
 6. **Memory & Disposal Lifecycle ([`topic--memory-and-disposal.md`](./topic--memory-and-disposal.md))**:
@@ -942,26 +941,11 @@ UserSession session = cache.GetOrCreateValue("session_981");
 
 ---
 
-## Weak Table (`WeakTable<K, V>`)
+## Deprecated & Removed Collections (`WeakTable<K, V>`, `StaticMap<K, V>`)
 
-A concurrent weak table supporting **non-identity equality comparers**, modeled after .NET's `ConditionalWeakTable<K, V>`:
-
-```csharp
-var weakMap = new WeakTable<Document, DocumentMetadata>(customComparer);
-
-weakMap.Add(doc, metadata);
-
-if (weakMap.TryGetValue(doc, out var meta))
-{
-    // Access metadata
-}
-// When 'doc' is garbage collected, weakMap cleans up the entry automatically
-```
-
-### Mechanics:
-- **Resurrection Tracking**: Uses `WeakReference<State>` to track keys through finalization.
-- **Custom Comparer**: Unlike `ConditionalWeakTable` (which strictly uses reference identity `RuntimeHelpers.GetHashCode`), `WeakTable` supports custom `IEqualityComparer<K>`.
-- **Cyclic Reference Safety**: Keys and values do not hold strong circular references, preventing memory leaks when a value holds a reference back to its key.
+Legacy collections `WeakTable<K, V>` and `StaticMap<K, V>` have been deprecated and retired:
+- **`WeakTable<K, V>`**: Removed to prevent memory leaks and custom comparer hashcode mismatches. Use the BCL `System.Runtime.CompilerServices.ConditionalWeakTable<K, V>` for GC-safe weak-key associations.
+- **`StaticMap<K, V>`**: Removed in favor of thread-safe BCL primitives like `ConcurrentDictionary<K, V>` or `FrozenDictionary<K, V>`.
 
 ---
 
@@ -1008,7 +992,6 @@ Core domain concepts, resource ownership models, state transitions, and error ha
 | **Buffer Owner** | Owned buffer lease carrying valid length that returns rented memory to `ArrayPool` on disposal. | `IBufferOwner<T>`, `ArrayPoolBufferOwner<T>` |
 | **Atomic Disposal Action** | Thread-safe single-execution callback executed at most once upon `Dispose()` or `DisposeAsync()`. | `DisposableAction`, `DisposableAsyncAction` |
 | **Random ID Generator** | CSPRNG-backed uniform random token generator supporting Base62, Base58, and Crockford Base32. | `RandomId` |
-| **Weak Table** | Map holding weak references to keys, automatically cleaned up by GC finalization with custom equality support. | `WeakTable<K, V>` |
 | **Composite Key** | Immutable struct representing an ordered tuple of objects evaluated for element-wise value equality. | `CompositeKey` |
 
 ---
@@ -1149,7 +1132,7 @@ string customId = RandomId.Generate(8, "ABCDEF123456");
 
 ## Type & Introspection Helpers (`Introspection`)
 
-Provides structured reflection metadata caching (`IntrospectionInfo`, `MethodIntrospectionInfo`, `FieldIntrospectionInfo`) and `NameHelper` for sanitized member/type name resolution.
+Provides structured reflection metadata caching (`IntrospectionInfo`, `TypeBaseIntrospectionInfo`, `TypeIntrospectionInfo`, `MethodIntrospectionInfo`, `PropertyIntrospectionInfo`, `FieldIntrospectionInfo`), thread-safe cycle breaking for open generic definitions and recursive type structures, and `InMemoryIntrospectionStorage` with distinct member signatures distinguishing closed generic instantiations.
 
 ---
 
@@ -1337,6 +1320,6 @@ dotnet test Tests/Common.Tests/ActDim.Practix.Common.Tests.csproj -v q
 - `Tests/Common.Tests/Pooling/`: `AsyncObjectPoolTests`, `DiscardAsyncTests`, `FaultTolerantDrainTests`.
 - `Tests/Common.Tests/Caching/`: `MemoryCachingProxyTests`, `DistributedCachingProxyTests`.
 - `Tests/Common.Tests/Compression/`: `CompressionManagerTests`, `ArchiveReaderTests`, `FormatSniffingTests`.
-- `Tests/Common.Tests/Collections/`: `ConcurrentFactoryDictionaryTests`, `WeakTableTests`, `CompositeKeyTests`.
+- `Tests/Common.Tests/Collections/`: `ConcurrentFactoryDictionaryTests`, `CompositeKeyTests`.
 - `Tests/Common.Tests/Extensions/`: `StreamExtensionsTests`, `StringExtensionsTests`, `TaskExtensionsTests`.
 - `Tests/Common.Tests/Runtime/`: `ReachabilityObserverTests`, `RandomIdTests`.

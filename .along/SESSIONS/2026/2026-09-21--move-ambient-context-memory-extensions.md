@@ -4,6 +4,13 @@ slug: move-ambient-context-memory-extensions
 date: 2026-09-21
 agent: antigravity
 summary: "Move AmbientContextMemoryExtensions to Context/Extensions"
+branch: main
+commit: unknown
+issues_advanced: []
+issues_completed: []
+decisions: []
+risks_logged: []
+spikes_conducted: []
 ---
 
 # Session: Move AmbientContextMemoryExtensions to Context/Extensions

@@ -9,6 +9,7 @@
 - **Domain Exception Contracts:** Framework exception contracts (`DataFormatException`, `IncompleteDataException`).
 - **Serialization & JSON Abstractions:** Core serialization contracts (`IJsonSerializer`, `IBinarySerializer`, `IStreamSerializer`, `IStringSerializer`).
 - **Pattern Abstractions:** Reusable design pattern contracts (`IProvider<T>`, `IAsyncProvider<T>`, `IFactory<T>`, `IAsyncFactory<T>`, `IBuilder<T>`, `IAsyncBuilder<T>`, `ICommand<T>`, `IAsyncCommand<T>`, `IHandler<T>`, `IAsyncHandler<T>`, `ISpecification<T>`, `IAsyncSpecification<T>`).
+- **Disposal & Lifecycle Contracts:** Reusable disposal contracts (`IDisposedState`, `INotifyDisposed`, `IExceptionAwareDisposable`).
 
 ## Installation
 
