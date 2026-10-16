@@ -2,6 +2,11 @@
 
 All notable changes to this project, newest first.
 
+## v1.4.4 - 2026-10-16
+
+- refactor(practix): finalize disposal abstractions, collection cleanup, and introspection (refs #disposal-abstractions-refactor)
+- docs(along): remediate placeholder stubs and empty issue records (refs #remediate-issue-stubs)
+
 ## v1.4.3 - 2026-10-08
 
 - chore: consolidate nested along installations into repository root and unify entities (refs #task--consolidate-along-contexts)
