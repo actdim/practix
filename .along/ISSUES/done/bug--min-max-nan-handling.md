@@ -23,8 +23,8 @@ The LINQ standard behavior is to propagate `NaN` if any element in the sequence 
 We align default behavior with LINQ (return `double.NaN` if any element is `NaN`), and introduce an optional `bool ignoreNaN = false` parameter to optionally ignore `NaN` values and compute the min/max among valid numeric values.
 
 ## Acceptance Criteria
-- [ ] `MinOrDefault` and `MaxOrDefault` propagate `double.NaN` by default when `ignoreNaN` is false.
-- [ ] `ignoreNaN` parameter added with default value `false`.
-- [ ] When `ignoreNaN` is true, `double.NaN` values are skipped; if all values are `NaN` or sequence is empty, `defaultValue` is returned.
-- [ ] XML documentation updated with `<param name="ignoreNaN">`.
-- [ ] Unit tests added covering both default LINQ behavior and `ignoreNaN = true` across permutations.
+- [x] `MinOrDefault` and `MaxOrDefault` propagate `double.NaN` by default when `ignoreNaN` is false.
+- [x] `ignoreNaN` parameter added with default value `false`.
+- [x] When `ignoreNaN` is true, `double.NaN` values are skipped; if all values are `NaN` or sequence is empty, `defaultValue` is returned.
+- [x] XML documentation updated with `<param name="ignoreNaN">`.
+- [x] Unit tests added covering both default LINQ behavior and `ignoreNaN = true` across permutations.

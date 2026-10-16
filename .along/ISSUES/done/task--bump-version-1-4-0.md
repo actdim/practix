@@ -21,8 +21,8 @@ related: []
 Following Along protocol v4.4.1 upgrade and IAM BuiltinRoles GUID alignment, bump the minor version to 1.4.0, update CHANGELOG.md, and finalize release commit, tag, and push.
 
 ## Acceptance Criteria
-- [ ] Increment `<Version>` in `Directory.Build.props` to `1.4.0`.
-- [ ] Prepend `CHANGELOG.md` with `v1.4.0` section.
-- [ ] Reconcile milestone `v1.4.0-along-protocol-and-iam-alignment`.
-- [ ] Verify test suite passes with 0 failures.
-- [ ] Create release commit, tag `v1.4.0`, and push to remote.
+- [x] Increment `<Version>` in `Directory.Build.props` to `1.4.0`.
+- [x] Prepend `CHANGELOG.md` with `v1.4.0` section.
+- [x] Reconcile milestone `v1.4.0-along-protocol-and-iam-alignment`.
+- [x] Verify test suite passes with 0 failures.
+- [x] Create release commit, tag `v1.4.0`, and push to remote.

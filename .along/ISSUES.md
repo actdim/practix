@@ -13,7 +13,6 @@
 - [ ] `(bug)` [reflectron-methods-null-check-and-generic-handling](ISSUES/bug--reflectron-methods-null-check-and-generic-handling.md)
 - [ ] `(bug)` [reflectron-property-getter-setter-cache-asymmetry](ISSUES/bug--reflectron-property-getter-setter-cache-asymmetry.md)
 - [ ] `(bug)` [span-tag-restore-assumes-lifo](ISSUES/bug--span-tag-restore-assumes-lifo.md)
-- [ ] `(bug)` [weak-table-custom-comparer-hashcode-mismatch](ISSUES/bug--weak-table-custom-comparer-hashcode-mismatch.md)
 - [ ] `(debt)` [arraysegment-blockcopy-optimization](ISSUES/debt--arraysegment-blockcopy-optimization.md)
 - [ ] `(debt)` [common-utilities-hygiene-and-safety](ISSUES/debt--common-utilities-hygiene-and-safety.md)
 - [ ] `(debt)` [compression-interface-cleanup](ISSUES/debt--compression-interface-cleanup.md)
@@ -62,9 +61,9 @@
 - [ ] `(task)` [read-lock-persists-mutations](ISSUES/task--read-lock-persists-mutations.md)
 
 ## Done (recent)
-- [x] `(task)` [consolidate-along-contexts](ISSUES/done/task--consolidate-along-contexts.md)
-- [x] `(debt)` [remove-shadowed-and-redundant-string-extensions](ISSUES/done/debt--remove-shadowed-and-redundant-string-extensions.md)
-- [x] `(bug)` [randomid-base58-missing-u](ISSUES/done/bug--randomid-base58-missing-u.md)
-- [x] `(bug)` [async-object-pool-discard-and-disposed-semaphore-leak](ISSUES/done/bug--async-object-pool-discard-and-disposed-semaphore-leak.md)
-- [x] `(bug)` [zero-alloc-copy-nonseekable-buffering](ISSUES/done/bug--zero-alloc-copy-nonseekable-buffering.md)
-<!-- 76 older completed issue(s) archived in .along/ISSUES/done/ -->
+- [x] `(task)` [remediate-issue-stubs](ISSUES/done/task--remediate-issue-stubs.md)
+- [x] `(task)` [remove-staticmap-and-weaktable](ISSUES/done/task--remove-staticmap-and-weaktable.md)
+- [x] `(task)` [refactor-composite-key-and-cleanup](ISSUES/done/task--refactor-composite-key-and-cleanup.md)
+- [x] `(task)` [notify-disposed-interface](ISSUES/done/task--notify-disposed-interface.md)
+- [x] `(task)` [disposal-abstractions-refactor](ISSUES/done/task--disposal-abstractions-refactor.md)
+<!-- 83 older completed issue(s) archived in .along/ISSUES/done/ -->

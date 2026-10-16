@@ -20,6 +20,6 @@ related: []
 The `RandomId.Base58Alphabet` constant contains 57 characters instead of 58 because uppercase 'U' was inadvertently omitted (tail was written as `...PQRSTVWXYZ` patterned after Crockford Base32 instead of `...PQRSTUVWXYZ`).
 
 ## Acceptance Criteria
-- [ ] Add uppercase 'U' to `RandomId.Base58Alphabet` so it contains the canonical 58 Base58 characters.
-- [ ] Add comprehensive unit tests in `RandomIdTests` verifying `IdAlphabetType.Base58` length, character set integrity, and exclusion of ambiguous characters ('0', 'O', 'I', 'l').
-- [ ] Automated tests passing cleanly.
+- [x] Add uppercase 'U' to `RandomId.Base58Alphabet` so it contains the canonical 58 Base58 characters.
+- [x] Add comprehensive unit tests in `RandomIdTests` verifying `IdAlphabetType.Base58` length, character set integrity, and exclusion of ambiguous characters ('0', 'O', 'I', 'l').
+- [x] Automated tests passing cleanly.

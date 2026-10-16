@@ -17,8 +17,17 @@ related: []
 
 # AmbientContext Modernization and Static API Cleanup
 
-Describe the feature, requirements, and background context here.
+## Problem Statement / Background
+`AmbientContext` retained legacy static convenience methods and redundant properties that mixed execution-flow propagation with direct service discovery. This caused tight coupling across modules, blurred lifetime boundaries, and conflicted with standard dependency injection patterns across server and worker hosting models.
+
+## Implementation Details
+1. Cleaned up legacy static accessors on `AmbientContext`, ensuring the class solely manages execution context state and property stack propagation via `AsyncLocal<T>`.
+2. Extracted domain-specific context accessors into explicit extension methods under `ActDim.Practix.Abstractions.Context.Extensions`.
+3. Standardized lifetime scoping behavior to ensure nested scopes properly restore previous property values upon disposal.
+4. Updated unit tests in `AmbientContextTests` to verify scope restoration, thread isolation, and leak-free disposal.
 
 ## Acceptance Criteria
-- [ ] Task requirement 1
-- [ ] Automated tests passing
+- [x] Legacy static service lookup methods removed from `AmbientContext`.
+- [x] Context manipulation restricted to clean `Current`, `Properties`, and `PushProperty` semantics.
+- [x] Disposing an ambient property scope restores prior ambient state without residual value leaks.
+- [x] Unit and integration tests in `AmbientContextTests` pass with zero failures.
